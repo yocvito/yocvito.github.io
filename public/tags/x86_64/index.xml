@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>X86_64 on Terminal</title>
+    <link>//localhost:1313/tags/x86_64/</link>
+    <description>Recent content in X86_64 on Terminal</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Tue, 29 Oct 2024 14:48:26 +0100</lastBuildDate><atom:link href="//localhost:1313/tags/x86_64/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>PWN: Simple Heap Exploitation</title>
+      <link>//localhost:1313/posts/pwn_hackropole-cheapie/</link>
+      <pubDate>Tue, 29 Oct 2024 14:48:26 +0100</pubDate>
+      
+      <guid>//localhost:1313/posts/pwn_hackropole-cheapie/</guid>
+      <description>&lt;h1 id=&#34;pwn-cheapie---simple-heap-exploitation&#34;&gt;PWN: Cheapie - Simple Heap Exploitation&lt;/h1&gt;
+&lt;p&gt;This is a challenge I found on &lt;a href=&#34;https://hackropole.fr/fr/challenges/pwn/fcsc2021-pwn-cheapie/&#34;&gt;hackropole.fr&lt;/a&gt;&lt;/p&gt;</description>
+      <content>&lt;h1 id=&#34;pwn-cheapie---simple-heap-exploitation&#34;&gt;PWN: Cheapie - Simple Heap Exploitation&lt;/h1&gt;
+&lt;p&gt;This is a challenge I found on &lt;a href=&#34;https://hackropole.fr/fr/challenges/pwn/fcsc2021-pwn-cheapie/&#34;&gt;hackropole.fr&lt;/a&gt;&lt;/p&gt;
+</content>
+    </item>
+    
+  </channel>
+</rss>
