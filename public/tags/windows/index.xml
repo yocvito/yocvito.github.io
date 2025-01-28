@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Windows on yocvito website</title>
+    <link>//localhost:1313/tags/windows/</link>
+    <description>Recent content in Windows on yocvito website</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Tue, 29 Oct 2024 13:52:51 +0100</lastBuildDate><atom:link href="//localhost:1313/tags/windows/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>RE: Exam Crackme</title>
+      <link>//localhost:1313/posts/re-exam-crackme/</link>
+      <pubDate>Tue, 29 Oct 2024 13:52:51 +0100</pubDate>
+      
+      <guid>//localhost:1313/posts/re-exam-crackme/</guid>
+      <description>&lt;h1 id=&#34;reversing-the-malware&#34;&gt;Reversing the malware&lt;/h1&gt;
+&lt;p&gt;During our OS Security course, we learned about the basics of reverse engineering. At the end of the course, we were given a crackme to solve as final exam.&lt;/p&gt;
+&lt;p&gt;The crackme is a Windows executable employing malware techniques. It wasn&amp;rsquo;t expected from us to fully reverse the malware but at least analyze it, understand what&amp;rsquo;s going on and eventually find the flag.&lt;/p&gt;
+&lt;p&gt;The crackme binary can be downloaded &lt;a href=&#34;//localhost:1313/exam_crackme.exe&#34;&gt;here&lt;/a&gt; and my analysis (in French) can be found &lt;a href=&#34;//localhost:1313/report-exam_crackme.pdf&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;</description>
+      <content>&lt;h1 id=&#34;reversing-the-malware&#34;&gt;Reversing the malware&lt;/h1&gt;
+&lt;p&gt;During our OS Security course, we learned about the basics of reverse engineering. At the end of the course, we were given a crackme to solve as final exam.&lt;/p&gt;
+&lt;p&gt;The crackme is a Windows executable employing malware techniques. It wasn&amp;rsquo;t expected from us to fully reverse the malware but at least analyze it, understand what&amp;rsquo;s going on and eventually find the flag.&lt;/p&gt;
+&lt;p&gt;The crackme binary can be downloaded &lt;a href=&#34;//localhost:1313/exam_crackme.exe&#34;&gt;here&lt;/a&gt; and my analysis (in French) can be found &lt;a href=&#34;//localhost:1313/report-exam_crackme.pdf&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+</content>
+    </item>
+    
+  </channel>
+</rss>
