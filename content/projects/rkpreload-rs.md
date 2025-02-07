@@ -34,14 +34,33 @@ _This is a PoC. There is still many artifacts in the code that leak information 
     - pwn `.bashrc` file if injection has been removed
 - **Hide files** prefixed by a certain string
 - **eBPF loader** to load a rootkit when being run as root
-    - allow loading several eBPF programs specified in `config.toml` (no `map` support)
+    - allow loading several eBPF programs specified in `ebpf_programs` (no `map` support)
 - **Collection of eBPF programs** to provide advanced rootkit capabilities
     - LSM program to better protect `king.txt` (with an alternative program if LSM isn't available)
     - program with advanced hiding capabilties (dynamically configurable through maps)
         - hide eBPF programs
         - hide pids
         - hide files
-    - backdoor program
+    - backdoor program: spawn a root shell when receiving a special packet
+    - rootkit exfiltration program: exfiltrate objects loaded through `bpf_prog_load` and `load_module` (LKM) kernel functions (for now it exfiltrates to filesystem)
+- **dropper**: send and execute files on target system 
+    - use AES256-CGM for exchanging messages between attacker and dropper implant
+    - performs fileless execution of binaries using `memfd_create` (local files passed as arguments are also mapped to memory and never touch disk)
+
+## Repository Hierarchy
+
+- `LD_PRELOAD`: holds the malicious library to inject into shells
+- `eBPF`: collection of eBPF programs to provide rootkit capabilities
+- `tools`: collection of usefull binaries (chattr, backdoor-cli, dropper-cli, etc.)
+- `rkpreload-utils`: utility functions used in all code (anti-debug, etc.)
+- `pwncat-weaponizing`: collection of scripts to install the library with `pwncat-cs`
+
+### TODO features
+
+- **other `root` bypass countermeasures
+- **automatic exfiltrator** 
+- **better hiding**
+- **LKM loader** (without insmod, loading through `/dev/kmem`)
 
 ### eBPF backdoor demo
 
@@ -82,7 +101,7 @@ export RUSTFLAGS="--remap-path-prefix=$HOME/=. --remap-path-prefix=$(pwd)/=."
 set -lx RUSTFLAGS "--remap-path-prefix=$HOME/=. --remap-path-prefix=$(pwd)/=."
 ```
 
-Then, you might want to generate the eBPF program and write it to the `config.toml` file before compiling the `LD_PRELOAD` library (see [sub-directory README for instructions](./lsm_king_protect/README.md))
+Then, you might want to generate the eBPF program and write it to the `ebpf_programs` dir before compiling the `LD_PRELOAD` library (see [sub-directory README for instructions](./lsm_king_protect/README.md))
 
 
 ```bash
@@ -104,6 +123,8 @@ First, we pwn the `.bashrc` file to set `LD_PRELOAD`, to our malicious library, 
 ```bash
 ./libpreload_install.sh
 ```
+
+Alternatively if you are connected with `pwncat-cs` and have installed `rkpreload` modules, you can follow the instructions in [pwncat-weaponizing dir](./pwncat-weaponizing/README.md) to install the lib without having to manually upload files.
 
 After that, anyone who starts a `bash` process, as the pwned user, will have our malicious library loaded.
 
