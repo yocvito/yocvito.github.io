@@ -1,0 +1,106 @@
+---
+id: resume
+title: Resume
+---
+
+# Resume
+
+## Education
+
+_**Master: Cybersecurity & Cryptology**_ (2023)
+> System security, Network security, Programming, Smart-Card, Information Theory, Cryptology, Cryptanalysis
+
+_**Bachelor Degree (Licence): Computer Science**_ (2021)
+> Programming (system, networking, image processing), Operating System, Networking, Algorithms 
+
+_**Associate Degree (DUT): Computer Science**_ (2019)
+> Programming (web, mobile, system, networking, embedded devices), Operating System, Networking
+
+
+## Experience
+
+### Work
+
+**PhD Student: LaBRI** (Dec. 2023 - Nov. 2024)
+
+_**Physical layer Security**_
+
+- State of the art
+	- read papers
+	- understand technology and context (LoRa, low power devices, ...)
+	- getting familiar with the hardware (STM32 devices with **SX1276** LoRa transceivers)
+- Paper writting (stopped): Compare _quantization_ methods of Key Generation systems found in literature (+ some methods untested for LoRa)
+	- Implement LoRa Key Generation system from scratch (in C)
+		- this one is general compared to prior work in 2021 and can handle various methods at each phase of the Key Generation procedure
+	- Write a tool for configuring devices equipped with KeyGen system and logging telemetry data (in Rust)
+	- Write various utilities (in Python and Rust)
+
+_I did stop my PhD because I was not happy working on this subject_ :( 
+
+---
+
+**Intern: Defense Ministery** (Mar. 2023 - Aug. 2023)
+
+_**Embedded Linux Security**_
+
+Using Reverse Engineering and Fuzzing to test security of an embedded linux device.
+- reversing on IDA Pro 
+	- basic python scripting
+- emulation + fuzzing using [Unicorn Engine](https://www.unicorn-engine.org/) and [AFL++](https://github.com/AFLplusplus/unicornafl)
+- tooling in Python
+
+_I will not respond to any questions related to this work_
+
+---
+
+**Intern: LaBRI** (May 2021 - Aug. 2021)
+
+_**Implementation of a Physical layer based key generation system**_
+
+- Understand **Physical layer based security** (read papers)
+- [**LoRa** Technology](https://lora.readthedocs.io/en/latest/)
+- Work on **FiPy** devices (use an ESP32) from _Pycom_
+	- use a modified micropython stack
+- Modify Pycom firmware to implement the key generation procedure ([our fork](https://github.com/yocvito/pycom-micropython-sigfox), look at **PHYSEC** branch)
+	- implement [LoRa-Key paper](https://ieeexplore.ieee.org/abstract/document/8580375)
+
+---
+
+**Intern: INVISSYS** (Apr. 2019 - June 2019)
+
+_**Developpment of a solution for getting logs of a large number of embedded devices**_
+
+- Work on STM32 devices with LoRa capibilities
+- Design and Implement gathering of STM32 logs from a Raspberry Pi
+	- Use an intermediary STM32 device for collecting logs as UART and sending them to RPI using I2C
+	- Use basic system programming in C for I2C communication 
+
+
+
+### Projects
+
+Here is non exhaustive list of my projects to get an idea of what I've worked on.
+
+⚠️ **WARNING** ⚠️<span style="line-height:2;"></span>   
+_I do not endorse illegal activities. Some of my projects are educational explorations that could be misapplied. To prevent misuse, certain code isn't publicly available but can be shared upon [request](mailto:yocvito.f@pm.me) after careful consideration._
+
+
+
+| Project Name | Brief | Link (if available) |
+|--------------|-------|---------------------|
+| Flipper: Bad BLE | Add Bluetooth capability to the BadUSB application of Flipper Zero | [Community Firmware with the feature](https://github.com/Next-Flip/Momentum-Firmware) |
+| Linux Rootkit (PoC) | Linux rootkit with basic features (process/file/port hiding, backdoors (root, reverse-shell, ssh), ...).  | _not public (but you can find another rootkit PoC [here](/posts/linux-rootkit))_ |
+| Flipper: LoRa Toolkit | Add LoRa capability to Flipper using an [ESP32 external board](https://heltec.org/project/wifi-lora-32v2/) | _not finished ([link to demo](/projects/flipper_lora_toolkit))_ |
+| Kobalos-rs | Implementing the Kobalos malware obfuscation technique in Rust proc-macros | _not finished ([link to demo](/projects/kobalos-rs))_ |
+| rkpreload-rs | Implementing in Rust basic `LD_PRELOAD` & eBPF malwares for KOTH CTFs | [link to demo](https://github.com/yocvito/rkpreload-rs) |
+
+
+
+## Technical Skills
+
+**Reverse, Pwn, dev, pentest**
+
+## Languages
+
+**C, Rust, Python, Assembly (x86_64, ARM, AVR, xtensa), C++, Java**
+

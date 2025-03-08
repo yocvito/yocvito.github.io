@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Dev on yocvito website</title>
+    <link>//localhost:1313/tags/dev/</link>
+    <description>Recent content in Dev on yocvito website</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Tue, 29 Oct 2024 12:41:54 +0100</lastBuildDate><atom:link href="//localhost:1313/tags/dev/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>MalDev: Linux Rootkit</title>
+      <link>//localhost:1313/posts/linux-rootkit/</link>
+      <pubDate>Tue, 29 Oct 2024 12:41:54 +0100</pubDate>
+      
+      <guid>//localhost:1313/posts/linux-rootkit/</guid>
+      <description>&lt;h1 id=&#34;how-to-build-a-linux-rootkit&#34;&gt;How to build a Linux Rootkit&lt;/h1&gt;
+&lt;p&gt;Here is a &lt;a href=&#34;//localhost:1313/report-linrootkit.pdf&#34;&gt;report&lt;/a&gt; on building a simple Linux Rootkit during my OS Security course (report is in French language).&lt;/p&gt;</description>
+      <content>&lt;h1 id=&#34;how-to-build-a-linux-rootkit&#34;&gt;How to build a Linux Rootkit&lt;/h1&gt;
+&lt;p&gt;Here is a &lt;a href=&#34;//localhost:1313/report-linrootkit.pdf&#34;&gt;report&lt;/a&gt; on building a simple Linux Rootkit during my OS Security course (report is in French language).&lt;/p&gt;
+</content>
+    </item>
+    
+  </channel>
+</rss>
