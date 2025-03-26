@@ -1,0 +1,472 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Project on yocvito website</title>
+    <link>//localhost:1313/tags/project/</link>
+    <description>Recent content in Project on yocvito website</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Sun, 15 Dec 2024 00:04:38 +0100</lastBuildDate><atom:link href="//localhost:1313/tags/project/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>LD_PRELOAD Malware in Rust</title>
+      <link>//localhost:1313/projects/rkpreload-rs/</link>
+      <pubDate>Sun, 15 Dec 2024 00:04:38 +0100</pubDate>
+      
+      <guid>//localhost:1313/projects/rkpreload-rs/</guid>
+      <description>&lt;h1 id=&#34;rkpreload-rs&#34;&gt;rkpreload-rs&lt;/h1&gt;
+&lt;p&gt;This is a simple Linux userspace rootkit in Rust, using &lt;code&gt;LD_PRELOAD&lt;/code&gt; for injection.&lt;/p&gt;
+&lt;p&gt;This is mostly dedicated to use in KOTH CTFs.&lt;/p&gt;
+&lt;p&gt;⚠️  &lt;strong&gt;WARNING&lt;/strong&gt; ⚠️&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;This is a PoC. There is still many artifacts in the code that leak information about the malware to the user. Use at your own risk.&lt;/em&gt;&lt;/p&gt;
+&lt;h2 id=&#34;features&#34;&gt;Features&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Mess with shell output&lt;/strong&gt; to slower other players&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Mess with file listing&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Deny writing to &lt;code&gt;king.txt&lt;/code&gt;&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Log shell commands to hidden files in /tmp&lt;/strong&gt; (these files are visible by other users on the system, except if they are pwned)&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Persistence&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;set &lt;code&gt;LD_PRELOAD&lt;/code&gt; in environment variables of current process if it has been unset&lt;/li&gt;
+&lt;li&gt;pwn &lt;code&gt;.bashrc&lt;/code&gt; file if injection has been removed&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Hide files&lt;/strong&gt; prefixed by a certain string&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;eBPF loader&lt;/strong&gt; to load a rootkit when being run as root
+&lt;ul&gt;
+&lt;li&gt;allow loading several eBPF programs specified in &lt;code&gt;ebpf_programs&lt;/code&gt; (no &lt;code&gt;map&lt;/code&gt; support)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Collection of eBPF programs&lt;/strong&gt; to provide advanced rootkit capabilities
+&lt;ul&gt;
+&lt;li&gt;LSM program to better protect &lt;code&gt;king.txt&lt;/code&gt; (with an alternative program if LSM isn&amp;rsquo;t available)&lt;/li&gt;
+&lt;li&gt;program with advanced hiding capabilties (dynamically configurable through maps)
+&lt;ul&gt;
+&lt;li&gt;hide eBPF programs&lt;/li&gt;
+&lt;li&gt;hide pids&lt;/li&gt;
+&lt;li&gt;hide files&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;backdoor program: spawn a root shell when receiving a special packet&lt;/li&gt;
+&lt;li&gt;rootkit exfiltration program: exfiltrate objects loaded through &lt;code&gt;bpf_prog_load&lt;/code&gt; and &lt;code&gt;load_module&lt;/code&gt; (LKM) kernel functions (for now it exfiltrates to filesystem)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;dropper&lt;/strong&gt;: send and execute files on target system
+&lt;ul&gt;
+&lt;li&gt;use AES256-CGM for exchanging messages between attacker and dropper implant&lt;/li&gt;
+&lt;li&gt;performs fileless execution of binaries using &lt;code&gt;memfd_create&lt;/code&gt; (local files passed as arguments are also mapped to memory and never touch disk)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;repository-hierarchy&#34;&gt;Repository Hierarchy&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;LD_PRELOAD&lt;/code&gt;: holds the malicious library to inject into shells&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;eBPF&lt;/code&gt;: collection of eBPF programs to provide rootkit capabilities&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;tools&lt;/code&gt;: collection of usefull binaries (chattr, backdoor-cli, dropper-cli, etc.)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;rkpreload-utils&lt;/code&gt;: utility functions used in all code (anti-debug, etc.)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;pwncat-weaponizing&lt;/code&gt;: collection of scripts to install the library with &lt;code&gt;pwncat-cs&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;todo-features&#34;&gt;TODO features&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;**other &lt;code&gt;root&lt;/code&gt; bypass countermeasures&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;automatic exfiltrator&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;better hiding&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;LKM loader&lt;/strong&gt; (without insmod, loading through &lt;code&gt;/dev/kmem&lt;/code&gt;)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;ebpf-backdoor-demo&#34;&gt;eBPF backdoor demo&lt;/h3&gt;
+&lt;p&gt;&lt;a href=&#34;https://youtu.be/a3fbWpP_Ojs&#34;&gt;&lt;img alt=&#34;Watch the backdoor demo&#34; src=&#34;https://img.youtube.com/vi/a3fbWpP_Ojs/hqdefault.jpg&#34;&gt;&lt;/a&gt;&lt;/p&gt;</description>
+      <content>&lt;h1 id=&#34;rkpreload-rs&#34;&gt;rkpreload-rs&lt;/h1&gt;
+&lt;p&gt;This is a simple Linux userspace rootkit in Rust, using &lt;code&gt;LD_PRELOAD&lt;/code&gt; for injection.&lt;/p&gt;
+&lt;p&gt;This is mostly dedicated to use in KOTH CTFs.&lt;/p&gt;
+&lt;p&gt;⚠️  &lt;strong&gt;WARNING&lt;/strong&gt; ⚠️&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;This is a PoC. There is still many artifacts in the code that leak information about the malware to the user. Use at your own risk.&lt;/em&gt;&lt;/p&gt;
+&lt;h2 id=&#34;features&#34;&gt;Features&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Mess with shell output&lt;/strong&gt; to slower other players&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Mess with file listing&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Deny writing to &lt;code&gt;king.txt&lt;/code&gt;&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Log shell commands to hidden files in /tmp&lt;/strong&gt; (these files are visible by other users on the system, except if they are pwned)&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Persistence&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;set &lt;code&gt;LD_PRELOAD&lt;/code&gt; in environment variables of current process if it has been unset&lt;/li&gt;
+&lt;li&gt;pwn &lt;code&gt;.bashrc&lt;/code&gt; file if injection has been removed&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Hide files&lt;/strong&gt; prefixed by a certain string&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;eBPF loader&lt;/strong&gt; to load a rootkit when being run as root
+&lt;ul&gt;
+&lt;li&gt;allow loading several eBPF programs specified in &lt;code&gt;ebpf_programs&lt;/code&gt; (no &lt;code&gt;map&lt;/code&gt; support)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Collection of eBPF programs&lt;/strong&gt; to provide advanced rootkit capabilities
+&lt;ul&gt;
+&lt;li&gt;LSM program to better protect &lt;code&gt;king.txt&lt;/code&gt; (with an alternative program if LSM isn&amp;rsquo;t available)&lt;/li&gt;
+&lt;li&gt;program with advanced hiding capabilties (dynamically configurable through maps)
+&lt;ul&gt;
+&lt;li&gt;hide eBPF programs&lt;/li&gt;
+&lt;li&gt;hide pids&lt;/li&gt;
+&lt;li&gt;hide files&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;backdoor program: spawn a root shell when receiving a special packet&lt;/li&gt;
+&lt;li&gt;rootkit exfiltration program: exfiltrate objects loaded through &lt;code&gt;bpf_prog_load&lt;/code&gt; and &lt;code&gt;load_module&lt;/code&gt; (LKM) kernel functions (for now it exfiltrates to filesystem)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;dropper&lt;/strong&gt;: send and execute files on target system
+&lt;ul&gt;
+&lt;li&gt;use AES256-CGM for exchanging messages between attacker and dropper implant&lt;/li&gt;
+&lt;li&gt;performs fileless execution of binaries using &lt;code&gt;memfd_create&lt;/code&gt; (local files passed as arguments are also mapped to memory and never touch disk)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;repository-hierarchy&#34;&gt;Repository Hierarchy&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;LD_PRELOAD&lt;/code&gt;: holds the malicious library to inject into shells&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;eBPF&lt;/code&gt;: collection of eBPF programs to provide rootkit capabilities&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;tools&lt;/code&gt;: collection of usefull binaries (chattr, backdoor-cli, dropper-cli, etc.)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;rkpreload-utils&lt;/code&gt;: utility functions used in all code (anti-debug, etc.)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;pwncat-weaponizing&lt;/code&gt;: collection of scripts to install the library with &lt;code&gt;pwncat-cs&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;todo-features&#34;&gt;TODO features&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;**other &lt;code&gt;root&lt;/code&gt; bypass countermeasures&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;automatic exfiltrator&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;better hiding&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;LKM loader&lt;/strong&gt; (without insmod, loading through &lt;code&gt;/dev/kmem&lt;/code&gt;)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;ebpf-backdoor-demo&#34;&gt;eBPF backdoor demo&lt;/h3&gt;
+&lt;p&gt;&lt;a href=&#34;https://youtu.be/a3fbWpP_Ojs&#34;&gt;&lt;img alt=&#34;Watch the backdoor demo&#34; src=&#34;https://img.youtube.com/vi/a3fbWpP_Ojs/hqdefault.jpg&#34;&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id=&#34;config-file-format&#34;&gt;Config file format&lt;/h2&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-toml&#34; data-lang=&#34;toml&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# enable perturbing process output (run verbose commands, print messages, etc.)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;enable_perturbs&lt;/span&gt; = &lt;span style=&#34;color:#66d9ef&#34;&gt;true&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# enable keylogger&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;enable_keylogger&lt;/span&gt; = &lt;span style=&#34;color:#66d9ef&#34;&gt;true&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# hidden files prefix&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;hiding_prefix&lt;/span&gt; = &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;@&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# directory to store malware files&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;backup_dir&lt;/span&gt; = &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;/tmp/.@systemd-usocket-a3ef65a9&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# file for eBPF loader killswitch (allowing only one loader)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;ebpf_killswitch&lt;/span&gt; = &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;/tmp/.@systemd-usocket-a3ef65a9/.@ssock&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# killswitch to disable LD_PRELOAD rootkit on current process&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;[&lt;span style=&#34;color:#a6e22e&#34;&gt;killswitch&lt;/span&gt;]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;Env&lt;/span&gt; = { &lt;span style=&#34;color:#a6e22e&#34;&gt;key&lt;/span&gt; = &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;SK&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;val&lt;/span&gt; = &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;UTC1&amp;#34;&lt;/span&gt; }
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Also take a look at &lt;a href=&#34;./ebpf_programs/king_protect.toml&#34;&gt;&lt;code&gt;ebpf_programs/king_protect.toml&lt;/code&gt;&lt;/a&gt; to see how to generate a config for your ebpf programs.&lt;/p&gt;
+&lt;h2 id=&#34;compile&#34;&gt;Compile&lt;/h2&gt;
+&lt;p&gt;First, set &lt;code&gt;RUSTFLAGS&lt;/code&gt; to remove information about your dev machine.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# bash/sh/zsh&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;export RUSTFLAGS&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;--remap-path-prefix=&lt;/span&gt;$HOME&lt;span style=&#34;color:#e6db74&#34;&gt;/=. --remap-path-prefix=&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;$(&lt;/span&gt;pwd&lt;span style=&#34;color:#66d9ef&#34;&gt;)&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;/=.&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# fish&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;set -lx RUSTFLAGS &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;--remap-path-prefix=&lt;/span&gt;$HOME&lt;span style=&#34;color:#e6db74&#34;&gt;/=. --remap-path-prefix=&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;$(&lt;/span&gt;pwd&lt;span style=&#34;color:#66d9ef&#34;&gt;)&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;/=.&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Then, you might want to generate the eBPF program and write it to the &lt;code&gt;ebpf_programs&lt;/code&gt; dir before compiling the &lt;code&gt;LD_PRELOAD&lt;/code&gt; library (see &lt;a href=&#34;./lsm_king_protect/README.md&#34;&gt;sub-directory README for instructions&lt;/a&gt;)&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;cd rust_preload
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# eventually edit the `config.toml` file before compiling&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;cargo build --release
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;cp target/release/librust_preload.so ./libperf.so
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The &lt;code&gt;build.rs&lt;/code&gt; file will also generate a &lt;code&gt;libpreload_install.sh&lt;/code&gt; script, which is later used to pwn a user.&lt;/p&gt;
+&lt;h2 id=&#34;how-to-use&#34;&gt;How to use&lt;/h2&gt;
+&lt;p&gt;We will assume you have getting access to the system and have download both the &lt;code&gt;libperf.so&lt;/code&gt; and &lt;code&gt;libpreload_install.sh&lt;/code&gt; files.
+All commands provided following this assume to be running on attacked machine.&lt;/p&gt;
+&lt;p&gt;First, we pwn the &lt;code&gt;.bashrc&lt;/code&gt; file to set &lt;code&gt;LD_PRELOAD&lt;/code&gt;, to our malicious library, at startup.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;./libpreload_install.sh
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Alternatively if you are connected with &lt;code&gt;pwncat-cs&lt;/code&gt; and have installed &lt;code&gt;rkpreload&lt;/code&gt; modules, you can follow the instructions in &lt;a href=&#34;./pwncat-weaponizing/README.md&#34;&gt;pwncat-weaponizing dir&lt;/a&gt; to install the lib without having to manually upload files.&lt;/p&gt;
+&lt;p&gt;After that, anyone who starts a &lt;code&gt;bash&lt;/code&gt; process, as the pwned user, will have our malicious library loaded.&lt;/p&gt;
+&lt;p&gt;To see what happens when your are pwned, run the following command (be carefull to remove malicious code in &lt;code&gt;.bashrc&lt;/code&gt; after testing):&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;LD_PRELOAD&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;$(&lt;/span&gt;pwd&lt;span style=&#34;color:#66d9ef&#34;&gt;)&lt;/span&gt;/libperf.so bash
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Now you likely want to build the library for specific libc versions (in order to just upload the compiled library to the attacked machine). You can use Docker to achieve this goal.&lt;/p&gt;
+</content>
+    </item>
+    
+    <item>
+      <title>Flipper Zero LoRa Toolkit</title>
+      <link>//localhost:1313/projects/flipper_lora_toolkit/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>//localhost:1313/projects/flipper_lora_toolkit/</guid>
+      <description>&lt;h1 id=&#34;flipper-zero-lora-toolkit-app&#34;&gt;Flipper Zero: LoRa Toolkit App&lt;/h1&gt;
+&lt;p&gt;⚠️ &lt;strong&gt;WARNING&lt;/strong&gt; ⚠️&lt;!-- raw HTML omitted --&gt;&lt;!-- raw HTML omitted --&gt;&lt;br&gt;
+&lt;em&gt;Unfinished project, This page is only here to showcase what I&amp;rsquo;ve done. If your interested in getting codebase or part of it, feel free to &lt;a href=&#34;mailto:yocvito.f@pm.me&#34;&gt;ask&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
+&lt;h2 id=&#34;brief&#34;&gt;Brief&lt;/h2&gt;
+&lt;p&gt;A LoRa Receiver/Transmitter app for Flipper Zero, and almost fully configurable !&lt;/p&gt;
+&lt;p&gt;This app allows to interact with an Heltec ESP32 LoRa (V2) where a custom firmware is installed.&lt;/p&gt;</description>
+      <content>&lt;h1 id=&#34;flipper-zero-lora-toolkit-app&#34;&gt;Flipper Zero: LoRa Toolkit App&lt;/h1&gt;
+&lt;p&gt;⚠️ &lt;strong&gt;WARNING&lt;/strong&gt; ⚠️&lt;!-- raw HTML omitted --&gt;&lt;!-- raw HTML omitted --&gt;&lt;br&gt;
+&lt;em&gt;Unfinished project, This page is only here to showcase what I&amp;rsquo;ve done. If your interested in getting codebase or part of it, feel free to &lt;a href=&#34;mailto:yocvito.f@pm.me&#34;&gt;ask&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
+&lt;h2 id=&#34;brief&#34;&gt;Brief&lt;/h2&gt;
+&lt;p&gt;A LoRa Receiver/Transmitter app for Flipper Zero, and almost fully configurable !&lt;/p&gt;
+&lt;p&gt;This app allows to interact with an Heltec ESP32 LoRa (V2) where a custom firmware is installed.&lt;/p&gt;
+&lt;p&gt;If you are not familiar with LoRa, you can learn more about it &lt;a href=&#34;https://en.wikipedia.org/wiki/LoRa&#34;&gt;here&lt;/a&gt;. You might also want to check &lt;a href=&#34;https://www.thethingsnetwork.org/docs/lorawan/&#34;&gt;LoRaWAN&lt;/a&gt;, the applicative protocol on top of LoRa.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Main features:&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Configure LoRa modem&lt;/li&gt;
+&lt;li&gt;Recv/Send LoRa frames&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;Additionnal &amp;ldquo;features&amp;rdquo;:&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Replay received frames&lt;/li&gt;
+&lt;li&gt;Save received frames&lt;/li&gt;
+&lt;li&gt;Frequency hopping
+&lt;ul&gt;
+&lt;li&gt;Select frequencies for hopping&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Add custom frequencies (130-1020MHz)&lt;/li&gt;
+&lt;li&gt;Extract channel properties (RSSI, SNR, CFO)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;em&gt;&lt;strong&gt;WARN: For educationnal purpose only. Even though this tool doesn&amp;rsquo;t implement any attacks, it can easely be used to disrupt services which use LoRa around you, so be respectfull and use it for your own stuff or educationnal demonstration.&lt;/strong&gt;&lt;/em&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;h2 id=&#34;configure-project&#34;&gt;Configure project&lt;/h2&gt;
+&lt;h3 id=&#34;required&#34;&gt;Required&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Flipper Zero (of course !)&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://fr.aliexpress.com/w/wholesale-heltec-esp32-lora-v2.html&#34;&gt;Heltec ESP32 LoRa (V2)&lt;/a&gt; embedding a SX1276 transceiver (&lt;a href=&#34;https://doc.riot-os.org/group__boards__esp32__heltec-lora32-v2.html&#34;&gt;board info&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;Arduino IDE (or equivalent like &lt;a href=&#34;https://marketplace.visualstudio.com/items?itemName=vsciot-vscode.vscode-arduino&#34;&gt;vscode extension&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;fbt&lt;/code&gt; toolchain (just clone latest &lt;a href=&#34;https://github.com/Flipper-XFW/Xtreme-Firmware&#34;&gt;Xtreme Firmware&lt;/a&gt; version)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;Note: the reason why we use the Heltec ESP32 (V2) instead of (V3) is because they embed different transceivers. The SX1276 coming with the V2 allows more granularity in configurations and usage of the radio (I&amp;rsquo;m also more familiar with it). For example, the SX1262 don&amp;rsquo;t allow fetching the Carrier Frequency Offset (CFO) which can be usefull for authentication.&lt;/em&gt;
+&lt;em&gt;For now it is not planned to port the code to the ESP32 V3, but it&amp;rsquo;s possible if the project interest people.&lt;/em&gt;&lt;/p&gt;
+&lt;h3 id=&#34;esp32&#34;&gt;ESP32&lt;/h3&gt;
+&lt;p&gt;Open the &lt;code&gt;ESP32LoRaToolkit&lt;/code&gt; project in arduino-ide.&lt;/p&gt;
+&lt;p&gt;Then you need to install Heltec boards &amp;amp; libraries into arduino following &lt;a href=&#34;https://docs.heltec.org/en/node/esp32/esp32_general_docs/quick_start.html&#34;&gt;this guide&lt;/a&gt; (I recommend installing &lt;!-- raw HTML omitted --&gt;Via Arduino Board Manager&lt;!-- raw HTML omitted --&gt;)&lt;/p&gt;
+&lt;p&gt;Select the right board (be careful to take the LoRa V2) and the port (should be &lt;code&gt;/dev/ttyUSBX&lt;/code&gt; on linux).
+Finally, flash the firmware to the ESP32 board by pressing right arrow button located on the top left of the window (&amp;ldquo;Upload&amp;rdquo; should appears when your mouse is hovering over it).
+&lt;img alt=&#34;Flashing Arduino&#34; src=&#34;//localhost:1313/img/flipper_lora/flash_arduino.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;If the flashing process have been sucessful and you have let &lt;code&gt;ENABLE_OLED_DISPLAY&lt;/code&gt; set to &lt;code&gt;1&lt;/code&gt;, then you should see &amp;ldquo;LoRa Receiver&amp;rdquo; displayed on the screen.&lt;/p&gt;
+&lt;h3 id=&#34;flipper&#34;&gt;Flipper&lt;/h3&gt;
+&lt;p&gt;Just copy &lt;code&gt;lora_toolkit&lt;/code&gt; folder to &lt;code&gt;./applications_user/&lt;/code&gt; in Xtreme firmware directory.&lt;/p&gt;
+&lt;p&gt;Then use &lt;code&gt;./fbt launch APPSRC=applications_user/lora_toolkit&lt;/code&gt; to flash the app.&lt;/p&gt;
+&lt;p&gt;WARNING: You need to update your firmware, at least to the &lt;a href=&#34;https://github.com/Flipper-XFW/Xtreme-Firmware/releases/tag/XFW-0053_02022024&#34;&gt;release version&lt;/a&gt; where the uart was refactored in OFW.&lt;/p&gt;
+&lt;h2 id=&#34;demo&#34;&gt;Demo&lt;/h2&gt;
+&lt;h3 id=&#34;1&#34;&gt;#1&lt;/h3&gt;
+&lt;p&gt;First is a demonstration of a triggered jammer PoC to highlights that the ESP32 code remains simple enough, and low level, to allows switching from RX to TX and jamming on a hald-duplex system (in perfect conditions). Actually, I added extra functions in the LoRa driver that allow &lt;a href=&#34;https://www.thethingsnetwork.org/docs/lorawan/lora-phy-format/&#34;&gt;&lt;em&gt;LoRa preamble&lt;/em&gt;&lt;/a&gt; detection, and it will be relatively simple to add another features because the &lt;a href=&#34;//localhost:1313/DS_SX1276-7-8-9_W_APP_V7.pdf&#34;&gt;&lt;strong&gt;SX1276 transceiver&lt;/strong&gt;&lt;/a&gt; is &amp;ldquo;easy&amp;rdquo; to configure and interact with.&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://www.youtube.com/embed/0ejxvojs_gI&#34;&gt;&lt;img alt=&#34;Watch the First demo&#34; src=&#34;https://img.youtube.com/vi/0ejxvojs_gI/hqdefault.jpg&#34;&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Photo of the setup:&lt;/strong&gt;
+&lt;img alt=&#34;Setup demo 1&#34; src=&#34;//localhost:1313/img/flipper_lora/setup_demo_1.jpeg&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;2&#34;&gt;#2&lt;/h3&gt;
+&lt;p&gt;The second video shows all the basic features.&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://www.youtube.com/embed/Wc4Ek1JKSUk&#34;&gt;&lt;img alt=&#34;Watch the Second demo&#34; src=&#34;https://img.youtube.com/vi/Wc4Ek1JKSUk/hqdefault.jpg&#34;&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id=&#34;3&#34;&gt;#3&lt;/h3&gt;
+&lt;p&gt;The third and last video is about custom frequencies and hopping. It uses &lt;a href=&#34;https://www.gqrx.dk/&#34;&gt;gqrx&lt;/a&gt; for visualizing LoRa signals and show you can effectively extends the default frequencies.&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://www.youtube.com/embed/_OM5C_Y_GhI&#34;&gt;&lt;img alt=&#34;Watch the Third demo&#34; src=&#34;https://img.youtube.com/vi/_OM5C_Y_GhI/hqdefault.jpg&#34;&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Screenshot of GQRX:&lt;/strong&gt;
+&lt;img alt=&#34;A LoRa signal sent outside EU frequencies (the default frequencies of the firmware)&#34; src=&#34;//localhost:1313/img/flipper_lora/lora_non_regional_freq.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;WARNING: I don&amp;rsquo;t have 2 esp32&amp;rsquo;s, so I can&amp;rsquo;t test that LoRa signals sent in custom freqs outside regional frequencies will be correctly decoded at the receiver side.&lt;/em&gt;&lt;/p&gt;
+</content>
+    </item>
+    
+    <item>
+      <title>Rust proc-macros based obfuscation</title>
+      <link>//localhost:1313/projects/kobalos-rs/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>//localhost:1313/projects/kobalos-rs/</guid>
+      <description>&lt;h1 id=&#34;kobalos-obfuscation-in-rust&#34;&gt;Kobalos Obfuscation in Rust&lt;/h1&gt;
+&lt;p&gt;Obfuscate functions using kobalos style.&lt;/p&gt;
+&lt;p&gt;⚠️ &lt;strong&gt;WARNING&lt;/strong&gt; ⚠️&lt;!-- raw HTML omitted --&gt;&lt;!-- raw HTML omitted --&gt;&lt;br&gt;
+&lt;em&gt;This is really a WIP project I just started with almost nothing working yet. Code samples here are hand-crafted and not generated by the lib except for the last example (which is not working anyway). This is to show that it seems feasible in Rust even though it requires a bit of work.&lt;/em&gt;&lt;/p&gt;</description>
+      <content>&lt;h1 id=&#34;kobalos-obfuscation-in-rust&#34;&gt;Kobalos Obfuscation in Rust&lt;/h1&gt;
+&lt;p&gt;Obfuscate functions using kobalos style.&lt;/p&gt;
+&lt;p&gt;⚠️ &lt;strong&gt;WARNING&lt;/strong&gt; ⚠️&lt;!-- raw HTML omitted --&gt;&lt;!-- raw HTML omitted --&gt;&lt;br&gt;
+&lt;em&gt;This is really a WIP project I just started with almost nothing working yet. Code samples here are hand-crafted and not generated by the lib except for the last example (which is not working anyway). This is to show that it seems feasible in Rust even though it requires a bit of work.&lt;/em&gt;&lt;/p&gt;
+&lt;h2 id=&#34;usage&#34;&gt;Usage&lt;/h2&gt;
+&lt;p&gt;Tag your function with &lt;code&gt;#[kobalos::obfuscate]&lt;/code&gt; attribute macro to obfuscate it.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-rust&#34; data-lang=&#34;rust&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#[kobalos::obfuscate]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;fn&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;foo&lt;/span&gt;() {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    println!(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Hello, world!&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;would be transformed into:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-rust&#34; data-lang=&#34;rust&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;enum&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;RecArg&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;&amp;#39;a&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    RAVoid,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    RARefStr(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;&amp;#39;a&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;str&lt;/span&gt;),
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// From &amp;amp; Into implementations for all `RecArg` variants
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// ...
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;fn&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;__recursive_foo&lt;/span&gt;(id: &lt;span style=&#34;color:#66d9ef&#34;&gt;u32&lt;/span&gt;, args: Vec&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;RecArg&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt;) -&amp;gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;RecArg&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;match&lt;/span&gt; id {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&amp;gt;&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; () &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;match&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;args[&lt;span style=&#34;color:#f92672&#34;&gt;..&lt;/span&gt;] {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                [RecArg::RAVoid] &lt;span style=&#34;color:#f92672&#34;&gt;=&amp;gt;&lt;/span&gt; (),
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                _ &lt;span style=&#34;color:#f92672&#34;&gt;=&amp;gt;&lt;/span&gt; panic!(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Invalid argument type&amp;#34;&lt;/span&gt;),
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            };
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            __recursive_foo(&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;, vec![RecArg::RARefStr(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Hello, world!&amp;#34;&lt;/span&gt;)])
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        },
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&amp;gt;&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; s &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;match&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;args[&lt;span style=&#34;color:#f92672&#34;&gt;..&lt;/span&gt;] {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                [RecArg::RARefStr(s)] &lt;span style=&#34;color:#f92672&#34;&gt;=&amp;gt;&lt;/span&gt; s,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                _ &lt;span style=&#34;color:#f92672&#34;&gt;=&amp;gt;&lt;/span&gt; panic!(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Invalid argument type&amp;#34;&lt;/span&gt;),
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            };
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            println!(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;{}&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;, s);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            RecArg::RAVoid
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        },
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        _ &lt;span style=&#34;color:#f92672&#34;&gt;=&amp;gt;&lt;/span&gt; panic!(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Invalid function id&amp;#34;&lt;/span&gt;),
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;fn&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;foo&lt;/span&gt;() {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    __recursive_foo(&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, vec![RecArg::RAVoid])
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;If the obfuscated function contains calls to functions belonging to the program itself,
+the obfuscator will then manage to inline them into the recursive function.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-rust&#34; data-lang=&#34;rust&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;fn&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;bar&lt;/span&gt;(a: &lt;span style=&#34;color:#66d9ef&#34;&gt;u32&lt;/span&gt;) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    a&lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#[kobalos::obfuscate]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;fn&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;foo&lt;/span&gt;() {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    println!(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;{}&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;, bar(&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;));
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;would be transformed into:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-rust&#34; data-lang=&#34;rust&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;enum&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;RecArg&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;&amp;#39;a&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    RAVoid,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;RAU32&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;u32&lt;/span&gt;),
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// From &amp;amp; Into implementations for all `RecArg` variants
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// ...
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;fn&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;__recursive_foo&lt;/span&gt;(id: &lt;span style=&#34;color:#66d9ef&#34;&gt;u32&lt;/span&gt;, args: Vec&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;RecArg&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt;) -&amp;gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;RecArg&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;match&lt;/span&gt; id {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&amp;gt;&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; () &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;match&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;args[&lt;span style=&#34;color:#f92672&#34;&gt;..&lt;/span&gt;] {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                [RecArg::RAVoid] &lt;span style=&#34;color:#f92672&#34;&gt;=&amp;gt;&lt;/span&gt; (),
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                _ &lt;span style=&#34;color:#f92672&#34;&gt;=&amp;gt;&lt;/span&gt; panic!(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Invalid argument type&amp;#34;&lt;/span&gt;),
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            };
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; fcret0 &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; __recursive_foo(&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;, vec![RecArg::&lt;span style=&#34;color:#66d9ef&#34;&gt;RAU32&lt;/span&gt;(&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;)]);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            __recursive_foo(&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;, vec![fcret0])
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        },
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&amp;gt;&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; a &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;match&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;args[&lt;span style=&#34;color:#f92672&#34;&gt;..&lt;/span&gt;] {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                [RecArg::&lt;span style=&#34;color:#66d9ef&#34;&gt;RAU32&lt;/span&gt;(a)] &lt;span style=&#34;color:#f92672&#34;&gt;=&amp;gt;&lt;/span&gt; a,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                _ &lt;span style=&#34;color:#f92672&#34;&gt;=&amp;gt;&lt;/span&gt; panic!(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Invalid argument type&amp;#34;&lt;/span&gt;),
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            };
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#75715e&#34;&gt;// no call to bar() 
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;            &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; ret &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; a&lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            RecArg::&lt;span style=&#34;color:#66d9ef&#34;&gt;RAU32&lt;/span&gt;(ret)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        },
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&amp;gt;&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; v0 &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;match&lt;/span&gt; args {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                [RecArg::&lt;span style=&#34;color:#66d9ef&#34;&gt;RAU32&lt;/span&gt;(v)] &lt;span style=&#34;color:#f92672&#34;&gt;=&amp;gt;&lt;/span&gt; v,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                _ &lt;span style=&#34;color:#f92672&#34;&gt;=&amp;gt;&lt;/span&gt; panic!(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Invalid argument type&amp;#34;&lt;/span&gt;),
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            };
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            println!(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;{}&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;, v0);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            RecArg::RAVoid
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        },
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        _ &lt;span style=&#34;color:#f92672&#34;&gt;=&amp;gt;&lt;/span&gt; panic!(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Invalid function id&amp;#34;&lt;/span&gt;),
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;fn&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;foo&lt;/span&gt;() {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    __recursive_foo(&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, vec![RecArg::RAVoid])
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;implementation-insights&#34;&gt;Implementation insights&lt;/h2&gt;
+&lt;h3 id=&#34;explanations&#34;&gt;Explanations&lt;/h3&gt;
+&lt;p&gt;The library is supposed to analyze the obfuscated function and catch all calls (functions or methods) in order to obfuscate them in a newly created recursive function (inlining functions present in the program code).&lt;/p&gt;
+&lt;p&gt;By recursively obfuscating all inlined functions, it can theorically pack the whole codebase into one function. This function would be called with an &lt;code&gt;ID&lt;/code&gt; (representing the function to be called) and a vector containing the arguments for the function.&lt;/p&gt;
+&lt;p&gt;The library should infers on the argument types of the called functions in order to create a common enum type (&lt;code&gt;RecArg&lt;/code&gt;) which handles all possible function argument types for obfuscated calls.&lt;/p&gt;
+&lt;p&gt;Writing IDA or Ghidra scripts to reverse the logic should be easy enough, so an advanced version would include random or mutating IDs (like the one in the call wouldn&amp;rsquo;t correspond to the actual match case ID). But at the end, everything is reversable&amp;hellip;&lt;/p&gt;
+&lt;h3 id=&#34;real-example&#34;&gt;Real Example&lt;/h3&gt;
+&lt;p&gt;This shows code generated by a PoC library I&amp;rsquo;ve started writing. The code doesn&amp;rsquo;t actually compile yet because lot of things need to be handled in order to fully wrap all called functions into match statements + inlining correctly all the functions present in the program.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;original code:&lt;/strong&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-rust&#34; data-lang=&#34;rust&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;use&lt;/span&gt; std::io::Write;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;use&lt;/span&gt; kobalos_obfuscator::obfuscate;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;fn&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;get_toto&lt;/span&gt;() -&amp;gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;&amp;amp;&lt;/span&gt;&amp;#39;static &lt;span style=&#34;color:#66d9ef&#34;&gt;str&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;toto&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;fn&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;toto&lt;/span&gt;() {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    println!(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;{}&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;, get_toto());
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;fn&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;display&lt;/span&gt;(s: &lt;span style=&#34;color:#66d9ef&#34;&gt;&amp;amp;&lt;/span&gt;Vec&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;u8&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt;) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    std::io::stdout().write_all(s).unwrap();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#[obfuscate]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;fn&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;() {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; vec: Vec&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;u8&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; vec![&lt;span style=&#34;color:#ae81ff&#34;&gt;0x48&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;0x65&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;0x6c&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;0x6c&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;0x6f&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;0x2c&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;0x20&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;0x77&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;0x6f&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;0x72&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;0x6c&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;0x64&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;0x21&lt;/span&gt;];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    print!(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;I&amp;#39;m &amp;#34;&lt;/span&gt;); toto();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    display(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;vec);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;strong&gt;generated code:&lt;/strong&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-rust&#34; data-lang=&#34;rust&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;pub&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;enum&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;RecArg&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;&amp;#39;a&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    RARefVecU8(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;&amp;#39;a&lt;/span&gt; Vec&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;u8&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt;),
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    RAVoid,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;impl&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;&amp;#39;a&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; From&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;&amp;#39;a&lt;/span&gt; Vec&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;u8&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; RecArg&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;&amp;#39;a&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;fn&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;from&lt;/span&gt;(val: &lt;span style=&#34;color:#66d9ef&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;&amp;#39;a&lt;/span&gt; Vec&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;u8&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt;) -&amp;gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Self&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        RecArg::RARefVecU8(val)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;impl&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;&amp;#39;a&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; Into&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;&amp;#39;a&lt;/span&gt; Vec&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;u8&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; RecArg&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;&amp;#39;a&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;fn&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;into&lt;/span&gt;(self) -&amp;gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;&amp;#39;a&lt;/span&gt; Vec&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;u8&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;match&lt;/span&gt; self {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            RecArg::RARefVecU8(val) &lt;span style=&#34;color:#f92672&#34;&gt;=&amp;gt;&lt;/span&gt; val,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            _ &lt;span style=&#34;color:#f92672&#34;&gt;=&amp;gt;&lt;/span&gt; panic!(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Invalid conversion&amp;#34;&lt;/span&gt;),
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;impl&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;&amp;#39;a&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; From&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;()&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; RecArg&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;&amp;#39;a&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;fn&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;from&lt;/span&gt;(_: ()) -&amp;gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Self&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        RecArg::RAVoid
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;impl&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;&amp;#39;a&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; Into&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;()&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; RecArg&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;&amp;#39;a&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;fn&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;into&lt;/span&gt;(self) -&amp;gt; () {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;match&lt;/span&gt; self {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            RecArg::RAVoid &lt;span style=&#34;color:#f92672&#34;&gt;=&amp;gt;&lt;/span&gt; (),
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            _ &lt;span style=&#34;color:#f92672&#34;&gt;=&amp;gt;&lt;/span&gt; panic!(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Invalid conversion&amp;#34;&lt;/span&gt;),
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;fn&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;__recursive_main&lt;/span&gt;(id: &lt;span style=&#34;color:#66d9ef&#34;&gt;u32&lt;/span&gt;, args: Vec&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;RecArg&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt;) -&amp;gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;RecArg&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;match&lt;/span&gt; id {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;u32&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&amp;gt;&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; () &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;match&lt;/span&gt; args.as_slice() {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                [] &lt;span style=&#34;color:#f92672&#34;&gt;=&amp;gt;&lt;/span&gt; (),
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                _ &lt;span style=&#34;color:#f92672&#34;&gt;=&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; panic!(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Bruh&amp;#34;&lt;/span&gt;),
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            };
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                println!(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;{}&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;, get_toto());
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            RecArg::RAVoid
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;u32&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&amp;gt;&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; (s) &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;match&lt;/span&gt; args.as_slice() {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                [RecArg::RARefVecU8(s)] &lt;span style=&#34;color:#f92672&#34;&gt;=&amp;gt;&lt;/span&gt; (s),
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                _ &lt;span style=&#34;color:#f92672&#34;&gt;=&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; panic!(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Bruh&amp;#34;&lt;/span&gt;),
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            };
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                std::io::stdout().write_all(s).unwrap();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            RecArg::RAVoid
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;u32&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&amp;gt;&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; vec: Vec&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;u8&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; vec![
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    &lt;span style=&#34;color:#ae81ff&#34;&gt;0x48&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;0x65&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;0x6c&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;0x6c&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;0x6f&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;0x2c&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;0x20&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;0x77&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;0x6f&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;0x72&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;0x6c&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;0x64&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;0x21&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                ];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                print!(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;I&amp;#39;m &amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                __recursive_main(&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;, vec![]);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                __recursive_main(&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;, vec![RecArg::RARefVecU8(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;vec)]);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            RecArg::RAVoid
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        _ &lt;span style=&#34;color:#f92672&#34;&gt;=&amp;gt;&lt;/span&gt; panic!(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Ho Ho Ho&amp;#34;&lt;/span&gt;),
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;fn&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;() {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    __recursive_main(&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, vec![]).into()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Here is the IDA cfg of both non-obfuscated and obfuscated versions (not using the same version that generated above code). Of course it doesn&amp;rsquo;t seems so usefull for simple functions like that, but I think it would be more powerfull on big functions.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;not-obfuscated cfg:&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;non-obfuscated cfg&#34; src=&#34;//localhost:1313/img/kobalos-rs/cfg-not-obfuscated.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;obfuscated cfg:&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;obfuscated cfg&#34; src=&#34;//localhost:1313/img/kobalos-rs/cfg-obfuscated.png&#34;&gt;&lt;/p&gt;
+</content>
+    </item>
+    
+  </channel>
+</rss>

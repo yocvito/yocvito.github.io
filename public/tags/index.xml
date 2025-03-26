@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Tags on yocvito website</title>
+    <link>//localhost:1313/tags/</link>
+    <description>Recent content in Tags on yocvito website</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Tue, 04 Mar 2025 11:31:21 +0100</lastBuildDate><atom:link href="//localhost:1313/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Linux-Kernel</title>
+      <link>//localhost:1313/tags/linux-kernel/</link>
+      <pubDate>Tue, 04 Mar 2025 11:31:21 +0100</pubDate>
+      
+      <guid>//localhost:1313/tags/linux-kernel/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>Pwn</title>
+      <link>//localhost:1313/tags/pwn/</link>
+      <pubDate>Tue, 04 Mar 2025 11:31:21 +0100</pubDate>
+      
+      <guid>//localhost:1313/tags/pwn/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>Write-Up</title>
+      <link>//localhost:1313/tags/write-up/</link>
+      <pubDate>Tue, 04 Mar 2025 11:31:21 +0100</pubDate>
+      
+      <guid>//localhost:1313/tags/write-up/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>X86</title>
+      <link>//localhost:1313/tags/x86/</link>
+      <pubDate>Tue, 04 Mar 2025 11:31:21 +0100</pubDate>
+      
+      <guid>//localhost:1313/tags/x86/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>Maldev</title>
+      <link>//localhost:1313/tags/maldev/</link>
+      <pubDate>Sun, 15 Dec 2024 00:04:38 +0100</pubDate>
+      
+      <guid>//localhost:1313/tags/maldev/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>Project</title>
+      <link>//localhost:1313/tags/project/</link>
+      <pubDate>Sun, 15 Dec 2024 00:04:38 +0100</pubDate>
+      
+      <guid>//localhost:1313/tags/project/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>Rootkit</title>
+      <link>//localhost:1313/tags/rootkit/</link>
+      <pubDate>Sun, 15 Dec 2024 00:04:38 +0100</pubDate>
+      
+      <guid>//localhost:1313/tags/rootkit/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>Rust</title>
+      <link>//localhost:1313/tags/rust/</link>
+      <pubDate>Sun, 15 Dec 2024 00:04:38 +0100</pubDate>
+      
+      <guid>//localhost:1313/tags/rust/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>Userspace</title>
+      <link>//localhost:1313/tags/userspace/</link>
+      <pubDate>Sun, 15 Dec 2024 00:04:38 +0100</pubDate>
+      
+      <guid>//localhost:1313/tags/userspace/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>Arm</title>
+      <link>//localhost:1313/tags/arm/</link>
+      <pubDate>Tue, 19 Nov 2024 16:55:56 +0100</pubDate>
+      
+      <guid>//localhost:1313/tags/arm/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>Avr</title>
+      <link>//localhost:1313/tags/avr/</link>
+      <pubDate>Wed, 30 Oct 2024 15:44:39 +0100</pubDate>
+      
+      <guid>//localhost:1313/tags/avr/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>Linux</title>
+      <link>//localhost:1313/tags/linux/</link>
+      <pubDate>Tue, 29 Oct 2024 15:17:22 +0100</pubDate>
+      
+      <guid>//localhost:1313/tags/linux/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>Ret-2-Win</title>
+      <link>//localhost:1313/tags/ret-2-win/</link>
+      <pubDate>Tue, 29 Oct 2024 15:17:22 +0100</pubDate>
+      
+      <guid>//localhost:1313/tags/ret-2-win/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>Dev</title>
+      <link>//localhost:1313/tags/dev/</link>
+      <pubDate>Tue, 29 Oct 2024 12:41:54 +0100</pubDate>
+      
+      <guid>//localhost:1313/tags/dev/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>Kernel</title>
+      <link>//localhost:1313/tags/kernel/</link>
+      <pubDate>Tue, 29 Oct 2024 12:41:54 +0100</pubDate>
+      
+      <guid>//localhost:1313/tags/kernel/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>Malware</title>
+      <link>//localhost:1313/tags/malware/</link>
+      <pubDate>Tue, 29 Oct 2024 12:41:54 +0100</pubDate>
+      
+      <guid>//localhost:1313/tags/malware/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>Demo</title>
+      <link>//localhost:1313/tags/demo/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>//localhost:1313/tags/demo/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>Flipper</title>
+      <link>//localhost:1313/tags/flipper/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>//localhost:1313/tags/flipper/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>Kobalos</title>
+      <link>//localhost:1313/tags/kobalos/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>//localhost:1313/tags/kobalos/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>LoRa</title>
+      <link>//localhost:1313/tags/lora/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>//localhost:1313/tags/lora/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>Obfuscation</title>
+      <link>//localhost:1313/tags/obfuscation/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>//localhost:1313/tags/obfuscation/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+  </channel>
+</rss>

