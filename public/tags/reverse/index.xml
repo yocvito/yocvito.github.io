@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Reverse on yocvito website</title>
+    <link>//localhost:1313/tags/reverse/</link>
+    <description>Recent content in Reverse on yocvito website</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Mon, 17 Feb 2025 11:05:44 +0100</lastBuildDate><atom:link href="//localhost:1313/tags/reverse/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Rev: HTB vvm</title>
+      <link>//localhost:1313/posts/rev-hackthebox-vvm/</link>
+      <pubDate>Mon, 17 Feb 2025 11:05:44 +0100</pubDate>
+      
+      <guid>//localhost:1313/posts/rev-hackthebox-vvm/</guid>
+      <description>&lt;p&gt;We have to reverse the &lt;code&gt;vvm&lt;/code&gt; binary, an ELF 64 bits for Linux where symbols have been removed (stripped).&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ file vvm
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;vvm: ELF 64-bit LSB shared object, x86-64, version &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;SYSV&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;, dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;sha1&lt;span style=&#34;color:#f92672&#34;&gt;]=&lt;/span&gt;b1aeaf722aff251a97a1b0b3af16fc84039209af, &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; GNU/Linux 3.2.0, stripped
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Searching for non encrypted/encoded strings in the binary only gives us the software version as interesting matter:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ strings vvm
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;...
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;=======================&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;vvm v0.0.3
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;...
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Additionnaly, we don&amp;rsquo;t find any embedded file in the binaryusing &lt;code&gt;binwalk&lt;/code&gt;.&lt;/p&gt;</description>
+      <content>&lt;p&gt;We have to reverse the &lt;code&gt;vvm&lt;/code&gt; binary, an ELF 64 bits for Linux where symbols have been removed (stripped).&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ file vvm
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;vvm: ELF 64-bit LSB shared object, x86-64, version &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;SYSV&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;, dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;sha1&lt;span style=&#34;color:#f92672&#34;&gt;]=&lt;/span&gt;b1aeaf722aff251a97a1b0b3af16fc84039209af, &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; GNU/Linux 3.2.0, stripped
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Searching for non encrypted/encoded strings in the binary only gives us the software version as interesting matter:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ strings vvm
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;...
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;=======================&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;vvm v0.0.3
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;...
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Additionnaly, we don&amp;rsquo;t find any embedded file in the binaryusing &lt;code&gt;binwalk&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;main&lt;/code&gt; function sequentially call 3 functions:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;sub_2940&lt;/code&gt;: just prints the software banner&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;sub_1540&lt;/code&gt;: lot of stuff happening here, seems to set up things for later use&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;sub_28A0&lt;/code&gt;: this function only iterates over a global byte array and calls dynamically allocated function pointers based on current value of global array&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;By navigating a bit around the last 2 functions, we uncover that the binary likely obfuscate its logic with a custom VM. The &lt;code&gt;sub_1540&lt;/code&gt; function is responsible to setting up the vm state, instructions handlers, etc&amp;hellip; and the &lt;code&gt;sub_2810&lt;/code&gt; is responsible for running the custom bytecode.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-C&#34; data-lang=&#34;C&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;__int64&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;__fastcall&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;__int64&lt;/span&gt; a1, &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;**&lt;/span&gt;a2, &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;**&lt;/span&gt;a3)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#a6e22e&#34;&gt;vvm_banner&lt;/span&gt;(); &lt;span style=&#34;color:#75715e&#34;&gt;// sub_2940
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#a6e22e&#34;&gt;vvm_init&lt;/span&gt;();   &lt;span style=&#34;color:#75715e&#34;&gt;// sub_1540
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#a6e22e&#34;&gt;vvm_run&lt;/span&gt;();    &lt;span style=&#34;color:#75715e&#34;&gt;// sub_28A0
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0LL&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;reversing-the-vm-setup&#34;&gt;Reversing the VM setup&lt;/h2&gt;
+&lt;p&gt;The &lt;code&gt;vvm_init&lt;/code&gt; function does all the initialization for the VM. Actually, it allocates a global heap variable that will hold all the VM instructions function handler pointers.&lt;/p&gt;
+&lt;p&gt;Some instruction handlers are part of the initial codebase and there is nothing particular &lt;code&gt;vvm_init&lt;/code&gt; does for them retrieving the function pointer and setting it in the global handlers.&lt;/p&gt;
+&lt;p&gt;For other instruction handlers, the program decrypts the code from memory (&lt;strong&gt;encrypted with vigenere&lt;/strong&gt;), creates an &lt;code&gt;mmap&lt;/code&gt;-ed region where it stores the code, and assignates the relevant global handler to the mmaped area address.&lt;/p&gt;
+&lt;p&gt;one function is responsible for decrypting stuff and mmap-ing it&lt;/p&gt;
+&lt;p&gt;we have different types of handlers:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;control flow related handlers (modify bc pointer)&lt;/li&gt;
+&lt;li&gt;memory related handlers (interact with memory without modifying bc pointer)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;reconstructing-original-program&#34;&gt;Reconstructing original program&lt;/h2&gt;
+</content>
+    </item>
+    
+  </channel>
+</rss>

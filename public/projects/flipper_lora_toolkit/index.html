@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  
+    <title>Flipper Zero LoRa Toolkit :: yocvito website</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="A project for adding LoRa capabilities to the Flipper Zero" />
+<meta name="keywords" content="project, demo, Flipper, LoRa" />
+
+  <meta name="robots" content="noodp" />
+
+<link rel="canonical" href="//localhost:1313/projects/flipper_lora_toolkit/" />
+
+
+
+
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/style.min.1cdbb7cf76923868c5b397f2052baabd091aedcc09ffebdd5da68e6d56712689.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/buttons.min.2bc533403a27dfe0e93105a92502b42ce4587e2e4a87d9f7d349e51e16e09478.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/code.min.00125962708925857e7b66dbc58391d55be1191a3d0ce2034de8c9cd2c481c36.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/fonts.min.4881f0c525f3ce2a1864fb6e96676396cebe1e6fcef1933e8e1dde7041004fb5.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/footer.min.2e3eb191baee58dd05a9f0104ac1fab0827bca7c64dafe0b2579f934c33a1d69.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/gist.min.a751e8b0abe1ba8bc53ced52a38b19d8950fe78ca29454ea8c2595cf26aad5c0.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/header.min.b6fb4423cf82a9f9d7abc9cd010223fa3d70a6526a3f28f8e17d814c06e18f9e.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/main.min.fe8dc560fccb53a458b0db19ccb7b265764ac46b68596b7e099c6793054dd457.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/menu.min.83637a90d903026bc280d3f82f96ceb06c5fc72b7c1a8d686afb5bbf818a29f7.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/pagination.min.82f6400eae7c7c6dc3c866733c2ec0579e4089608fea69400ff85b3880aa0d3c.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/post.min.fc74ca360273c1d828da3c02b8174eba435607b369d98418ccc6f2243cd4e75d.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/prism.min.9023bbc24533d09e97a51a0a42a5a7bfe4c591ae167c5551fb1d2191d11977c0.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/syntax.min.cc789ed9377260d7949ea4c18781fc58959a89287210fe4edbff44ebfc1511b6.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/terminal.min.dc41063add420c2d2107bf5328b2f5abe23fb57e24dbc4fa9e7827b9f5bd8f9a.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/terms.min.b81791663c3790e738e571cdbf802312390d30e4b1d8dc9d814a5b5454d0ac11.css">
+
+
+
+
+
+
+
+<link rel="shortcut icon" href="//localhost:1313/favicon.png">
+<link rel="apple-touch-icon" href="//localhost:1313/apple-touch-icon.png">
+
+
+<meta name="twitter:card" content="summary" />
+
+  
+    <meta name="twitter:site" content="" />
+  
+    <meta name="twitter:creator" content="" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Flipper Zero LoRa Toolkit">
+<meta property="og:description" content="A project for adding LoRa capabilities to the Flipper Zero" />
+<meta property="og:url" content="//localhost:1313/projects/flipper_lora_toolkit/" />
+<meta property="og:site_name" content="yocvito website" />
+
+  
+  
+  <meta property="og:image" content="//localhost:1313/">
+
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="627">
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body>
+
+
+<div class="container">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="/">
+  <div class="logo">
+    yocvito
+  </div>
+</a>
+
+    </div>
+    
+      <ul class="menu menu--mobile">
+  <li class="menu__trigger">Menu&nbsp;▾</li>
+  <li>
+    <ul class="menu__dropdown">
+      
+        
+          <li><a href="/about/about">About</a></li>
+        
+      
+        
+          <li><a href="/posts">Blog</a></li>
+        
+      
+        
+          <li><a href="/projects">Projects</a></li>
+        
+      
+        
+          <li><a href="/about/resume">Resume / CV</a></li>
+        
+      
+      
+    </ul>
+  </li>
+</ul>
+
+    
+    
+  </div>
+  
+    <nav class="navigation-menu">
+  <ul class="navigation-menu__inner menu--desktop">
+    
+      
+        
+          <li><a href="/about/about" >About</a></li>
+        
+      
+        
+          <li><a href="/posts" >Blog</a></li>
+        
+      
+        
+          <li><a href="/projects" >Projects</a></li>
+        
+      
+        
+          <li><a href="/about/resume" >Resume / CV</a></li>
+        
+      
+      
+    
+  </ul>
+</nav>
+
+  
+</header>
+
+
+  <div class="content">
+    
+<article class="post">
+  <h1 class="post-title">
+    <a href="//localhost:1313/projects/flipper_lora_toolkit/">Flipper Zero LoRa Toolkit</a>
+  </h1>
+  <div class="post-meta"></div>
+
+  
+    <span class="post-tags">
+      
+      #<a href="//localhost:1313/tags/project/">project</a>&nbsp;
+      
+      #<a href="//localhost:1313/tags/demo/">demo</a>&nbsp;
+      
+      #<a href="//localhost:1313/tags/flipper/">Flipper</a>&nbsp;
+      
+      #<a href="//localhost:1313/tags/lora/">LoRa</a>&nbsp;
+      
+    </span>
+  
+  
+
+
+  
+
+  <div class="post-content"><div>
+        <h1 id="flipper-zero-lora-toolkit-app">Flipper Zero: LoRa Toolkit App<a href="#flipper-zero-lora-toolkit-app" class="hanchor" ariaLabel="Anchor">#</a> </h1>
+<p>⚠️ <strong>WARNING</strong> ⚠️<!-- raw HTML omitted --><!-- raw HTML omitted --><br>
+<em>Unfinished project, This page is only here to showcase what I&rsquo;ve done. If your interested in getting codebase or part of it, feel free to <a href="mailto:yocvito.f@pm.me">ask</a></em></p>
+<h2 id="brief">Brief<a href="#brief" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<p>A LoRa Receiver/Transmitter app for Flipper Zero, and almost fully configurable !</p>
+<p>This app allows to interact with an Heltec ESP32 LoRa (V2) where a custom firmware is installed.</p>
+<p>If you are not familiar with LoRa, you can learn more about it <a href="https://en.wikipedia.org/wiki/LoRa">here</a>. You might also want to check <a href="https://www.thethingsnetwork.org/docs/lorawan/">LoRaWAN</a>, the applicative protocol on top of LoRa.</p>
+<p><strong>Main features:</strong></p>
+<ul>
+<li>Configure LoRa modem</li>
+<li>Recv/Send LoRa frames</li>
+</ul>
+<p><strong>Additionnal &ldquo;features&rdquo;:</strong></p>
+<ul>
+<li>Replay received frames</li>
+<li>Save received frames</li>
+<li>Frequency hopping
+<ul>
+<li>Select frequencies for hopping</li>
+</ul>
+</li>
+<li>Add custom frequencies (130-1020MHz)</li>
+<li>Extract channel properties (RSSI, SNR, CFO)</li>
+</ul>
+<p><!-- raw HTML omitted --><em><strong>WARN: For educationnal purpose only. Even though this tool doesn&rsquo;t implement any attacks, it can easely be used to disrupt services which use LoRa around you, so be respectfull and use it for your own stuff or educationnal demonstration.</strong></em><!-- raw HTML omitted --></p>
+<h2 id="configure-project">Configure project<a href="#configure-project" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<h3 id="required">Required<a href="#required" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<ul>
+<li>Flipper Zero (of course !)</li>
+<li><a href="https://fr.aliexpress.com/w/wholesale-heltec-esp32-lora-v2.html">Heltec ESP32 LoRa (V2)</a> embedding a SX1276 transceiver (<a href="https://doc.riot-os.org/group__boards__esp32__heltec-lora32-v2.html">board info</a>)</li>
+<li>Arduino IDE (or equivalent like <a href="https://marketplace.visualstudio.com/items?itemName=vsciot-vscode.vscode-arduino">vscode extension</a>)</li>
+<li><code>fbt</code> toolchain (just clone latest <a href="https://github.com/Flipper-XFW/Xtreme-Firmware">Xtreme Firmware</a> version)</li>
+</ul>
+<p><em>Note: the reason why we use the Heltec ESP32 (V2) instead of (V3) is because they embed different transceivers. The SX1276 coming with the V2 allows more granularity in configurations and usage of the radio (I&rsquo;m also more familiar with it). For example, the SX1262 don&rsquo;t allow fetching the Carrier Frequency Offset (CFO) which can be usefull for authentication.</em>
+<em>For now it is not planned to port the code to the ESP32 V3, but it&rsquo;s possible if the project interest people.</em></p>
+<h3 id="esp32">ESP32<a href="#esp32" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>Open the <code>ESP32LoRaToolkit</code> project in arduino-ide.</p>
+<p>Then you need to install Heltec boards &amp; libraries into arduino following <a href="https://docs.heltec.org/en/node/esp32/esp32_general_docs/quick_start.html">this guide</a> (I recommend installing <!-- raw HTML omitted -->Via Arduino Board Manager<!-- raw HTML omitted -->)</p>
+<p>Select the right board (be careful to take the LoRa V2) and the port (should be <code>/dev/ttyUSBX</code> on linux).
+Finally, flash the firmware to the ESP32 board by pressing right arrow button located on the top left of the window (&ldquo;Upload&rdquo; should appears when your mouse is hovering over it).
+<img alt="Flashing Arduino" src="/img/flipper_lora/flash_arduino.png"></p>
+<p>If the flashing process have been sucessful and you have let <code>ENABLE_OLED_DISPLAY</code> set to <code>1</code>, then you should see &ldquo;LoRa Receiver&rdquo; displayed on the screen.</p>
+<h3 id="flipper">Flipper<a href="#flipper" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>Just copy <code>lora_toolkit</code> folder to <code>./applications_user/</code> in Xtreme firmware directory.</p>
+<p>Then use <code>./fbt launch APPSRC=applications_user/lora_toolkit</code> to flash the app.</p>
+<p>WARNING: You need to update your firmware, at least to the <a href="https://github.com/Flipper-XFW/Xtreme-Firmware/releases/tag/XFW-0053_02022024">release version</a> where the uart was refactored in OFW.</p>
+<h2 id="demo">Demo<a href="#demo" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<h3 id="1">#1<a href="#1" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>First is a demonstration of a triggered jammer PoC to highlights that the ESP32 code remains simple enough, and low level, to allows switching from RX to TX and jamming on a hald-duplex system (in perfect conditions). Actually, I added extra functions in the LoRa driver that allow <a href="https://www.thethingsnetwork.org/docs/lorawan/lora-phy-format/"><em>LoRa preamble</em></a> detection, and it will be relatively simple to add another features because the <a href="/DS_SX1276-7-8-9_W_APP_V7.pdf"><strong>SX1276 transceiver</strong></a> is &ldquo;easy&rdquo; to configure and interact with.</p>
+<p><a href="https://www.youtube.com/embed/0ejxvojs_gI"><img alt="Watch the First demo" src="https://img.youtube.com/vi/0ejxvojs_gI/hqdefault.jpg"></a></p>
+<p><strong>Photo of the setup:</strong>
+<img alt="Setup demo 1" src="/img/flipper_lora/setup_demo_1.jpeg"></p>
+<h3 id="2">#2<a href="#2" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>The second video shows all the basic features.</p>
+<p><a href="https://www.youtube.com/embed/Wc4Ek1JKSUk"><img alt="Watch the Second demo" src="https://img.youtube.com/vi/Wc4Ek1JKSUk/hqdefault.jpg"></a></p>
+<h3 id="3">#3<a href="#3" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>The third and last video is about custom frequencies and hopping. It uses <a href="https://www.gqrx.dk/">gqrx</a> for visualizing LoRa signals and show you can effectively extends the default frequencies.</p>
+<p><a href="https://www.youtube.com/embed/_OM5C_Y_GhI"><img alt="Watch the Third demo" src="https://img.youtube.com/vi/_OM5C_Y_GhI/hqdefault.jpg"></a></p>
+<p><strong>Screenshot of GQRX:</strong>
+<img alt="A LoRa signal sent outside EU frequencies (the default frequencies of the firmware)" src="/img/flipper_lora/lora_non_regional_freq.png"></p>
+<p><em>WARNING: I don&rsquo;t have 2 esp32&rsquo;s, so I can&rsquo;t test that LoRa signals sent in custom freqs outside regional frequencies will be correctly decoded at the receiver side.</em></p>
+
+      </div></div>
+
+  
+
+  
+    
+
+  
+</article>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+        <span>© 2025 Powered by <a href="https://gohugo.io">Hugo</a></span>
+    
+      <span>:: <a href="https://github.com/panr/hugo-theme-terminal" target="_blank">Theme</a> made by <a href="https://github.com/panr" target="_blank">panr</a></span>
+      </div>
+  </div>
+</footer>
+
+
+
+
+
+
+<script type="text/javascript" src="/bundle.min.js"></script>
+
+
+
+
+
+  
+</div>
+
+</body>
+</html>

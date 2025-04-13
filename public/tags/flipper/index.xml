@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Flipper on yocvito website</title>
+    <link>//localhost:1313/tags/flipper/</link>
+    <description>Recent content in Flipper on yocvito website</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language><atom:link href="//localhost:1313/tags/flipper/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Flipper Zero LoRa Toolkit</title>
+      <link>//localhost:1313/projects/flipper_lora_toolkit/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>//localhost:1313/projects/flipper_lora_toolkit/</guid>
+      <description>&lt;h1 id=&#34;flipper-zero-lora-toolkit-app&#34;&gt;Flipper Zero: LoRa Toolkit App&lt;/h1&gt;
+&lt;p&gt;⚠️ &lt;strong&gt;WARNING&lt;/strong&gt; ⚠️&lt;!-- raw HTML omitted --&gt;&lt;!-- raw HTML omitted --&gt;&lt;br&gt;
+&lt;em&gt;Unfinished project, This page is only here to showcase what I&amp;rsquo;ve done. If your interested in getting codebase or part of it, feel free to &lt;a href=&#34;mailto:yocvito.f@pm.me&#34;&gt;ask&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
+&lt;h2 id=&#34;brief&#34;&gt;Brief&lt;/h2&gt;
+&lt;p&gt;A LoRa Receiver/Transmitter app for Flipper Zero, and almost fully configurable !&lt;/p&gt;
+&lt;p&gt;This app allows to interact with an Heltec ESP32 LoRa (V2) where a custom firmware is installed.&lt;/p&gt;</description>
+      <content>&lt;h1 id=&#34;flipper-zero-lora-toolkit-app&#34;&gt;Flipper Zero: LoRa Toolkit App&lt;/h1&gt;
+&lt;p&gt;⚠️ &lt;strong&gt;WARNING&lt;/strong&gt; ⚠️&lt;!-- raw HTML omitted --&gt;&lt;!-- raw HTML omitted --&gt;&lt;br&gt;
+&lt;em&gt;Unfinished project, This page is only here to showcase what I&amp;rsquo;ve done. If your interested in getting codebase or part of it, feel free to &lt;a href=&#34;mailto:yocvito.f@pm.me&#34;&gt;ask&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
+&lt;h2 id=&#34;brief&#34;&gt;Brief&lt;/h2&gt;
+&lt;p&gt;A LoRa Receiver/Transmitter app for Flipper Zero, and almost fully configurable !&lt;/p&gt;
+&lt;p&gt;This app allows to interact with an Heltec ESP32 LoRa (V2) where a custom firmware is installed.&lt;/p&gt;
+&lt;p&gt;If you are not familiar with LoRa, you can learn more about it &lt;a href=&#34;https://en.wikipedia.org/wiki/LoRa&#34;&gt;here&lt;/a&gt;. You might also want to check &lt;a href=&#34;https://www.thethingsnetwork.org/docs/lorawan/&#34;&gt;LoRaWAN&lt;/a&gt;, the applicative protocol on top of LoRa.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Main features:&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Configure LoRa modem&lt;/li&gt;
+&lt;li&gt;Recv/Send LoRa frames&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;Additionnal &amp;ldquo;features&amp;rdquo;:&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Replay received frames&lt;/li&gt;
+&lt;li&gt;Save received frames&lt;/li&gt;
+&lt;li&gt;Frequency hopping
+&lt;ul&gt;
+&lt;li&gt;Select frequencies for hopping&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Add custom frequencies (130-1020MHz)&lt;/li&gt;
+&lt;li&gt;Extract channel properties (RSSI, SNR, CFO)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;em&gt;&lt;strong&gt;WARN: For educationnal purpose only. Even though this tool doesn&amp;rsquo;t implement any attacks, it can easely be used to disrupt services which use LoRa around you, so be respectfull and use it for your own stuff or educationnal demonstration.&lt;/strong&gt;&lt;/em&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;h2 id=&#34;configure-project&#34;&gt;Configure project&lt;/h2&gt;
+&lt;h3 id=&#34;required&#34;&gt;Required&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Flipper Zero (of course !)&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://fr.aliexpress.com/w/wholesale-heltec-esp32-lora-v2.html&#34;&gt;Heltec ESP32 LoRa (V2)&lt;/a&gt; embedding a SX1276 transceiver (&lt;a href=&#34;https://doc.riot-os.org/group__boards__esp32__heltec-lora32-v2.html&#34;&gt;board info&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;Arduino IDE (or equivalent like &lt;a href=&#34;https://marketplace.visualstudio.com/items?itemName=vsciot-vscode.vscode-arduino&#34;&gt;vscode extension&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;fbt&lt;/code&gt; toolchain (just clone latest &lt;a href=&#34;https://github.com/Flipper-XFW/Xtreme-Firmware&#34;&gt;Xtreme Firmware&lt;/a&gt; version)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;Note: the reason why we use the Heltec ESP32 (V2) instead of (V3) is because they embed different transceivers. The SX1276 coming with the V2 allows more granularity in configurations and usage of the radio (I&amp;rsquo;m also more familiar with it). For example, the SX1262 don&amp;rsquo;t allow fetching the Carrier Frequency Offset (CFO) which can be usefull for authentication.&lt;/em&gt;
+&lt;em&gt;For now it is not planned to port the code to the ESP32 V3, but it&amp;rsquo;s possible if the project interest people.&lt;/em&gt;&lt;/p&gt;
+&lt;h3 id=&#34;esp32&#34;&gt;ESP32&lt;/h3&gt;
+&lt;p&gt;Open the &lt;code&gt;ESP32LoRaToolkit&lt;/code&gt; project in arduino-ide.&lt;/p&gt;
+&lt;p&gt;Then you need to install Heltec boards &amp;amp; libraries into arduino following &lt;a href=&#34;https://docs.heltec.org/en/node/esp32/esp32_general_docs/quick_start.html&#34;&gt;this guide&lt;/a&gt; (I recommend installing &lt;!-- raw HTML omitted --&gt;Via Arduino Board Manager&lt;!-- raw HTML omitted --&gt;)&lt;/p&gt;
+&lt;p&gt;Select the right board (be careful to take the LoRa V2) and the port (should be &lt;code&gt;/dev/ttyUSBX&lt;/code&gt; on linux).
+Finally, flash the firmware to the ESP32 board by pressing right arrow button located on the top left of the window (&amp;ldquo;Upload&amp;rdquo; should appears when your mouse is hovering over it).
+&lt;img alt=&#34;Flashing Arduino&#34; src=&#34;//localhost:1313/img/flipper_lora/flash_arduino.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;If the flashing process have been sucessful and you have let &lt;code&gt;ENABLE_OLED_DISPLAY&lt;/code&gt; set to &lt;code&gt;1&lt;/code&gt;, then you should see &amp;ldquo;LoRa Receiver&amp;rdquo; displayed on the screen.&lt;/p&gt;
+&lt;h3 id=&#34;flipper&#34;&gt;Flipper&lt;/h3&gt;
+&lt;p&gt;Just copy &lt;code&gt;lora_toolkit&lt;/code&gt; folder to &lt;code&gt;./applications_user/&lt;/code&gt; in Xtreme firmware directory.&lt;/p&gt;
+&lt;p&gt;Then use &lt;code&gt;./fbt launch APPSRC=applications_user/lora_toolkit&lt;/code&gt; to flash the app.&lt;/p&gt;
+&lt;p&gt;WARNING: You need to update your firmware, at least to the &lt;a href=&#34;https://github.com/Flipper-XFW/Xtreme-Firmware/releases/tag/XFW-0053_02022024&#34;&gt;release version&lt;/a&gt; where the uart was refactored in OFW.&lt;/p&gt;
+&lt;h2 id=&#34;demo&#34;&gt;Demo&lt;/h2&gt;
+&lt;h3 id=&#34;1&#34;&gt;#1&lt;/h3&gt;
+&lt;p&gt;First is a demonstration of a triggered jammer PoC to highlights that the ESP32 code remains simple enough, and low level, to allows switching from RX to TX and jamming on a hald-duplex system (in perfect conditions). Actually, I added extra functions in the LoRa driver that allow &lt;a href=&#34;https://www.thethingsnetwork.org/docs/lorawan/lora-phy-format/&#34;&gt;&lt;em&gt;LoRa preamble&lt;/em&gt;&lt;/a&gt; detection, and it will be relatively simple to add another features because the &lt;a href=&#34;//localhost:1313/DS_SX1276-7-8-9_W_APP_V7.pdf&#34;&gt;&lt;strong&gt;SX1276 transceiver&lt;/strong&gt;&lt;/a&gt; is &amp;ldquo;easy&amp;rdquo; to configure and interact with.&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://www.youtube.com/embed/0ejxvojs_gI&#34;&gt;&lt;img alt=&#34;Watch the First demo&#34; src=&#34;https://img.youtube.com/vi/0ejxvojs_gI/hqdefault.jpg&#34;&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Photo of the setup:&lt;/strong&gt;
+&lt;img alt=&#34;Setup demo 1&#34; src=&#34;//localhost:1313/img/flipper_lora/setup_demo_1.jpeg&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;2&#34;&gt;#2&lt;/h3&gt;
+&lt;p&gt;The second video shows all the basic features.&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://www.youtube.com/embed/Wc4Ek1JKSUk&#34;&gt;&lt;img alt=&#34;Watch the Second demo&#34; src=&#34;https://img.youtube.com/vi/Wc4Ek1JKSUk/hqdefault.jpg&#34;&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id=&#34;3&#34;&gt;#3&lt;/h3&gt;
+&lt;p&gt;The third and last video is about custom frequencies and hopping. It uses &lt;a href=&#34;https://www.gqrx.dk/&#34;&gt;gqrx&lt;/a&gt; for visualizing LoRa signals and show you can effectively extends the default frequencies.&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://www.youtube.com/embed/_OM5C_Y_GhI&#34;&gt;&lt;img alt=&#34;Watch the Third demo&#34; src=&#34;https://img.youtube.com/vi/_OM5C_Y_GhI/hqdefault.jpg&#34;&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Screenshot of GQRX:&lt;/strong&gt;
+&lt;img alt=&#34;A LoRa signal sent outside EU frequencies (the default frequencies of the firmware)&#34; src=&#34;//localhost:1313/img/flipper_lora/lora_non_regional_freq.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;WARNING: I don&amp;rsquo;t have 2 esp32&amp;rsquo;s, so I can&amp;rsquo;t test that LoRa signals sent in custom freqs outside regional frequencies will be correctly decoded at the receiver side.&lt;/em&gt;&lt;/p&gt;
+</content>
+    </item>
+    
+  </channel>
+</rss>

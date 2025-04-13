@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Bluetooth on yocvito website</title>
+    <link>//localhost:1313/tags/bluetooth/</link>
+    <description>Recent content in Bluetooth on yocvito website</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Sun, 16 Feb 2025 12:09:43 +0100</lastBuildDate><atom:link href="//localhost:1313/tags/bluetooth/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Pwn: Weaponizing LILYGO T-Embed for exploiting Bluetooth</title>
+      <link>//localhost:1313/posts/pwn-linkern-bt/</link>
+      <pubDate>Sun, 16 Feb 2025 12:09:43 +0100</pubDate>
+      
+      <guid>//localhost:1313/posts/pwn-linkern-bt/</guid>
+      <description>&lt;p&gt;It&amp;rsquo;s been some time we see uses of embedded devices for offensive security tasks (esp marauder, esp deauther, pwngotchi, &amp;hellip;). This devices were highly capable in performing various attacks either directly on the RF PHY layer (eavesdropping, jamming, etc&amp;hellip;), and/or upper protocols (WPA2 deauth frame, rolling codes, etc&amp;hellip;). Most of the time, these devices were highly specialized.&lt;/p&gt;
+&lt;p&gt;With the apparition of Flipper Zero, a generalist pentesting device with extended capabilities compared to others, we saw a huge interest in developping custom Firmwares to improve the capabilities given by the hardware. For example, work have been done to create/extend applications to interact with BLE devices. For example the BadBLE rubber ducky module (first added in Xtreme Firmware by me) or the BLE spam application added by WillyJL.&lt;/p&gt;</description>
+      <content>&lt;p&gt;It&amp;rsquo;s been some time we see uses of embedded devices for offensive security tasks (esp marauder, esp deauther, pwngotchi, &amp;hellip;). This devices were highly capable in performing various attacks either directly on the RF PHY layer (eavesdropping, jamming, etc&amp;hellip;), and/or upper protocols (WPA2 deauth frame, rolling codes, etc&amp;hellip;). Most of the time, these devices were highly specialized.&lt;/p&gt;
+&lt;p&gt;With the apparition of Flipper Zero, a generalist pentesting device with extended capabilities compared to others, we saw a huge interest in developping custom Firmwares to improve the capabilities given by the hardware. For example, work have been done to create/extend applications to interact with BLE devices. For example the BadBLE rubber ducky module (first added in Xtreme Firmware by me) or the BLE spam application added by WillyJL.&lt;/p&gt;
+&lt;p&gt;It was mainly non harmful features which were added, but it shows that such devices (and it was already known with marauder) could definitely be used to attack everyday devices which interact with wireless protocols.&lt;/p&gt;
+&lt;p&gt;My main interest here is about the networking stacks which implement these protocols. This code often run with high privileges (kernel, system components) and thus, finding vulnerabilities in these codebases could potentially have high impact.&lt;/p&gt;
+</content>
+    </item>
+    
+  </channel>
+</rss>

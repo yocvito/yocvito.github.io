@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Abouts on yocvito website</title>
+    <link>//localhost:1313/about/</link>
+    <description>Recent content in Abouts on yocvito website</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Tue, 29 Oct 2024 12:13:27 +0100</lastBuildDate><atom:link href="//localhost:1313/about/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>About Me</title>
+      <link>//localhost:1313/about/about/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>//localhost:1313/about/about/</guid>
+      <description>&lt;p&gt;Hey, I&amp;rsquo;m yocvito.&lt;/p&gt;
+&lt;p&gt;I am a cybersecurity engineer who likes reversing malware, pwning stuff, and writing low level code. I&amp;rsquo;m interested in OS and network security (or more generally what&amp;rsquo;s tied to low level and security).&lt;/p&gt;
+&lt;h2 id=&#34;contact&#34;&gt;Contact&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Email: &lt;a href=&#34;mailto:yocvito.f@pm.me&#34;&gt;yocvito.f@pm.me&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Github: &lt;a href=&#34;https://github.com/yocvito&#34;&gt;yocvito&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Twitter: &lt;a href=&#34;https://twitter.com/yocvito&#34;&gt;@yocvito&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</description>
+      <content>&lt;p&gt;Hey, I&amp;rsquo;m yocvito.&lt;/p&gt;
+&lt;p&gt;I am a cybersecurity engineer who likes reversing malware, pwning stuff, and writing low level code. I&amp;rsquo;m interested in OS and network security (or more generally what&amp;rsquo;s tied to low level and security).&lt;/p&gt;
+&lt;h2 id=&#34;contact&#34;&gt;Contact&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Email: &lt;a href=&#34;mailto:yocvito.f@pm.me&#34;&gt;yocvito.f@pm.me&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Github: &lt;a href=&#34;https://github.com/yocvito&#34;&gt;yocvito&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Twitter: &lt;a href=&#34;https://twitter.com/yocvito&#34;&gt;@yocvito&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</content>
+    </item>
+    
+    <item>
+      <title>Resume</title>
+      <link>//localhost:1313/about/resume/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>//localhost:1313/about/resume/</guid>
+      <description>&lt;h1 id=&#34;resume&#34;&gt;Resume&lt;/h1&gt;
+&lt;h2 id=&#34;education&#34;&gt;Education&lt;/h2&gt;
+&lt;p&gt;&lt;em&gt;&lt;strong&gt;Master: Cybersecurity &amp;amp; Cryptology&lt;/strong&gt;&lt;/em&gt; (2023)&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;System security, Network security, Programming, Smart-Card, Information Theory, Cryptology, Cryptanalysis&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;em&gt;&lt;strong&gt;Bachelor Degree (Licence): Computer Science&lt;/strong&gt;&lt;/em&gt; (2021)&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Programming (system, networking, image processing), Operating System, Networking, Algorithms&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;em&gt;&lt;strong&gt;Associate Degree (DUT): Computer Science&lt;/strong&gt;&lt;/em&gt; (2019)&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Programming (web, mobile, system, networking, embedded devices), Operating System, Networking&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=&#34;experience&#34;&gt;Experience&lt;/h2&gt;
+&lt;h3 id=&#34;work&#34;&gt;Work&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt;PhD Student: LaBRI&lt;/strong&gt; (Dec. 2023 - Nov. 2024)&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;&lt;strong&gt;Physical layer Security&lt;/strong&gt;&lt;/em&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;State of the art
+&lt;ul&gt;
+&lt;li&gt;read papers&lt;/li&gt;
+&lt;li&gt;understand technology and context (LoRa, low power devices, &amp;hellip;)&lt;/li&gt;
+&lt;li&gt;getting familiar with the hardware (STM32 devices with &lt;strong&gt;SX1276&lt;/strong&gt; LoRa transceivers)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Paper writting (stopped): Compare &lt;em&gt;quantization&lt;/em&gt; methods of Key Generation systems found in literature (+ some methods untested for LoRa)
+&lt;ul&gt;
+&lt;li&gt;Implement LoRa Key Generation system from scratch (in C)
+&lt;ul&gt;
+&lt;li&gt;this one is general compared to prior work in 2021 and can handle various methods at each phase of the Key Generation procedure&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Write a tool for configuring devices equipped with KeyGen system and logging telemetry data (in Rust)&lt;/li&gt;
+&lt;li&gt;Write various utilities (in Python and Rust)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;I did stop my PhD because I was not happy working on this subject&lt;/em&gt; :(&lt;/p&gt;</description>
+      <content>&lt;h1 id=&#34;resume&#34;&gt;Resume&lt;/h1&gt;
+&lt;h2 id=&#34;education&#34;&gt;Education&lt;/h2&gt;
+&lt;p&gt;&lt;em&gt;&lt;strong&gt;Master: Cybersecurity &amp;amp; Cryptology&lt;/strong&gt;&lt;/em&gt; (2023)&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;System security, Network security, Programming, Smart-Card, Information Theory, Cryptology, Cryptanalysis&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;em&gt;&lt;strong&gt;Bachelor Degree (Licence): Computer Science&lt;/strong&gt;&lt;/em&gt; (2021)&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Programming (system, networking, image processing), Operating System, Networking, Algorithms&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;em&gt;&lt;strong&gt;Associate Degree (DUT): Computer Science&lt;/strong&gt;&lt;/em&gt; (2019)&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Programming (web, mobile, system, networking, embedded devices), Operating System, Networking&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=&#34;experience&#34;&gt;Experience&lt;/h2&gt;
+&lt;h3 id=&#34;work&#34;&gt;Work&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt;PhD Student: LaBRI&lt;/strong&gt; (Dec. 2023 - Nov. 2024)&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;&lt;strong&gt;Physical layer Security&lt;/strong&gt;&lt;/em&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;State of the art
+&lt;ul&gt;
+&lt;li&gt;read papers&lt;/li&gt;
+&lt;li&gt;understand technology and context (LoRa, low power devices, &amp;hellip;)&lt;/li&gt;
+&lt;li&gt;getting familiar with the hardware (STM32 devices with &lt;strong&gt;SX1276&lt;/strong&gt; LoRa transceivers)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Paper writting (stopped): Compare &lt;em&gt;quantization&lt;/em&gt; methods of Key Generation systems found in literature (+ some methods untested for LoRa)
+&lt;ul&gt;
+&lt;li&gt;Implement LoRa Key Generation system from scratch (in C)
+&lt;ul&gt;
+&lt;li&gt;this one is general compared to prior work in 2021 and can handle various methods at each phase of the Key Generation procedure&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Write a tool for configuring devices equipped with KeyGen system and logging telemetry data (in Rust)&lt;/li&gt;
+&lt;li&gt;Write various utilities (in Python and Rust)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;I did stop my PhD because I was not happy working on this subject&lt;/em&gt; :(&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;&lt;strong&gt;Intern: Defense Ministery&lt;/strong&gt; (Mar. 2023 - Aug. 2023)&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;&lt;strong&gt;Embedded Linux Security&lt;/strong&gt;&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;Using Reverse Engineering and Fuzzing to test security of an embedded linux device.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;reversing on IDA Pro
+&lt;ul&gt;
+&lt;li&gt;basic python scripting&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;emulation + fuzzing using &lt;a href=&#34;https://www.unicorn-engine.org/&#34;&gt;Unicorn Engine&lt;/a&gt; and &lt;a href=&#34;https://github.com/AFLplusplus/unicornafl&#34;&gt;AFL++&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;tooling in Python&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;I will not respond to any questions related to this work&lt;/em&gt;&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;&lt;strong&gt;Intern: LaBRI&lt;/strong&gt; (May 2021 - Aug. 2021)&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;&lt;strong&gt;Implementation of a Physical layer based key generation system&lt;/strong&gt;&lt;/em&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Understand &lt;strong&gt;Physical layer based security&lt;/strong&gt; (read papers)&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://lora.readthedocs.io/en/latest/&#34;&gt;&lt;strong&gt;LoRa&lt;/strong&gt; Technology&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Work on &lt;strong&gt;FiPy&lt;/strong&gt; devices (use an ESP32) from &lt;em&gt;Pycom&lt;/em&gt;
+&lt;ul&gt;
+&lt;li&gt;use a modified micropython stack&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Modify Pycom firmware to implement the key generation procedure (&lt;a href=&#34;https://github.com/yocvito/pycom-micropython-sigfox&#34;&gt;our fork&lt;/a&gt;, look at &lt;strong&gt;PHYSEC&lt;/strong&gt; branch)
+&lt;ul&gt;
+&lt;li&gt;implement &lt;a href=&#34;https://ieeexplore.ieee.org/abstract/document/8580375&#34;&gt;LoRa-Key paper&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;p&gt;&lt;strong&gt;Intern: INVISSYS&lt;/strong&gt; (Apr. 2019 - June 2019)&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;&lt;strong&gt;Developpment of a solution for getting logs of a large number of embedded devices&lt;/strong&gt;&lt;/em&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Work on STM32 devices with LoRa capibilities&lt;/li&gt;
+&lt;li&gt;Design and Implement gathering of STM32 logs from a Raspberry Pi
+&lt;ul&gt;
+&lt;li&gt;Use an intermediary STM32 device for collecting logs as UART and sending them to RPI using I2C&lt;/li&gt;
+&lt;li&gt;Use basic system programming in C for I2C communication&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;projects&#34;&gt;Projects&lt;/h3&gt;
+&lt;p&gt;Here is non exhaustive list of my projects to get an idea of what I&amp;rsquo;ve worked on.&lt;/p&gt;
+&lt;p&gt;⚠️ &lt;strong&gt;WARNING&lt;/strong&gt; ⚠️&lt;!-- raw HTML omitted --&gt;&lt;!-- raw HTML omitted --&gt;&lt;br&gt;
+&lt;em&gt;I do not endorse illegal activities. Some of my projects are educational explorations that could be misapplied. To prevent misuse, certain code isn&amp;rsquo;t publicly available but can be shared upon &lt;a href=&#34;mailto:yocvito.f@pm.me&#34;&gt;request&lt;/a&gt; after careful consideration.&lt;/em&gt;&lt;/p&gt;
+&lt;table&gt;
+  &lt;thead&gt;
+      &lt;tr&gt;
+          &lt;th&gt;Project Name&lt;/th&gt;
+          &lt;th&gt;Brief&lt;/th&gt;
+          &lt;th&gt;Link (if available)&lt;/th&gt;
+      &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+      &lt;tr&gt;
+          &lt;td&gt;Flipper: Bad BLE&lt;/td&gt;
+          &lt;td&gt;Add Bluetooth capability to the BadUSB application of Flipper Zero&lt;/td&gt;
+          &lt;td&gt;&lt;a href=&#34;https://github.com/Next-Flip/Momentum-Firmware&#34;&gt;Community Firmware with the feature&lt;/a&gt;&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;Linux Rootkit (PoC)&lt;/td&gt;
+          &lt;td&gt;Linux rootkit with basic features (process/file/port hiding, backdoors (root, reverse-shell, ssh), &amp;hellip;).&lt;/td&gt;
+          &lt;td&gt;&lt;em&gt;not public (but you can find another rootkit PoC &lt;a href=&#34;//localhost:1313/posts/linux-rootkit/&#34;&gt;here&lt;/a&gt;)&lt;/em&gt;&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;Flipper: LoRa Toolkit&lt;/td&gt;
+          &lt;td&gt;Add LoRa capability to Flipper using an &lt;a href=&#34;https://heltec.org/project/wifi-lora-32v2/&#34;&gt;ESP32 external board&lt;/a&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;em&gt;not finished (&lt;a href=&#34;//localhost:1313/projects/flipper_lora_toolkit/&#34;&gt;link to demo&lt;/a&gt;)&lt;/em&gt;&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;Kobalos-rs&lt;/td&gt;
+          &lt;td&gt;Implementing the Kobalos malware obfuscation technique in Rust proc-macros&lt;/td&gt;
+          &lt;td&gt;&lt;em&gt;not finished (&lt;a href=&#34;//localhost:1313/projects/kobalos-rs/&#34;&gt;link to demo&lt;/a&gt;)&lt;/em&gt;&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;rkpreload-rs&lt;/td&gt;
+          &lt;td&gt;Implementing in Rust basic &lt;code&gt;LD_PRELOAD&lt;/code&gt; &amp;amp; eBPF malwares for KOTH CTFs&lt;/td&gt;
+          &lt;td&gt;&lt;a href=&#34;https://github.com/yocvito/rkpreload-rs&#34;&gt;link to demo&lt;/a&gt;&lt;/td&gt;
+      &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id=&#34;technical-skills&#34;&gt;Technical Skills&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;Reverse, Pwn, dev, pentest&lt;/strong&gt;&lt;/p&gt;
+&lt;h2 id=&#34;languages&#34;&gt;Languages&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;C, Rust, Python, Assembly (x86_64, ARM, AVR, xtensa), C++, Java&lt;/strong&gt;&lt;/p&gt;
+</content>
+    </item>
+    
+  </channel>
+</rss>

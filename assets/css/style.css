@@ -1,0 +1,14 @@
+.skill-badge {
+    padding: 5px 10px;
+    margin: 5px;
+    border-radius: 5px;
+    color: #ffffff;
+    display: inline-block;
+    font-weight: bold;
+    font-size: 0.9em;
+}
+
+.blue { background-color: #A1C4FD; }    /* Adjust colors as needed */
+.green { background-color: #A7F3D0; }
+.purple { background-color: #C4B5FD; }
+.grey { background-color: #E5E7EB; color: #000; }
